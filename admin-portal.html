@@ -1,311 +1,441 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-us">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>FedEx Admin Portal</title>
-  
-  <!-- Supabase JS -->
+  <title>Admin Portal | FedEx</title>
+  <link rel="stylesheet" href="assets/site.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  
-  <!-- FedEx Brand Colors -->
-  <style>
-    :root {
-      --dsmg-brand-purple: #4d148c;
-      --dsmg-brand-orange: #FF6200;
-      --dsmg-color-bg-light: #f6f7fb;
-      --dsmg-color-paper: #ffffff;
-      --dsmg-color-ink: #1f2937;
-      --dsmg-color-gray-200: #e5e7eb;
-      --dsmg-color-gray-300: #d1d5db;
-      --dsmg-color-gray-500: #6b7280;
-      --dsmg-color-gray-600: #4b5563;
-      --dsmg-color-success: #059669;
-      --dsmg-color-info: #3b82f6;
-      --dsmg-color-warning: #d97706;
-      --dsmg-color-error: #dc262f;
-    }
-
-    * { box-sizing: border-box; }
-    body { font-family: 'FedExSans', Arial, sans-serif; margin: 0; background: var(--dsmg-color-bg-light); color: var(--dsmg-color-ink); }
-
-    .admin-container { max-width: 1200px; margin: 0 auto; padding: 20px; }
-
-    .admin-card { background: var(--dsmg-color-paper); padding: 24px; margin-bottom: 20px; border-radius: 8px; }
-
-    .admin-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    .admin-table th, .admin-table td { padding: 12px; text-align: left; border-bottom: 1px solid var(--dsmg-color-gray-200); }
-    .admin-table th { color: var(--dsmg-color-gray-600); font-size: 0.875rem; }
-
-    .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 500; }
-    .status-pending { background: var(--dsmg-color-warning); color: var(--dsmg-color-paper); }
-    .status-in-transit { background: var(--dsmg-color-info); color: var(--dsmg-color-paper); }
-    .status-delivered { background: var(--dsmg-color-success); color: var(--dsmg-color-paper); }
-    .status-exception { background: var(--dsmg-color-error); color: var(--dsmg-color-paper); }
-
-    .form-group { margin-bottom: 16px; }
-    .form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: var(--dsmg-color-ink); }
-    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; border: 1px solid var(--dsmg-color-gray-300); border-radius: 4px; font-family: 'FedExSans', sans-serif; }
-    .form-group textarea { min-height: 100px; resize: vertical; }
-
-    .btn { padding: 10px 20px; border: none; border-radius: 4px; font-weight: 500; cursor: pointer; font-size: 0.875rem; }
-    .btn-primary { background: var(--dsmg-brand-orange); color: var(--dsmg-color-paper); }
-    .btn-secondary { background: var(--dsmg-brand-purple); color: var(--dsmg-color-paper); }
-    .btn-danger { background: var(--dsmg-color-error); color: var(--dsmg-color-paper); }
-    .btn-small { padding: 6px 12px; font-size: 0.75rem; }
-
-    .supabase-auth { max-width: 400px; margin: 80px auto; padding: 32px; background: var(--dsmg-color-paper); border-radius: 8px; }
-    .supabase-auth h2 { color: var(--dsmg-brand-purple); text-align: center; margin-bottom: 24px; }
-
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 24px; }
-    .stat-card { background: var(--dsmg-color-paper); padding: 24px; border-radius: 8px; text-align: center; }
-    .stat-value { font-size: 2rem; font-weight: bold; color: var(--dsmg-color-ink); }
-    .stat-label { color: var(--dsmg-color-gray-600); font-size: 0.875rem; margin-top: 8px; }
-  </style>
 </head>
-<body class="admin-container">
+<body>
 
-  <!-- Admin Login -->
-  <div id="admin-auth" class="supabase-auth">
-    <h2>Admin Login</h2>
-    <form id="admin-login">
-      <div class="form-group">
-        <label>Email</label>
-        <input type="email" id="admin-email" required placeholder="admin@fedex-tracking.local">
+  <!-- Utility bar -->
+  <div class="utility-bar">
+    <div class="utility-inner">
+      <div class="utility-left">
+        <a href="index.html">United States</a>
+        <a href="#">English</a>
       </div>
-      <div class="form-group">
-        <label>Password</label>
-        <input type="password" id="admin-password" required placeholder="Admin123!">
+      <div class="utility-right">
+        <a href="index.html">Home</a>
+        <span style="color:#d1d1d8">|</span>
+        <a class="strong" href="tracking-user.html">Track</a>
       </div>
-      <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
-    </form>
-    <p style="font-size: 0.75rem; color: var(--dsmg-color-gray-500); margin-top: 12px; text-align: center;">
-      Demo: admin@fedex-tracking.local / Admin123!
-    </p>
+    </div>
   </div>
 
-  <!-- Admin Dashboard (hidden until login) -->
-  <div id="admin-dashboard" style="display: none;">
-    <h1 style="color: var(--dsmg-brand-purple); margin-bottom: 24px;">FedEx Admin Portal</h1>
-
-    <!-- Stats -->
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-value" id="admin-total">0</div>
-        <div class="stat-label">Total Trackings</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-value" id="admin-in-transit">0</div>
-        <div class="stat-label">In Transit</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-value" id="admin-delivered">0</div>
-        <div class="stat-label">Delivered</div>
+  <!-- Header -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="logo" href="index.html" aria-label="FedEx home"><span class="fed">Fed</span><span class="ex">Ex</span></a>
+      <ul class="main-nav">
+        <li><a href="index.html#services">Ship</a></li>
+        <li><a href="tracking-user.html">Track</a></li>
+        <li><a href="index.html#services">Print</a></li>
+        <li><a href="index.html#locations">Locations</a></li>
+        <li><a class="active" href="admin-portal.html">Admin</a></li>
+      </ul>
+      <div class="header-right">
+        <a class="header-cta" href="tracking-user.html">Back to site</a>
       </div>
     </div>
+  </header>
 
-    <!-- Trackings Table -->
-    <div class="admin-card">
-      <h3 style="color: var(--dsmg-color-gray-600); font-size: 1rem; margin-bottom: 16px;">All Trackings</h3>
-      <table class="admin-table">
-        <thead>
-          <tr>
-            <th>Tracking Code</th>
-            <th>Status</th>
-            <th>Delivery Date</th>
-            <th>User</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="admin-trackings-table-body">
-          <!-- Dynamic rows -->
-        </tbody>
-      </table>
+  <!-- Login -->
+  <main id="login-view">
+    <div class="auth-wrap">
+      <div class="auth-card">
+        <div class="brandline"><span class="logo" style="font-size:34px"><span class="fed">Fed</span><span class="ex">Ex</span></span></div>
+        <h1>Admin Portal</h1>
+        <p class="lead">Sign in to manage tracking entries and proof-of-delivery images.</p>
+
+        <div id="login-alert" class="alert"></div>
+
+        <form id="admin-login-form">
+          <div class="field">
+            <label for="admin-email">Admin email</label>
+            <input class="input" type="email" id="admin-email" placeholder="admin@fedex-tracking.local" required>
+          </div>
+          <div class="field">
+            <label for="admin-password">Password</label>
+            <input class="input" type="password" id="admin-password" placeholder="Admin123!" required>
+          </div>
+          <button type="submit" class="btn btn-purple btn-block" id="admin-login-btn">Sign in</button>
+        </form>
+        <p class="auth-alt" style="font-size:12px">Demo credentials: <strong>admin@fedex-tracking.local</strong> / <strong>Admin123!</strong></p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Dashboard -->
+  <main id="dash-view" class="admin-wrap" style="display:none">
+    <div class="admin-head">
+      <div>
+        <h1>Admin Portal</h1>
+        <p class="page-sub" style="margin:2px 0 0">Manage tracking entries and proof-of-delivery images.</p>
+      </div>
+      <button class="btn btn-outline btn-sm" id="admin-signout">Sign out</button>
     </div>
 
-    <!-- Add Tracking Form -->
-    <div class="admin-card">
-      <h3 style="color: var(--dsmg-color-gray-600); font-size: 1rem; margin-bottom: 16px;">Add Tracking Entry</h3>
-      <form id="admin-tracking-form">
-        <input type="hidden" id="admin-tracking-id">
-        <div class="form-group">
-          <label>Tracking Code</label>
-          <input type="text" id="admin-tracking-code" required>
-        </div>
-        <div class="form-group">
-          <label>Status</label>
-          <select id="admin-status">
-            <option value="pending">Pending</option>
-            <option value="in-transit">In Transit</option>
-            <option value="delivered">Delivered</option>
-            <option value="exception">Exception</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Delivery Date</label>
-          <input type="date" id="admin-delivery-date">
-        </div>
-        <button type="submit" class="btn btn-primary" style="width: 100%;">Save Tracking Entry</button>
-      </form>
+    <div class="stats">
+      <div class="stat"><div class="num" id="stat-total">0</div><div class="lbl">Total shipments</div></div>
+      <div class="stat"><div class="num" id="stat-transit">0</div><div class="lbl">In transit</div></div>
+      <div class="stat"><div class="num" id="stat-delivered">0</div><div class="lbl">Delivered</div></div>
+      <div class="stat"><div class="num" id="stat-exception">0</div><div class="lbl">Exceptions</div></div>
     </div>
 
-    <!-- Upload Image Form -->
-    <div class="admin-card">
-      <h3 style="color: var(--dsmg-color-gray-600); font-size: 1rem; margin-bottom: 16px;">Upload Tracking Image</h3>
-      <form id="admin-upload-image-form">
-        <div class="form-group">
-          <label>Tracking Code</label>
-          <input type="text" id="admin-image-tracking" required>
+    <div class="admin-grid">
+      <div>
+        <div class="card">
+          <h2>All trackings</h2>
+          <div class="table-wrap">
+            <table class="data">
+              <thead>
+                <tr>
+                  <th>Tracking code</th>
+                  <th>Status</th>
+                  <th>Delivery</th>
+                  <th>Route</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="tracking-rows">
+                <tr><td colspan="5" class="empty">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
-        <div class="form-group">
-          <label>Image File</label>
-          <input type="file" id="admin-image-file" accept="image/*" required>
+
+        <div class="card">
+          <h2>Tracking images</h2>
+          <div class="proof-grid" id="images-grid">
+            <p class="empty" style="grid-column:1/-1">No images uploaded yet.</p>
+          </div>
         </div>
-        <button type="submit" class="btn btn-secondary" style="width: 100%;">Upload Image</button>
-      </form>
+      </div>
+
+      <div>
+        <div class="card">
+          <h2 id="form-title">Add / update tracking</h2>
+          <form id="tracking-form">
+            <div class="field">
+              <label for="f-code">Tracking code *</label>
+              <input class="input" id="f-code" type="text" placeholder="e.g. 123456789012" required>
+            </div>
+            <div class="field">
+              <label for="f-status">Status</label>
+              <select class="input" id="f-status">
+                <option value="pending">Label created / pending</option>
+                <option value="in-transit" selected>In transit</option>
+                <option value="out-for-delivery">Out for delivery</option>
+                <option value="delivered">Delivered</option>
+                <option value="exception">Exception</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="f-date">Estimated / delivery date</label>
+              <input class="input" id="f-date" type="date">
+            </div>
+            <div class="field">
+              <label for="f-service">Service</label>
+              <input class="input" id="f-service" type="text" placeholder="FedEx Express Saver">
+            </div>
+            <div class="field">
+              <label for="f-origin">Shipped from</label>
+              <input class="input" id="f-origin" type="text" placeholder="Indianapolis, IN">
+            </div>
+            <div class="field">
+              <label for="f-destination">Destination</label>
+              <input class="input" id="f-destination" type="text" placeholder="San Jose, CA">
+            </div>
+            <div class="field">
+              <label for="f-weight">Weight</label>
+              <input class="input" id="f-weight" type="text" placeholder="3.4 lbs">
+            </div>
+            <div class="field">
+              <label for="f-dimensions">Dimensions</label>
+              <input class="input" id="f-dimensions" type="text" placeholder="12 x 10 x 4 in">
+            </div>
+            <div class="field">
+              <label for="f-pieces">Total pieces</label>
+              <input class="input" id="f-pieces" type="number" min="1" value="1">
+            </div>
+            <div class="field">
+              <label for="f-signed">Signed for by</label>
+              <input class="input" id="f-signed" type="text" placeholder="J. SMITH">
+            </div>
+            <button type="submit" class="btn btn-orange btn-block" id="save-btn">Save tracking entry</button>
+            <button type="button" class="btn btn-outline btn-block" id="reset-btn" style="margin-top:10px">Clear form</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2>Upload proof image</h2>
+          <form id="upload-form">
+            <div class="field">
+              <label for="u-code">Tracking code *</label>
+              <input class="input" id="u-code" type="text" placeholder="123456789012" required>
+            </div>
+            <div class="field">
+              <label for="u-file">Image file *</label>
+              <input class="input" id="u-file" type="file" accept="image/*" required>
+            </div>
+            <button type="submit" class="btn btn-purple btn-block" id="upload-btn">Upload image</button>
+          </form>
+          <p style="font-size:12px;color:#6b7280;margin:10px 0 0">Requires a public Storage bucket named <strong>tracking-proofs</strong>.</p>
+        </div>
+      </div>
     </div>
-  </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <a class="logo" href="index.html"><span class="fed">Fed</span><span class="ex">Ex</span></a>
+        <p>Shipping, tracking, and delivery services for individuals and businesses around the world.</p>
+      </div>
+      <div class="footer-col"><h4>Our Company</h4><a href="index.html">About FedEx</a><a href="index.html">Careers</a><a href="index.html">Newsroom</a></div>
+      <div class="footer-col"><h4>Our Solutions</h4><a href="tracking-user.html">Track a package</a><a href="index.html#services">Ship a package</a><a href="index.html#services">Get rates</a></div>
+      <div class="footer-col"><h4>Customer Support</h4><a href="index.html#support">Contact us</a><a href="index.html#support">FAQs</a><a href="index.html#support">File a claim</a></div>
+      <div class="footer-col"><h4>Admin</h4><a href="admin-portal.html">Admin portal</a><a href="tracking-user.html">Track page</a><a href="index.html">Home</a></div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-bottom-inner">
+        <span>&copy; 2026 FedEx. All rights reserved. Demo clone for educational use.</span>
+        <span><a href="#">Privacy</a><a href="#">Terms</a></span>
+      </div>
+    </div>
+  </footer>
 
   <script>
-    const supabaseUrl = 'https://fsczaqtqscevllyvarwk.supabase.co';
-    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZzY3phcXRxc2NldmxseXZhcndrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMzNjU3NzQsImV4cCI6MjEwODk0MTc3NH0.Kc8gKnR76F5DsdgeZSXT1ylTwIRqhIby2Z4GSfZSlBg';
-    const supabase = supabase.createClient(supabaseUrl, supabaseAnonKey);
+    const SUPABASE_URL = 'https://fsczaqtqscevllyvarwk.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZzY3phcXRxc2NldmxseXZhcndrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMzNjU3NzQsImV4cCI6MjEwODk0MTc3NH0.Kc8gKnR76F5DsdgeZSXT1ylTwIRqhIby2Z4GSfZSlBg';
+    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const adminAuth = document.getElementById('admin-auth');
-    const adminDashboard = document.getElementById('admin-dashboard');
+    const ADMIN_EMAIL = 'admin@fedex-tracking.local';
+    const ADMIN_PASS = 'Admin123!';
+    const SESSION_KEY = 'fedex_admin_session';
 
-    // Check if already logged in
-    const storedLogin = localStorage.getItem('admin_logged_in');
-    if (storedLogin === 'true') {
-      adminAuth.style.display = 'none';
-      adminDashboard.style.display = 'block';
-      loadAdminTrackings();
+    const loginView = document.getElementById('login-view');
+    const dashView = document.getElementById('dash-view');
+    let entries = [];
+
+    /* ---- Login ---- */
+    function showLogin(){
+      loginView.style.display = 'block';
+      dashView.style.display = 'none';
+    }
+    function showDash(){
+      loginView.style.display = 'none';
+      dashView.style.display = 'block';
+      loadAll();
     }
 
-    document.getElementById('admin-login').addEventListener('submit', async (e) => {
+    document.getElementById('admin-login-form').addEventListener('submit', (e) => {
       e.preventDefault();
-      const email = document.getElementById('admin-email').value;
-      const password = document.getElementById('admin-password').value;
-
-      if (email === 'admin@fedex-tracking.local' && password === 'Admin123!') {
-        localStorage.setItem('admin_logged_in', 'true');
-        adminAuth.style.display = 'none';
-        adminDashboard.style.display = 'block';
-        loadAdminTrackings();
+      const email = document.getElementById('admin-email').value.trim();
+      const pass = document.getElementById('admin-password').value;
+      if (email === ADMIN_EMAIL && pass === ADMIN_PASS){
+        localStorage.setItem(SESSION_KEY, '1');
+        showDash();
       } else {
-        alert('Invalid admin credentials. Use: admin@fedex-tracking.local / Admin123!');
+        const a = document.getElementById('login-alert');
+        a.className = 'alert show alert-error';
+        a.textContent = 'Invalid credentials. Use ' + ADMIN_EMAIL + ' / ' + ADMIN_PASS;
       }
     });
 
-    async function loadAdminTrackings() {
-      const { data, error } = await supabase
-        .from('tracking_entries')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error loading trackings:', error);
-        return;
-      }
-
-      document.getElementById('admin-total').textContent = data.length || 0;
-      document.getElementById('admin-in-transit').textContent = data.filter(t => t.status !== 'delivered').length || 0;
-      document.getElementById('admin-delivered').textContent = data.filter(t => t.status === 'delivered').length || 0;
-
-      const tbody = document.getElementById('admin-trackings-table-body');
-      let rows = '';
-
-      data.forEach(entry => {
-        const statusClass = entry.status === 'delivered' ? 'status-delivered' : entry.status === 'in-transit' ? 'status-in-transit' : 'status-pending';
-        rows += `
-          <tr>
-            <td style="font-weight: 500;">${entry.tracking_code}</td>
-            <td><span class="status-badge ${statusClass}">${entry.status}</span></td>
-            <td>${entry.delivery_date || '—'}</td>
-            <td>${entry.user_id || 'Admin'}</td>
-            <td>
-              <button class="btn btn-small btn-danger" onclick="deleteTracking('${entry.id}')">Delete</button>
-            </td>
-          </tr>
-        `;
-      });
-      tbody.innerHTML = rows || '<tr><td colspan="5" style="text-align: center; color: var(--dsmg-color-gray-500);">No trackings found</td></tr>';
-    }
-
-    const adminForm = document.getElementById('admin-tracking-form');
-    adminForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const trackingCode = document.getElementById('admin-tracking-code').value.trim();
-      const status = document.getElementById('admin-status').value;
-      const deliveryDate = document.getElementById('admin-delivery-date').value;
-
-      if (!trackingCode) {
-        alert('Please enter a tracking code');
-        return;
-      }
-
-      const { error } = await supabase
-        .from('tracking_entries')
-        .upsert([{ tracking_code: trackingCode, status, delivery_date: deliveryDate || null }], { onConflict: 'tracking_code' });
-
-      if (error) {
-        console.error('Error saving tracking:', error);
-        alert('Error saving tracking entry.');
-      } else {
-        alert('Tracking entry saved!');
-        adminForm.reset();
-        document.getElementById('admin-tracking-id').value = '';
-        loadAdminTrackings();
-      }
+    document.getElementById('admin-signout').addEventListener('click', () => {
+      localStorage.removeItem(SESSION_KEY);
+      showLogin();
     });
 
-    window.deleteTracking = async (id) => {
-      if (confirm('Are you sure you want to delete this tracking entry?')) {
-        const { error } = await supabase.from('tracking_entries').delete().eq('id', id);
-        if (error) {
-          alert('Error deleting tracking entry.');
-        } else {
-          alert('Tracking entry deleted.');
-          loadAdminTrackings();
-        }
+    /* ---- Data loads ---- */
+    async function loadAll(){
+      await Promise.all([loadTrackings(), loadImages()]);
+    }
+
+    async function loadTrackings(){
+      const tbody = document.getElementById('tracking-rows');
+      const { data, error } = await db.from('tracking_entries').select('*').order('created_at', { ascending:false });
+      if (error){
+        tbody.innerHTML = '<tr><td colspan="5" class="empty">Error: ' + error.message + '</td></tr>';
+        return;
       }
+      entries = data || [];
+      document.getElementById('stat-total').textContent = entries.length;
+      document.getElementById('stat-transit').textContent = entries.filter(e => norm(e.status) === 'in-transit' || norm(e.status) === 'out-for-delivery').length;
+      document.getElementById('stat-delivered').textContent = entries.filter(e => norm(e.status) === 'delivered').length;
+      document.getElementById('stat-exception').textContent = entries.filter(e => norm(e.status) === 'exception').length;
+
+      if (!entries.length){
+        tbody.innerHTML = '<tr><td colspan="5" class="empty">No tracking entries yet. Add one using the form.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = entries.map(e => {
+        const route = (e.origin || '—') + ' &rarr; ' + (e.destination || '—');
+        return '<tr>' +
+          '<td class="mono">' + esc(e.tracking_code) + '</td>' +
+          '<td><span class="badge ' + norm(e.status) + '">' + esc(e.status || 'pending') + '</span></td>' +
+          '<td>' + (e.delivery_date || '—') + '</td>' +
+          '<td style="font-size:13px;color:#4b5563">' + route + '</td>' +
+          '<td><div class="row-actions">' +
+            '<button class="btn btn-outline btn-sm" onclick="editEntry(\'' + e.id + '\')">Edit</button>' +
+            '<button class="btn btn-danger btn-sm" onclick="deleteEntry(\'' + e.id + '\')">Delete</button>' +
+          '</div></td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    async function loadImages(){
+      const grid = document.getElementById('images-grid');
+      const { data, error } = await db.from('tracking_images').select('*').order('created_at', { ascending:false });
+      if (error){
+        grid.innerHTML = '<p class="empty" style="grid-column:1/-1">Error: ' + error.message + '</p>';
+        return;
+      }
+      if (!data || !data.length){
+        grid.innerHTML = '<p class="empty" style="grid-column:1/-1">No images uploaded yet.</p>';
+        return;
+      }
+      grid.innerHTML = data.map(img =>
+        '<div style="border:1px solid #e6e6eb;border-radius:10px;overflow:hidden;background:#f5f5f7">' +
+          '<a href="' + img.image_url + '" target="_blank" rel="noopener"><img src="' + img.image_url + '" alt="Proof" style="width:100%;height:110px;object-fit:cover"></a>' +
+          '<div style="padding:8px 10px;font-size:12px;color:#4b5563">' + esc(img.tracking_code) + '</div>' +
+          '<button class="btn btn-danger btn-sm" style="width:100%;border-radius:0" onclick="deleteImage(\'' + img.id + '\')">Delete</button>' +
+        '</div>'
+      ).join('');
+    }
+
+    function norm(s){
+      s = (s || 'pending').toLowerCase().replace(/_/g,'-');
+      if (s.includes('exception') || s.includes('delay') || s.includes('fail')) return 'exception';
+      if (s.includes('out')) return 'in-transit';
+      if (s.includes('transit')) return 'in-transit';
+      if (s.includes('deliver')) return 'delivered';
+      return 'pending';
+    }
+    function esc(s){
+      return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    /* ---- Tracking form ---- */
+    const form = document.getElementById('tracking-form');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('save-btn');
+      btn.disabled = true; btn.textContent = 'Saving...';
+
+      const payload = {
+        tracking_code: document.getElementById('f-code').value.trim(),
+        status: document.getElementById('f-status').value,
+        delivery_date: document.getElementById('f-date').value || null,
+        service: document.getElementById('f-service').value.trim() || null,
+        origin: document.getElementById('f-origin').value.trim() || null,
+        destination: document.getElementById('f-destination').value.trim() || null,
+        weight: document.getElementById('f-weight').value.trim() || null,
+        dimensions: document.getElementById('f-dimensions').value.trim() || null,
+        pieces: Number(document.getElementById('f-pieces').value) || 1,
+        signed_by: document.getElementById('f-signed').value.trim() || null
+      };
+      if (!payload.tracking_code){ btn.disabled = false; btn.textContent = 'Save tracking entry'; return; }
+
+      let res = await db.from('tracking_entries').upsert([payload], { onConflict:'tracking_code' });
+
+      // Fallback for older schema without the extra columns
+      if (res.error && /column|schema cache|could not find/i.test(res.error.message)){
+        const minimal = { tracking_code: payload.tracking_code, status: payload.status, delivery_date: payload.delivery_date };
+        res = await db.from('tracking_entries').upsert([minimal], { onConflict:'tracking_code' });
+      }
+
+      btn.disabled = false; btn.textContent = 'Save tracking entry';
+
+      if (res.error){
+        alert('Error saving tracking entry:\n' + res.error.message);
+        return;
+      }
+      resetForm();
+      await loadTrackings();
+      alert('Tracking entry saved.');
+    });
+
+    function resetForm(){
+      form.reset();
+      document.getElementById('f-status').value = 'in-transit';
+      document.getElementById('f-pieces').value = 1;
+      document.getElementById('form-title').textContent = 'Add / update tracking';
+    }
+    document.getElementById('reset-btn').addEventListener('click', resetForm);
+
+    window.editEntry = function(id){
+      const e = entries.find(x => String(x.id) === String(id));
+      if (!e) return;
+      document.getElementById('f-code').value = e.tracking_code || '';
+      document.getElementById('f-status').value = e.status || 'in-transit';
+      document.getElementById('f-date').value = e.delivery_date || '';
+      document.getElementById('f-service').value = e.service || '';
+      document.getElementById('f-origin').value = e.origin || '';
+      document.getElementById('f-destination').value = e.destination || '';
+      document.getElementById('f-weight').value = e.weight || '';
+      document.getElementById('f-dimensions').value = e.dimensions || '';
+      document.getElementById('f-pieces').value = e.pieces || 1;
+      document.getElementById('f-signed').value = e.signed_by || '';
+      document.getElementById('form-title').textContent = 'Edit tracking';
+      form.scrollIntoView({ behavior:'smooth', block:'start' });
     };
 
-    const uploadForm = document.getElementById('admin-upload-image-form');
-    uploadForm.addEventListener('submit', async (e) => {
+    window.deleteEntry = async function(id){
+      if (!confirm('Delete this tracking entry? This cannot be undone.')) return;
+      const { error } = await db.from('tracking_entries').delete().eq('id', id);
+      if (error){ alert('Error deleting entry: ' + error.message); return; }
+      await loadTrackings();
+    };
+
+    /* ---- Upload ---- */
+    document.getElementById('upload-form').addEventListener('submit', async (e) => {
       e.preventDefault();
+      const btn = document.getElementById('upload-btn');
+      const code = document.getElementById('u-code').value.trim();
+      const fileInput = document.getElementById('u-file');
+      const file = fileInput.files[0];
+      if (!code || !file) return;
 
-      const trackingCode = document.getElementById('admin-image-tracking').value.trim();
-      const file = document.getElementById('admin-image-file').files[0];
+      btn.disabled = true; btn.textContent = 'Uploading...';
+      const path = code + '/' + Date.now() + '_' + file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
 
-      if (!trackingCode || !file) {
-        alert('Please fill in all fields');
+      const up = await db.storage.from('tracking-proofs').upload(path, file, { cacheControl:'3600', upsert:false });
+      if (up.error){
+        btn.disabled = false; btn.textContent = 'Upload image';
+        alert('Upload failed: ' + up.error.message + '\n\nMake sure a public bucket named "tracking-proofs" exists in Supabase Storage.');
         return;
       }
 
-      const filePath = `${trackingCode}/${Date.now()}_${file.name}`;
+      const pub = db.storage.from('tracking-proofs').getPublicUrl(path);
+      const url = pub.data.publicUrl;
+      let ins = await db.from('tracking_images').insert([{ tracking_code: code, image_url: url, image_name: file.name }]);
 
-      const { error: uploadError } = await supabase.storage.from('tracking-proofs').upload(filePath, file, { cacheControl: '3600', upsert: false });
+      btn.disabled = false; btn.textContent = 'Upload image';
 
-      if (uploadError) {
-        console.error('Upload error:', uploadError);
-        alert('Error uploading image.');
-        return;
-      }
-
-      const { data: { publicUrl } } = supabase.storage.from('tracking-proofs').getPublicUrl(filePath);
-
-      const { error: dbError } = await supabase.from('tracking_images').insert([{ tracking_code: trackingCode, image_url: publicUrl, image_name: file.name }]);
-
-      if (dbError) {
-        alert('Image uploaded but error saving to database.');
+      if (ins.error){
+        alert('Image uploaded to storage, but saving the record failed: ' + ins.error.message);
       } else {
-        alert('Image uploaded and saved!');
-        uploadForm.reset();
-        loadAdminTrackings();
+        fileInput.value = '';
+        await loadImages();
+        alert('Image uploaded successfully.');
       }
     });
+
+    window.deleteImage = async function(id){
+      if (!confirm('Delete this image record?')) return;
+      const { error } = await db.from('tracking_images').delete().eq('id', id);
+      if (error){ alert('Error: ' + error.message); return; }
+      await loadImages();
+    };
+
+    /* ---- Boot ---- */
+    if (localStorage.getItem(SESSION_KEY) === '1') showDash();
+    else showLogin();
   </script>
 </body>
 </html>

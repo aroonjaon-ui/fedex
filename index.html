@@ -3,113 +3,259 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>FedEx | Package Tracking System</title>
-  
-  <style>
-    :root {
-      --dsmg-brand-purple: #4d148c;
-      --dsmg-brand-orange: #FF6200;
-      --dsmg-color-bg-light: #f6f7fb;
-      --dsmg-color-paper: #ffffff;
-      --dsmg-color-ink: #1f2937;
-      --dsmg-color-gray-600: #4b5563;
-    }
-
-    * { box-sizing: border-box; }
-    body { font-family: 'FedExSans', Arial, sans-serif; margin: 0; background: var(--dsmg-color-bg-light); color: var(--dsmg-color-ink); }
-
-    .container { max-width: 800px; margin: 0 auto; padding: 40px 20px; text-align: center; }
-
-    h1 { color: var(--dsmg-brand-purple); font-size: 2.5rem; margin-bottom: 16px; }
-
-    .hero {
-      background: var(--dsmg-color-paper);
-      padding: 48px 24px;
-      border-radius: 12px;
-      margin-bottom: 32px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-
-    .hero p { color: var(--dsmg-color-gray-600); margin-bottom: 24px; font-size: 1.1rem; }
-
-    .btn-group {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-
-    .btn {
-      padding: 14px 28px;
-      border: none;
-      border-radius: 6px;
-      font-weight: 600;
-      cursor: pointer;
-      font-size: 1rem;
-      text-decoration: none;
-      display: inline-block;
-    }
-
-    .btn-primary { background: var(--dsmg-brand-orange); color: var(--dsmg-color-paper); }
-    .btn-secondary { background: var(--dsmg-brand-purple); color: var(--dsmg-color-paper); }
-
-    .btn:hover { opacity: 0.9; }
-
-    .features {
-      margin-top: 40px;
-      text-align: left;
-    }
-
-    .features h3 { color: var(--dsmg-brand-purple); margin-bottom: 16px; }
-
-    .features ul { list-style: none; padding: 0; }
-
-    .features li {
-      padding: 8px 0;
-      color: var(--dsmg-color-gray-600);
-      border-bottom: 1px solid var(--dsmg-color-bg-light);
-    }
-
-    .features li:before { content: "✓"; color: var(--dsmg-brand-orange); font-weight: bold; margin-right: 8px; }
-
-    .footer {
-      margin-top: 40px;
-      padding-top: 24px;
-      border-top: 1px solid var(--dsmg-color-bg-light);
-      color: var(--dsmg-color-gray-600);
-      font-size: 0.875rem;
-    }
-  </style>
+  <title>FedEx | Shipping, Tracking, and Delivery Services</title>
+  <meta name="description" content="Ship, manage, track, and return your packages with FedEx. Track a package, get rates, find locations, and more.">
+  <link rel="stylesheet" href="assets/site.css">
 </head>
 <body>
 
-  <div class="container">
-    <div class="hero">
-      <h1>📦 FedEx Package Tracking</h1>
-      <p>Track your shipments, manage deliveries, and view progress in real-time</p>
-
-      <div class="btn-group">
-        <a href="tracking-user.html" class="btn btn-primary">Track Package</a>
-        <a href="admin-portal.html" class="btn btn-secondary">Admin Portal</a>
+  <!-- Utility bar -->
+  <div class="utility-bar">
+    <div class="utility-inner">
+      <div class="utility-left">
+        <a href="#">United States</a>
+        <a href="#">English</a>
       </div>
-    </div>
-
-    <div class="features">
-      <h3>Features</h3>
-      <ul>
-        <li>User signup & login</li>
-        <li>Real-time package tracking</li>
-        <li>Progress timeline</li>
-        <li>Admin dashboard for managing all trackings</li>
-        <li>Image upload for proof of delivery</li>
-        <li>Supabase-powered backend</li>
-      </ul>
-    </div>
-
-    <div class="footer">
-      <p>© 2026 FedEx Tracking System. Built with Supabase + HTML/CSS.</p>
+      <div class="utility-right">
+        <a href="tracking-user.html">Sign Up</a>
+        <span style="color:#d1d1d8">|</span>
+        <a class="strong" href="tracking-user.html">Log In</a>
+      </div>
     </div>
   </div>
 
+  <!-- Header -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="logo" href="index.html" aria-label="FedEx home"><span class="fed">Fed</span><span class="ex">Ex</span></a>
+
+      <ul class="main-nav">
+        <li><a href="#services">Ship</a></li>
+        <li><a class="active" href="tracking-user.html">Track</a></li>
+        <li><a href="#services">Print</a></li>
+        <li><a href="#locations">Locations</a></li>
+        <li><a href="#support">Support</a></li>
+      </ul>
+
+      <div class="header-right">
+        <button class="icon-btn" aria-label="Search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        </button>
+        <a class="icon-btn" href="tracking-user.html" aria-label="Account">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/></svg>
+        </a>
+        <a class="header-cta" href="tracking-user.html">Sign Up / Log In</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div>
+        <span class="eyebrow">The World on Time</span>
+        <h1>Ship, manage, track,<br>and return with ease</h1>
+        <p class="sub">Wherever your packages need to go, FedEx gets them there. Track a shipment, get rates, or find a drop-off location near you.</p>
+
+        <div class="track-card">
+          <h2>Track your package</h2>
+          <p>Enter a tracking number to see the latest status and delivery updates.</p>
+          <form id="home-track-form" class="track-row">
+            <input class="input" id="home-tracking-number" type="text" placeholder="Enter your tracking number" autocomplete="off" aria-label="Tracking number">
+            <button class="btn btn-orange" type="submit">Track</button>
+          </form>
+          <div class="track-hint">Need help? <a href="tracking-user.html">Sign in to see all your shipments</a></div>
+        </div>
+      </div>
+
+      <div class="hero-media">
+        <img src="images/hero.webp" alt="FedEx courier delivering a package">
+        <div class="hero-badge"><span class="dot"></span> On-time delivery, every time</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick actions -->
+  <section class="quick" id="services">
+    <div class="quick-grid">
+      <a class="quick-card" href="tracking-user.html">
+        <div class="quick-ico">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/></svg>
+        </div>
+        <h3>Ship a package</h3>
+        <span>Create a label and schedule pickup</span>
+      </a>
+      <a class="quick-card" href="tracking-user.html">
+        <div class="quick-ico">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        </div>
+        <h3>Track a shipment</h3>
+        <span>See real-time delivery status</span>
+      </a>
+      <a class="quick-card" href="tracking-user.html">
+        <div class="quick-ico">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
+        <h3>Get rates &amp; times</h3>
+        <span>Compare shipping costs and transit times</span>
+      </a>
+      <a class="quick-card" href="#locations" id="locations">
+        <div class="quick-ico">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 1 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        </div>
+        <h3>Find locations</h3>
+        <span>Drop off or pick up near you</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- Promotions -->
+  <section class="section">
+    <div class="section-head">
+      <div>
+        <h2>Explore FedEx solutions</h2>
+        <p>Tools and services built to keep your business moving.</p>
+      </div>
+      <a href="tracking-user.html">See all services &rarr;</a>
+    </div>
+
+    <div class="promo-grid">
+      <a class="promo-card" href="tracking-user.html">
+        <img src="images/ship.webp" alt="International shipping">
+        <div class="promo-body">
+          <span class="tag">Shipping</span>
+          <h3>International shipping made simple</h3>
+          <p>Reach more than 220 countries and territories with reliable, door-to-door delivery.</p>
+          <span class="more">Learn more &rarr;</span>
+        </div>
+      </a>
+      <a class="promo-card" href="tracking-user.html">
+        <img src="images/track.webp" alt="Package tracking">
+        <div class="promo-body">
+          <span class="tag">Tracking</span>
+          <h3>Know where your package is</h3>
+          <p>Get proactive updates and a clear delivery timeline from pickup to doorstep.</p>
+          <span class="more">Track now &rarr;</span>
+        </div>
+      </a>
+      <a class="promo-card" href="tracking-user.html">
+        <img src="images/returns.webp" alt="Easy returns">
+        <div class="promo-body">
+          <span class="tag">Returns</span>
+          <h3>Returns that keep customers happy</h3>
+          <p>Offer flexible, easy returns with FedEx drop-off and pickup options.</p>
+          <span class="more">Learn more &rarr;</span>
+        </div>
+      </a>
+      <a class="promo-card" href="tracking-user.html">
+        <img src="images/documents.webp" alt="Documents and borders">
+        <div class="promo-body">
+          <span class="tag">Customs</span>
+          <h3>Documents across borders</h3>
+          <p>Ship important documents internationally with speed and confidence.</p>
+          <span class="more">Learn more &rarr;</span>
+        </div>
+      </a>
+      <a class="promo-card" href="tracking-user.html">
+        <img src="images/developer.webp" alt="Developer tools">
+        <div class="promo-body">
+          <span class="tag">Developers</span>
+          <h3>Build with our APIs</h3>
+          <p>Integrate shipping, rates, and tracking into your own applications.</p>
+          <span class="more">Explore APIs &rarr;</span>
+        </div>
+      </a>
+      <a class="promo-card" href="tracking-user.html">
+        <img src="images/journey.webp" alt="Post-purchase journey">
+        <div class="promo-body">
+          <span class="tag">E-commerce</span>
+          <h3>Delight customers after checkout</h3>
+          <p>Turn delivery into a branded, transparent experience your customers love.</p>
+          <span class="more">Learn more &rarr;</span>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- Banner CTA -->
+  <div class="banner">
+    <div class="banner-inner">
+      <div>
+        <h2>Ready to ship? Create an account in minutes.</h2>
+        <p>Save addresses, track every package in one place, and manage deliveries from any device.</p>
+        <div class="banner-actions">
+          <a class="btn btn-orange" href="tracking-user.html">Create free account</a>
+          <a class="btn btn-ghost" href="admin-portal.html">Admin portal</a>
+        </div>
+      </div>
+      <img src="images/banner.webp" alt="Shipping dashboard">
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="site-footer" id="support">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <a class="logo" href="index.html"><span class="fed">Fed</span><span class="ex">Ex</span></a>
+        <p>Shipping, tracking, and delivery services for individuals and businesses around the world.</p>
+        <div class="social">
+          <a href="#" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 22v-8h3l1-4h-4V7.5c0-1.1.3-1.9 1.9-1.9H17V2.2C16.6 2.1 15.3 2 13.9 2 11 2 9 3.8 9 7.1V10H6v4h3v8h4z"/></svg></a>
+          <a href="#" aria-label="X"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 3h3l-6.6 7.6L22 21h-6l-4.7-6.1L5.9 21h-3l7.1-8.1L2 3h6.2l4.3 5.6L17.5 3zm-1 16h1.7L7.6 4.8H5.8L16.5 19z"/></svg></a>
+          <a href="#" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9h4v12H3zM9 9h3.8v1.7h.1c.5-1 1.8-2 3.7-2 4 0 4.7 2.6 4.7 6V21h-4v-5.4c0-1.3 0-3-1.8-3s-2.1 1.4-2.1 2.9V21H9z"/></svg></a>
+          <a href="#" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M23 12s0-3.5-.4-5.2a2.7 2.7 0 0 0-1.9-1.9C19 4.5 12 4.5 12 4.5s-7 0-8.7.4A2.7 2.7 0 0 0 1.4 6.8C1 8.5 1 12 1 12s0 3.5.4 5.2a2.7 2.7 0 0 0 1.9 1.9c1.7.4 8.7.4 8.7.4s7 0 8.7-.4a2.7 2.7 0 0 0 1.9-1.9C23 15.5 23 12 23 12zM9.8 15.3V8.7L15.5 12l-5.7 3.3z"/></svg></a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Our Company</h4>
+        <a href="#">About FedEx</a>
+        <a href="#">Careers</a>
+        <a href="#">Newsroom</a>
+        <a href="#">Investor Relations</a>
+      </div>
+      <div class="footer-col">
+        <h4>Our Solutions</h4>
+        <a href="tracking-user.html">Track a package</a>
+        <a href="#services">Ship a package</a>
+        <a href="#services">Get rates</a>
+        <a href="tracking-user.html">Returns</a>
+      </div>
+      <div class="footer-col">
+        <h4>Customer Support</h4>
+        <a href="#">Contact us</a>
+        <a href="#">FAQs</a>
+        <a href="#">File a claim</a>
+        <a href="#">Shipping guide</a>
+      </div>
+      <div class="footer-col">
+        <h4>Resources</h4>
+        <a href="admin-portal.html">Admin portal</a>
+        <a href="#">Developer APIs</a>
+        <a href="#">Site map</a>
+        <a href="#">Accessibility</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-bottom-inner">
+        <span>&copy; 2026 FedEx. All rights reserved. Demo clone for educational use.</span>
+        <span>
+          <a href="#">Privacy</a>
+          <a href="#">Terms</a>
+          <a href="#">Cookies</a>
+        </span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('home-track-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var code = document.getElementById('home-tracking-number').value.trim();
+      if (!code) {
+        document.getElementById('home-tracking-number').focus();
+        return;
+      }
+      window.location.href = 'tracking-user.html?code=' + encodeURIComponent(code);
+    });
+  </script>
 </body>
 </html>

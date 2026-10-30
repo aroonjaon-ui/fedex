@@ -3,372 +3,631 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Tracking Your Shipment | FedEx</title>
-  <meta name="description" content="Track your FedEx package">
-  
-  <!-- Supabase JS -->
+  <title>Track Your Package | FedEx</title>
+  <meta name="description" content="Track your FedEx package and view delivery progress, shipment facts, and travel history.">
+  <link rel="stylesheet" href="assets/site.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  
-  <!-- FedEx Brand Colors -->
-  <style>
-    :root {
-      --dsmg-brand-purple: #4d148c;
-      --dsmg-brand-orange: #FF6200;
-      --dsmg-color-bg-light: #f6f7fb;
-      --dsmg-color-ink: #1f2937;
-      --dsmg-color-paper: #ffffff;
-      --dsmg-color-gray-200: #e5e7eb;
-      --dsmg-color-gray-300: #d1d5db;
-      --dsmg-color-gray-500: #6b7280;
-      --dsmg-color-gray-600: #4b5563;
-      --dsmg-color-success: #059669;
-      --dsmg-color-info: #3b82f6;
-      --dsmg-color-warning: #d97706;
-      --dsmg-color-error: #dc262f;
-    }
-
-    * { box-sizing: border-box; }
-    body { font-family: 'FedExSans', Arial, sans-serif; margin: 0; background: var(--dsmg-color-bg-light); color: var(--dsmg-color-ink); }
-
-    .supabase-auth {
-      max-width: 400px;
-      margin: 80px auto;
-      padding: 32px;
-      background: var(--dsmg-color-paper);
-      border-radius: 8px;
-    }
-
-    .supabase-auth h2 {
-      color: var(--dsmg-brand-purple);
-      text-align: center;
-      margin-bottom: 24px;
-    }
-
-    .supabase-auth .form-group {
-      margin-bottom: 16px;
-    }
-
-    .supabase-auth .form-group label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: 500;
-      color: var(--dsmg-color-gray-600);
-    }
-
-    .supabase-auth .form-group input {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid var(--dsmg-color-gray-300);
-      border-radius: 4px;
-      font-size: 0.875rem;
-    }
-
-    .supabase-auth .btn {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 4px;
-      font-weight: 500;
-      cursor: pointer;
-      font-size: 0.875rem;
-      width: 100%;
-    }
-
-    .supabase-auth .btn-primary { background: var(--dsmg-brand-orange); color: var(--dsmg-color-paper); }
-    .supabase-auth .btn-secondary { background: var(--dsmg-brand-purple); color: var(--dsmg-color-paper); width: 100%; margin-top: 8px; }
-
-    .supabase-auth .link {
-      text-align: center;
-      margin-top: 16px;
-      font-size: 0.875rem;
-    }
-
-    .supabase-auth .link a { color: var(--dsmg-brand-orange); text-decoration: none; }
-
-    /* Tracking page */
-    .tracking-page {
-      max-width: 800px;
-      margin: 40px auto;
-      padding: 24px;
-    }
-
-    .tracking-hero {
-      background: var(--dsmg-color-bg-light);
-      padding: 32px;
-      border-radius: 8px;
-      margin-bottom: 24px;
-      text-align: center;
-    }
-
-    .tracking-hero h1 {
-      color: var(--dsmg-brand-purple);
-      margin-bottom: 8px;
-    }
-
-    .tracking-status {
-      padding: 12px 20px;
-      border-radius: 20px;
-      font-weight: 500;
-      margin: 16px 0;
-      display: inline-block;
-    }
-
-    .status-pending { background: var(--dsmg-color-warning); color: var(--dsmg-color-paper); }
-    .status-in-transit { background: var(--dsmg-color-info); color: var(--dsmg-color-paper); }
-    .status-delivered { background: var(--dsmg-color-success); color: var(--dsmg-color-paper); }
-    .status-exception { background: var(--dsmg-color-error); color: var(--dsmg-color-paper); }
-
-    .timeline-event {
-      padding: 12px 0;
-      border-bottom: 1px solid var(--dsmg-color-gray-200);
-    }
-
-    .timeline-dot {
-      width: 12px;
-      height: 12px;
-      background: var(--dsmg-brand-orange);
-      border-radius: 50%;
-      float: left;
-      margin-right: 12px;
-    }
-
-    .timeline-content { overflow: hidden; padding-left: 18px; }
-
-    .form-group input, .form-group select {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid var(--dsmg-color-gray-300);
-      border-radius: 4px;
-      font-size: 0.875rem;
-    }
-
-    .btn {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 4px;
-      font-weight: 500;
-      cursor: pointer;
-      font-size: 0.875rem;
-    }
-
-    .btn-primary { background: var(--dsmg-brand-orange); color: var(--dsmg-color-paper); width: 100%; }
-
-    /* User info */
-    .user-info {
-      text-align: center;
-      margin-bottom: 24px;
-    }
-
-    .user-info span { color: var(--dsmg-color-gray-600); font-size: 0.875rem; }
-    .user-info button { margin-top: 8px; background: var(--dsmg-color-gray-300); color: var(--dsmg-color-ink); }
-  </style>
 </head>
 <body>
 
-  <!-- Auth Section (shown when not logged in) -->
-  <div id="auth-section" class="supabase-auth">
-    <h2>Welcome FedEx</h2>
+  <!-- Utility bar -->
+  <div class="utility-bar">
+    <div class="utility-inner">
+      <div class="utility-left">
+        <a href="index.html">United States</a>
+        <a href="#">English</a>
+      </div>
+      <div class="utility-right">
+        <a href="index.html">Home</a>
+        <span style="color:#d1d1d8">|</span>
+        <a class="strong" href="admin-portal.html">Admin</a>
+      </div>
+    </div>
+  </div>
 
-    <div style="margin-bottom: 24px; border-bottom: 1px solid var(--dsmg-color-gray-200); padding-bottom: 16px;">
-      <button class="btn-secondary" onclick="showTab('login')" style="margin-bottom: 8px;">Login</button>
-      <button class="btn-primary" onclick="showTab('signup')" style="margin-bottom: 8px;">Sign Up</button>
+  <!-- Header -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="logo" href="index.html" aria-label="FedEx home"><span class="fed">Fed</span><span class="ex">Ex</span></a>
+      <ul class="main-nav">
+        <li><a href="index.html#services">Ship</a></li>
+        <li><a class="active" href="tracking-user.html">Track</a></li>
+        <li><a href="index.html#services">Print</a></li>
+        <li><a href="index.html#locations">Locations</a></li>
+        <li><a href="index.html#support">Support</a></li>
+      </ul>
+      <div class="header-right">
+        <span class="header-account" id="hdr-user" style="display:none"></span>
+        <a class="header-account" id="hdr-logout" href="#" style="display:none">Sign out</a>
+        <a class="header-cta" id="hdr-login" href="#" onclick="openAuth(); return false;">Log In / Sign Up</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Tracking search -->
+  <section class="track-hero">
+    <div class="track-hero-inner">
+      <h1>Track your package</h1>
+      <p class="lead">Enter your tracking number to see the latest status, delivery updates, and full travel history.</p>
+
+      <div class="track-tabs">
+        <button type="button" class="active" data-mode="number">Tracking number</button>
+        <button type="button" data-mode="reference">Reference</button>
+        <button type="button" data-mode="doortag">Door tag</button>
+      </div>
+
+      <div class="track-search-card">
+        <form id="track-form">
+          <div class="track-search-row">
+            <input class="input" id="tracking-code" type="text" placeholder="Enter your tracking number" autocomplete="off" aria-label="Tracking number" required>
+            <button class="btn" type="submit" id="track-btn">Track</button>
+          </div>
+        </form>
+        <p class="track-search-note">
+          Demo tracking number: <strong class="mono">123456789012</strong> &nbsp;·&nbsp;
+          <a href="#" onclick="openAuth(); return false;">Log in</a> to manage your shipments.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Results area -->
+  <main class="track-area">
+    <div class="track-empty-hint" id="empty-hint">
+      <p style="margin:0 0 6px"><strong>Ready when you are.</strong></p>
+      <p style="margin:0">Enter a tracking number above to see where your package is.</p>
     </div>
 
-    <div id="login-tab" style="display: block;">
-      <h3 style="color: var(--dsmg-color-ink); margin-bottom: 16px;">Login</h3>
+    <!-- Not found -->
+    <div class="notfound" id="notfound">
+      <h3>We couldn't find that tracking number</h3>
+      <p>Please check the number and try again, or contact the sender to confirm the tracking number.</p>
+      <p style="margin-top:10px"><a href="#" onclick="showDemo(); return false;" style="color:#4d148c;font-weight:700">See a sample shipment &rarr;</a></p>
+    </div>
+
+    <!-- Result -->
+    <div class="result" id="result">
+      <div class="ship-head">
+        <div class="tn">Tracking number <b id="r-code">—</b></div>
+        <div class="actions">
+          <button class="btn btn-outline btn-sm" id="btn-proof">Obtain proof of delivery</button>
+          <button class="btn btn-outline btn-sm" id="btn-share">Share</button>
+        </div>
+      </div>
+
+      <div class="status-summary">
+        <div class="status-icon" id="r-icon"></div>
+        <div class="status-main">
+          <h2 class="status-title" id="r-status-title">In transit</h2>
+          <p class="status-sub" id="r-status-sub">Estimated delivery —</p>
+        </div>
+        <div class="status-meta">
+          <div class="sm">
+            <div class="k">Shipped from</div>
+            <div class="v" id="r-origin">—</div>
+          </div>
+          <div class="sm">
+            <div class="k">Scheduled delivery</div>
+            <div class="v" id="r-eta">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="progress-rail" id="r-progress"></div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Shipment facts</h2>
+          <span class="pill" id="r-service-pill">FedEx Express</span>
+        </div>
+        <div class="facts" id="r-facts"></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Travel history</h2>
+          <span class="pill" id="r-scans-count">0 scans</span>
+        </div>
+        <div class="panel-body" id="r-history"></div>
+      </div>
+
+      <div class="panel" id="proof-panel" style="display:none">
+        <div class="panel-head"><h2>Proof of delivery</h2></div>
+        <div class="panel-body">
+          <div class="proof-grid" id="r-proof"></div>
+          <p id="r-proof-empty" style="display:none;color:#6b7280;font-size:14px;margin:0">
+            No proof-of-delivery image is available for this shipment yet.
+          </p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Auth modal -->
+  <div class="modal-overlay" id="auth-modal">
+    <div class="modal">
+      <button class="close" type="button" onclick="closeAuth()" aria-label="Close">&times;</button>
+      <div class="brandline"><span class="logo" style="font-size:32px"><span class="fed">Fed</span><span class="ex">Ex</span></span></div>
+      <h2 id="auth-title">Welcome to FedEx</h2>
+      <p class="mlead">Log in or create an account to manage your shipments.</p>
+
+      <div class="tabs">
+        <button type="button" id="tab-login" class="active" onclick="showTab('login')">Log In</button>
+        <button type="button" id="tab-signup" onclick="showTab('signup')">Sign Up</button>
+      </div>
+
+      <div id="auth-alert" class="alert"></div>
+
       <form id="login-form">
-        <div class="form-group">
-          <label>Email</label>
-          <input type="email" id="login-email" required>
+        <div class="field">
+          <label for="login-email">Email address</label>
+          <input class="input" type="email" id="login-email" placeholder="you@example.com" required>
         </div>
-        <div class="form-group">
-          <label>Password</label>
-          <input type="password" id="login-password" required>
+        <div class="field">
+          <label for="login-password">Password</label>
+          <input class="input" type="password" id="login-password" placeholder="Your password" required>
         </div>
-        <button type="submit" class="btn btn-primary">Login</button>
+        <button type="submit" class="btn btn-orange btn-block" id="login-btn">Log In</button>
       </form>
-      <p class="link">Don't have an account? <a href="#" onclick="showTab('signup'); return false;">Sign up</a></p>
-    </div>
 
-    <div id="signup-tab" style="display: none;">
-      <h3 style="color: var(--dsmg-color-ink); margin-bottom: 16px;">Sign Up</h3>
-      <p style="font-size: 0.875rem; color: var(--dsmg-color-gray-600); margin-bottom: 16px;">
-        Create a free account to track your shipments
-      </p>
-      <form id="signup-form">
-        <div class="form-group">
-          <label>Name</label>
-          <input type="text" id="signup-name" required>
+      <form id="signup-form" style="display:none">
+        <div class="field">
+          <label for="signup-name">Full name</label>
+          <input class="input" type="text" id="signup-name" placeholder="Jane Doe" required>
         </div>
-        <div class="form-group">
-          <label>Email</label>
-          <input type="email" id="signup-email" required>
+        <div class="field">
+          <label for="signup-email">Email address</label>
+          <input class="input" type="email" id="signup-email" placeholder="you@example.com" required>
         </div>
-        <div class="form-group">
-          <label>Password</label>
-          <input type="password" id="signup-password" required minlength="6">
+        <div class="field">
+          <label for="signup-password">Password</label>
+          <input class="input" type="password" id="signup-password" placeholder="At least 6 characters" minlength="6" required>
         </div>
-        <button type="submit" class="btn btn-secondary">Create Account</button>
+        <button type="submit" class="btn btn-purple btn-block" id="signup-btn">Create Account</button>
       </form>
-      <p class="link">Already have an account? <a href="#" onclick="showTab('login'); return false;">Login</a></p>
     </div>
   </div>
 
-  <!-- User Dashboard (shown when logged in) -->
-  <div id="user-dashboard" class="tracking-page" style="display: none;">
-    <div class="tracking-hero">
-      <h1>Track Your Shipment</h1>
-      <p>Enter your FedEx tracking number to see progress</p>
-      <div class="user-info">
-        <span>Welcome, <span id="user-name"></span>!</span>
-        <button id="btn-signout" class="btn" onclick="signout()">Sign Out</button>
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <a class="logo" href="index.html"><span class="fed">Fed</span><span class="ex">Ex</span></a>
+        <p>Shipping, tracking, and delivery services for individuals and businesses around the world.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Our Company</h4>
+        <a href="index.html">About FedEx</a>
+        <a href="index.html">Careers</a>
+        <a href="index.html">Newsroom</a>
+      </div>
+      <div class="footer-col">
+        <h4>Our Solutions</h4>
+        <a href="tracking-user.html">Track a package</a>
+        <a href="index.html#services">Ship a package</a>
+        <a href="index.html#services">Get rates</a>
+      </div>
+      <div class="footer-col">
+        <h4>Customer Support</h4>
+        <a href="index.html#support">Contact us</a>
+        <a href="index.html#support">FAQs</a>
+        <a href="index.html#support">File a claim</a>
+      </div>
+      <div class="footer-col">
+        <h4>Resources</h4>
+        <a href="admin-portal.html">Admin portal</a>
+        <a href="index.html">Site map</a>
+        <a href="index.html">Accessibility</a>
       </div>
     </div>
-
-    <div style="background: var(--dsmg-color-paper); padding: 24px; border-radius: 8px;">
-      <form id="track-shipment-form">
-        <div class="form-group">
-          <label>FedEx Tracking Number</label>
-          <input type="text" id="tracking-code" placeholder="e.g., 123456789012" required>
-        </div>
-        <button type="submit" class="btn btn-primary">Track Shipment</button>
-      </form>
-    </div>
-
-    <div id="tracking-results" style="display: none; margin-top: 32px;">
-      <div class="tracking-status status-in-transit" id="status-badge">In Transit</div>
-
-      <div id="timeline" style="margin-top: 24px;"></div>
-
-      <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--dsmg-color-gray-200);">
-        <p><strong>Delivery Date:</strong> <span id="delivery-date">—</span></p>
+    <div class="footer-bottom">
+      <div class="footer-bottom-inner">
+        <span>&copy; 2026 FedEx. All rights reserved. Demo clone for educational use.</span>
+        <span><a href="#">Privacy</a><a href="#">Terms</a></span>
       </div>
     </div>
-  </div>
+  </footer>
 
   <script>
-    const supabaseUrl = 'https://fsczaqtqscevllyvarwk.supabase.co';
-    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZzY3phcXRxc2NldmxseXZhcndrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMzNjU3NzQsImV4cCI6MjEwODk0MTc3NH0.Kc8gKnR76F5DsdgeZSXT1ylTwIRqhIby2Z4GSfZSlBg';
-    const supabase = supabase.createClient(supabaseUrl, supabaseAnonKey);
+    /* ---- Config (anon key is safe in the browser; RLS protects data) ---- */
+    const SUPABASE_URL = 'https://fsczaqtqscevllyvarwk.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZzY3phcXRxc2NldmxseXZhcndrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMzNjU3NzQsImV4cCI6MjEwODk0MTc3NH0.Kc8gKnR76F5DsdgeZSXT1ylTwIRqhIby2Z4GSfZSlBg';
+    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    function showTab(tabName) {
-      document.getElementById('login-tab').style.display = tabName === 'login' ? 'block' : 'none';
-      document.getElementById('signup-tab').style.display = tabName === 'signup' ? 'block' : 'none';
+    let currentUser = null;
+
+    /* ================= AUTH (optional) ================= */
+    const authModal = document.getElementById('auth-modal');
+    const authAlert = document.getElementById('auth-alert');
+
+    function openAuth(){ authModal.classList.add('show'); }
+    function closeAuth(){ authModal.classList.remove('show'); }
+    window.openAuth = openAuth;
+    window.closeAuth = closeAuth;
+    authModal.addEventListener('click', e => { if (e.target === authModal) closeAuth(); });
+
+    function showAlert(kind, msg){
+      authAlert.className = 'alert show alert-' + kind;
+      authAlert.textContent = msg;
+    }
+    function showTab(which){
+      const isLogin = which === 'login';
+      document.getElementById('tab-login').classList.toggle('active', isLogin);
+      document.getElementById('tab-signup').classList.toggle('active', !isLogin);
+      document.getElementById('login-form').style.display = isLogin ? 'block' : 'none';
+      document.getElementById('signup-form').style.display = isLogin ? 'none' : 'block';
+      authAlert.className = 'alert';
+    }
+    window.showTab = showTab;
+
+    function setUserUI(user, name){
+      const loginBtn = document.getElementById('hdr-login');
+      const userEl = document.getElementById('hdr-user');
+      const logoutEl = document.getElementById('hdr-logout');
+      if (user){
+        loginBtn.style.display = 'none';
+        userEl.style.display = 'inline-block';
+        userEl.textContent = 'Hi, ' + (name || (user.email || '').split('@')[0]);
+        logoutEl.style.display = 'inline-block';
+      } else {
+        loginBtn.style.display = 'inline-block';
+        userEl.style.display = 'none';
+        logoutEl.style.display = 'none';
+      }
     }
 
-    async function initApp() {
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (user) {
-        document.getElementById('auth-section').style.display = 'none';
-        document.getElementById('user-dashboard').style.display = 'block';
-
-        const { data: profile } = await supabase
-          .from('user_profiles')
-          .select('full_name')
-          .eq('id', user.id)
-          .single();
-
-        document.getElementById('user-name').textContent = profile?.full_name || user.email?.split('@')[0] || 'User';
-      } else {
-        document.getElementById('auth-section').style.display = 'block';
-        document.getElementById('user-dashboard').style.display = 'none';
-      }
+    async function refreshUser(){
+      try {
+        const { data } = await db.auth.getSession();
+        const user = data && data.session ? data.session.user : null;
+        currentUser = user;
+        if (!user){ setUserUI(null); return; }
+        let name = (user.user_metadata && user.user_metadata.full_name) || '';
+        try {
+          const p = await db.from('user_profiles').select('full_name').eq('id', user.id).maybeSingle();
+          if (p.data && p.data.full_name) name = p.data.full_name;
+        } catch(e){}
+        setUserUI(user, name);
+      } catch(e){ setUserUI(null); }
     }
 
     document.getElementById('login-form').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const email = document.getElementById('login-email').value;
+      const btn = document.getElementById('login-btn');
+      btn.disabled = true; btn.textContent = 'Signing in...';
+      const email = document.getElementById('login-email').value.trim();
       const password = document.getElementById('login-password').value;
-
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        alert('Login failed: ' + error.message);
-      } else {
-        initApp();
-      }
+      const { error } = await db.auth.signInWithPassword({ email, password });
+      btn.disabled = false; btn.textContent = 'Log In';
+      if (error){ showAlert('error', error.message); return; }
+      await refreshUser();
+      closeAuth();
     });
 
     document.getElementById('signup-form').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const name = document.getElementById('signup-name').value;
-      const email = document.getElementById('signup-email').value;
+      const btn = document.getElementById('signup-btn');
+      btn.disabled = true; btn.textContent = 'Creating account...';
+      const name = document.getElementById('signup-name').value.trim();
+      const email = document.getElementById('signup-email').value.trim();
       const password = document.getElementById('signup-password').value;
-
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { data: { full_name: name } }
-      });
-
-      if (error) {
-        alert('Signup failed: ' + error.message);
+      const { data, error } = await db.auth.signUp({ email, password, options: { data: { full_name: name } } });
+      btn.disabled = false; btn.textContent = 'Create Account';
+      if (error){ showAlert('error', error.message); return; }
+      if (data.session){
+        try { await db.from('user_profiles').upsert([{ id: data.user.id, full_name: name, email }]); } catch(e){}
+        await refreshUser();
+        closeAuth();
       } else {
-        initApp();
+        showAlert('success', 'Account created! Check your email to confirm, then log in. (Tip: disable email confirmation in Supabase for instant login.)');
+        showTab('login');
       }
     });
 
-    document.getElementById('track-shipment-form').addEventListener('submit', async (e) => {
+    document.getElementById('hdr-logout').addEventListener('click', async (e) => {
       e.preventDefault();
-      const trackingCode = document.getElementById('tracking-code').value.trim();
-      if (!trackingCode) {
-        alert('Please enter a tracking number');
-        return;
-      }
-
-      const resultsSection = document.getElementById('tracking-results');
-      resultsSection.style.display = 'block';
-      document.getElementById('status-badge').textContent = 'Looking up...';
-      document.getElementById('timeline').innerHTML = '<p style="color: var(--dsmg-color-gray-500);">Looking up tracking events...</p>';
-      document.getElementById('delivery-date').textContent = '—';
-
-      const { error: insertError } = await supabase
-        .from('tracking_entries')
-        .insert([{ tracking_code: trackingCode, status: 'processing' }]);
-
-      if (insertError) console.error('Error saving tracking:', insertError);
-
-      setTimeout(async () => {
-        const statuses = ['In Transit', 'Out for Delivery', 'Delivered'];
-        const status = statuses[Math.floor(Math.random() * statuses.length)];
-
-        await supabase
-          .from('tracking_entries')
-          .update({ status })
-          .eq('tracking_code', trackingCode);
-
-        const events = [
-          { date: new Date().toLocaleDateString(), location: 'Origin Facility', status: 'Package picked up' },
-          { date: new Date().toLocaleDateString(), location: 'Sorting Center', status: 'In transit' },
-          { date: new Date().toLocaleDateString(), location: 'Local Facility', status: 'Out for delivery' }
-        ];
-
-        const statusClass = status === 'delivered' ? 'status-delivered' : status === 'In Transit' ? 'status-in-transit' : 'status-pending';
-        document.getElementById('status-badge').className = `tracking-status ${statusClass}`;
-        document.getElementById('status-badge').textContent = status;
-
-        document.getElementById('timeline').innerHTML = events.map(ev => `
-          <div class="timeline-event">
-            <div class="timeline-dot"></div>
-            <div class="timeline-content">
-              <strong>${ev.date}</strong> • ${ev.location}<br>
-              <span style="font-size: 0.875rem;">${ev.status}</span>
-            </div>
-          </div>
-        `).join('');
-
-        document.getElementById('delivery-date').textContent = 'October 15, 2026';
-        resultsSection.style.display = 'block';
-      }, 1500);
+      await db.auth.signOut();
+      currentUser = null;
+      setUserUI(null);
     });
 
-    window.signout = async () => {
-      const { error } = await supabase.auth.signOut();
-      if (!error) {
-        initApp();
-      }
+    /* ================= TRACKING ================= */
+    const trackForm = document.getElementById('track-form');
+    const codeInput = document.getElementById('tracking-code');
+    const emptyHint = document.getElementById('empty-hint');
+    const notfound = document.getElementById('notfound');
+    const resultEl = document.getElementById('result');
+
+    const MODES = {
+      number: 'Enter your tracking number',
+      reference: 'Enter a reference number',
+      doortag: 'Enter a door tag number'
+    };
+    document.querySelectorAll('.track-tabs button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.track-tabs button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        codeInput.placeholder = MODES[btn.dataset.mode] || MODES.number;
+      });
+    });
+
+    const DEMO = {
+      tracking_code: '123456789012',
+      status: 'in-transit',
+      delivery_date: addDaysISO(2),
+      service: 'FedEx Express Saver',
+      origin: 'Indianapolis, IN',
+      destination: 'San Jose, CA',
+      weight: '3.4 lbs',
+      dimensions: '12 x 10 x 4 in',
+      pieces: 1,
+      packaging: 'FedEx Box',
+      signed_by: ''
     };
 
-    initApp();
+    function addDaysISO(n){
+      const d = new Date();
+      d.setDate(d.getDate() + n);
+      return d.toISOString().slice(0,10);
+    }
+
+    trackForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const code = codeInput.value.trim();
+      if (!code) return;
+      const btn = document.getElementById('track-btn');
+      btn.disabled = true; btn.textContent = 'Tracking...';
+      await track(code);
+      btn.disabled = false; btn.textContent = 'Track';
+    });
+
+    async function track(code){
+      emptyHint.style.display = 'none';
+      notfound.classList.remove('show');
+      resultEl.classList.remove('show');
+
+      let entry = null, images = [], dbError = null;
+      try {
+        const res = await db.from('tracking_entries').select('*').eq('tracking_code', code).maybeSingle();
+        if (res.error) dbError = res.error;
+        if (res.data) entry = res.data;
+        if (res.data){
+          const imgs = await db.from('tracking_images').select('*').eq('tracking_code', code);
+          if (!imgs.error && imgs.data) images = imgs.data;
+        }
+      } catch(e){ dbError = e; }
+
+      if (!entry && code === '123456789012') entry = DEMO;
+
+      if (!entry){
+        notfound.classList.add('show');
+        if (dbError){
+          notfound.querySelector('p').textContent =
+            'Lookup error: ' + dbError.message + '. Make sure the database schema is created in Supabase, or view the sample shipment.';
+        }
+        return;
+      }
+      renderResult(entry, images);
+      // keep code in URL like real FedEx
+      try { history.replaceState(null, '', '?code=' + encodeURIComponent(code)); } catch(e){}
+    }
+
+    function normalizeStatus(s){
+      s = (s || 'pending').toLowerCase().replace(/_/g,'-');
+      if (s.includes('exception') || s.includes('delay') || s.includes('fail')) return 'exception';
+      if (s.includes('out')) return 'out-for-delivery';
+      if (s.includes('transit')) return 'in-transit';
+      if (s.includes('deliver')) return 'delivered';
+      return 'pending';
+    }
+    function fmtDate(d){
+      if (!d) return '—';
+      const dt = new Date(d);
+      if (isNaN(dt)) return d;
+      return dt.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
+    }
+    function fmtTime(d){
+      return d.toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' });
+    }
+
+    const ICONS = {
+      check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg>',
+      truck: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 3h13v13H1z"/><path d="M14 8h4l3 3v5h-7"/><circle cx="6" cy="19" r="2"/><circle cx="18" cy="19" r="2"/></svg>',
+      clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+      alert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>'
+    };
+
+    function renderResult(entry, images){
+      const status = normalizeStatus(entry.status);
+      const code = entry.tracking_code || '—';
+      const eta = entry.delivery_date ? fmtDate(entry.delivery_date) : '—';
+      const origin = entry.origin || 'Origin Facility';
+      const dest = entry.destination || 'Destination Facility';
+
+      document.getElementById('r-code').textContent = code;
+      document.getElementById('r-origin').textContent = origin;
+      document.getElementById('r-eta').textContent = eta;
+
+      const maps = {
+        pending:        { title:'Label created',      sub:'Waiting for the package to be picked up', cls:'pending', icon:'clock' },
+        'in-transit':   { title:'In transit',         sub:'Estimated delivery', cls:'in-transit', icon:'truck' },
+        'out-for-delivery': { title:'Out for delivery', sub:'Estimated delivery', cls:'in-transit', icon:'truck' },
+        delivered:      { title:'Delivered',          sub:'Delivered', cls:'delivered', icon:'check' },
+        exception:      { title:'Delivery exception', sub:'Action may be required', cls:'exception', icon:'alert' }
+      };
+      const m = maps[status] || maps['in-transit'];
+      const titleEl = document.getElementById('r-status-title');
+      titleEl.textContent = m.title;
+      titleEl.className = 'status-title ' + m.cls;
+
+      const iconEl = document.getElementById('r-icon');
+      iconEl.className = 'status-icon ' + (status === 'delivered' ? 'delivered' : status === 'exception' ? 'exception' : status === 'pending' ? 'pending' : '');
+      iconEl.innerHTML = ICONS[m.icon];
+
+      let sub;
+      if (status === 'delivered'){
+        sub = 'Delivered ' + eta + (entry.signed_by ? ' · Signed for by ' + entry.signed_by : '');
+      } else if (status === 'exception'){
+        sub = m.sub;
+      } else {
+        sub = m.sub + ' ' + eta;
+      }
+      document.getElementById('r-status-sub').textContent = sub;
+
+      // progress rail
+      const phases = ['Picked up','In transit','Out for delivery','Delivered'];
+      const phaseIdx = status === 'pending' ? 0 : status === 'delivered' ? 3 : status === 'out-for-delivery' ? 2 : 1;
+      document.getElementById('r-progress').innerHTML = phases.map((p, i) => {
+        let cls = '';
+        if (status === 'delivered') cls = 'done';
+        else if (i < phaseIdx) cls = 'done';
+        else if (i === phaseIdx) cls = 'current';
+        return '<div class="step ' + cls + '"><div class="bar"></div>' + p + '</div>';
+      }).join('');
+
+      // shipment facts
+      const facts = [
+        ['Tracking number', code],
+        ['Service', entry.service || 'FedEx Express Saver'],
+        ['Weight', entry.weight || '2.0 lbs'],
+        ['Dimensions', entry.dimensions || '12 x 10 x 4 in'],
+        ['Total pieces', entry.pieces || 1],
+        ['Packaging', entry.packaging || 'FedEx Box'],
+        ['Shipped from', origin],
+        ['Destination', dest]
+      ];
+      document.getElementById('r-facts').innerHTML = facts.map(f =>
+        '<div class="fact"><span class="k">' + f[0] + '</span><span class="v">' + f[1] + '</span></div>'
+      ).join('');
+      document.getElementById('r-service-pill').textContent = entry.service || 'FedEx Express';
+
+      // travel history
+      const scans = buildScans(entry, status, origin, dest);
+      document.getElementById('r-history').innerHTML = renderScans(scans);
+      document.getElementById('r-scans-count').textContent = scans.length + ' scans';
+
+      // proof of delivery
+      const proofPanel = document.getElementById('proof-panel');
+      const proofGrid = document.getElementById('r-proof');
+      const proofEmpty = document.getElementById('r-proof-empty');
+      const valid = (images || []).filter(x => x.image_url);
+      if (valid.length){
+        proofPanel.style.display = 'block';
+        proofEmpty.style.display = 'none';
+        proofGrid.innerHTML = valid.map(x =>
+          '<a href="' + x.image_url + '" target="_blank" rel="noopener"><img src="' + x.image_url + '" alt="Proof of delivery"></a>'
+        ).join('');
+      } else {
+        proofGrid.innerHTML = '';
+        proofEmpty.style.display = 'block';
+        proofPanel.style.display = status === 'delivered' ? 'block' : 'none';
+      }
+
+      resultEl.classList.add('show');
+      resultEl.scrollIntoView({ behavior:'smooth', block:'start' });
+    }
+
+    function buildScans(entry, status, origin, dest){
+      const now = new Date();
+      let base = now;
+      if (status === 'delivered' && entry.delivery_date){
+        const d = new Date(entry.delivery_date);
+        if (!isNaN(d)){ d.setHours(14,42,0,0); base = d; }
+      }
+      const hub = 'FedEx Hub, Memphis, TN';
+      const H = n => new Date(base.getTime() - n*3600*1000);
+
+      let defs;
+      if (status === 'pending'){
+        defs = [['Shipment information sent to FedEx', origin, 0]];
+      } else if (status === 'delivered'){
+        defs = [
+          ['Delivered · left at front door', dest, 0],
+          ['On FedEx vehicle for delivery', dest, 2],
+          ['At local FedEx facility', dest, 6],
+          ['Departed FedEx hub', hub, 20],
+          ['In transit', hub, 26],
+          ['Picked up', origin, 42],
+          ['Shipment information sent to FedEx', origin, 46]
+        ];
+      } else if (status === 'out-for-delivery'){
+        defs = [
+          ['On FedEx vehicle for delivery', dest, 0],
+          ['At local FedEx facility', dest, 4],
+          ['In transit', hub, 18],
+          ['Departed FedEx hub', hub, 24],
+          ['Picked up', origin, 40],
+          ['Shipment information sent to FedEx', origin, 44]
+        ];
+      } else if (status === 'exception'){
+        defs = [
+          ['Delivery exception · recipient not available', dest, 0],
+          ['On FedEx vehicle for delivery', dest, 2],
+          ['At local FedEx facility', dest, 6],
+          ['In transit', hub, 22],
+          ['Picked up', origin, 40]
+        ];
+      } else {
+        defs = [
+          ['In transit', hub, 0],
+          ['Departed FedEx hub', hub, 6],
+          ['Picked up', origin, 20],
+          ['Shipment information sent to FedEx', origin, 24]
+        ];
+      }
+      return defs.map(d => ({ when: H(d[2]), desc: d[0], loc: d[1] }));
+    }
+
+    function renderScans(scans){
+      const groups = {};
+      scans.forEach(s => {
+        const key = s.when.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
+        (groups[key] = groups[key] || []).push(s);
+      });
+      let html = '';
+      let first = true;
+      Object.keys(groups).forEach(day => {
+        html += '<div class="history-day">' + day + '</div>';
+        groups[day].forEach(s => {
+          const cls = first ? 'scan latest' : 'scan';
+          first = false;
+          html += '<div class="' + cls + '"><span class="dot"></span>' +
+                  '<div class="time">' + fmtTime(s.when) + '</div>' +
+                  '<div><div class="desc">' + s.desc + '</div><div class="loc">' + s.loc + '</div></div></div>';
+        });
+      });
+      return html;
+    }
+
+    window.showDemo = async function(){
+      notfound.classList.remove('show');
+      await track('123456789012');
+    };
+
+    /* Buttons */
+    document.getElementById('btn-share').addEventListener('click', async () => {
+      const url = window.location.href;
+      try { await navigator.clipboard.writeText(url); alert('Tracking link copied to clipboard.'); }
+      catch(e){ prompt('Copy this tracking link:', url); }
+    });
+    document.getElementById('btn-proof').addEventListener('click', () => {
+      const panel = document.getElementById('proof-panel');
+      const hasImages = document.getElementById('r-proof').children.length > 0;
+      if (hasImages){
+        panel.scrollIntoView({ behavior:'smooth', block:'start' });
+      } else {
+        alert('Proof of delivery is available after the package is delivered. No image is on file for this shipment yet.');
+      }
+    });
+
+    /* Boot */
+    (async function init(){
+      await refreshUser();
+      db.auth.onAuthStateChange(() => refreshUser());
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get('code');
+      if (code){ codeInput.value = code; await track(code); }
+    })();
   </script>
 </body>
 </html>
