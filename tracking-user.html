@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tracking Your Shipment | FedEx</title>
+  <meta name="description" content="Track your FedEx package">
+  
+  <!-- Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <!-- FedEx Brand Colors -->
+  <style>
+    :root {
+      --dsmg-brand-purple: #4d148c;
+      --dsmg-brand-orange: #FF6200;
+      --dsmg-color-bg-light: #f6f7fb;
+      --dsmg-color-ink: #1f2937;
+      --dsmg-color-paper: #ffffff;
+      --dsmg-color-gray-200: #e5e7eb;
+      --dsmg-color-gray-300: #d1d5db;
+      --dsmg-color-gray-500: #6b7280;
+      --dsmg-color-gray-600: #4b5563;
+      --dsmg-color-success: #059669;
+      --dsmg-color-info: #3b82f6;
+      --dsmg-color-warning: #d97706;
+      --dsmg-color-error: #dc262f;
+    }
+
+    * { box-sizing: border-box; }
+    body { font-family: 'FedExSans', Arial, sans-serif; margin: 0; background: var(--dsmg-color-bg-light); color: var(--dsmg-color-ink); }
+
+    .supabase-auth {
+      max-width: 400px;
+      margin: 80px auto;
+      padding: 32px;
+      background: var(--dsmg-color-paper);
+      border-radius: 8px;
+    }
+
+    .supabase-auth h2 {
+      color: var(--dsmg-brand-purple);
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .supabase-auth .form-group {
+      margin-bottom: 16px;
+    }
+
+    .supabase-auth .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: var(--dsmg-color-gray-600);
+    }
+
+    .supabase-auth .form-group input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--dsmg-color-gray-300);
+      border-radius: 4px;
+      font-size: 0.875rem;
+    }
+
+    .supabase-auth .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      font-weight: 500;
+      cursor: pointer;
+      font-size: 0.875rem;
+      width: 100%;
+    }
+
+    .supabase-auth .btn-primary { background: var(--dsmg-brand-orange); color: var(--dsmg-color-paper); }
+    .supabase-auth .btn-secondary { background: var(--dsmg-brand-purple); color: var(--dsmg-color-paper); width: 100%; margin-top: 8px; }
+
+    .supabase-auth .link {
+      text-align: center;
+      margin-top: 16px;
+      font-size: 0.875rem;
+    }
+
+    .supabase-auth .link a { color: var(--dsmg-brand-orange); text-decoration: none; }
+
+    /* Tracking page */
+    .tracking-page {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 24px;
+    }
+
+    .tracking-hero {
+      background: var(--dsmg-color-bg-light);
+      padding: 32px;
+      border-radius: 8px;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .tracking-hero h1 {
+      color: var(--dsmg-brand-purple);
+      margin-bottom: 8px;
+    }
+
+    .tracking-status {
+      padding: 12px 20px;
+      border-radius: 20px;
+      font-weight: 500;
+      margin: 16px 0;
+      display: inline-block;
+    }
+
+    .status-pending { background: var(--dsmg-color-warning); color: var(--dsmg-color-paper); }
+    .status-in-transit { background: var(--dsmg-color-info); color: var(--dsmg-color-paper); }
+    .status-delivered { background: var(--dsmg-color-success); color: var(--dsmg-color-paper); }
+    .status-exception { background: var(--dsmg-color-error); color: var(--dsmg-color-paper); }
+
+    .timeline-event {
+      padding: 12px 0;
+      border-bottom: 1px solid var(--dsmg-color-gray-200);
+    }
+
+    .timeline-dot {
+      width: 12px;
+      height: 12px;
+      background: var(--dsmg-brand-orange);
+      border-radius: 50%;
+      float: left;
+      margin-right: 12px;
+    }
+
+    .timeline-content { overflow: hidden; padding-left: 18px; }
+
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--dsmg-color-gray-300);
+      border-radius: 4px;
+      font-size: 0.875rem;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      font-weight: 500;
+      cursor: pointer;
+      font-size: 0.875rem;
+    }
+
+    .btn-primary { background: var(--dsmg-brand-orange); color: var(--dsmg-color-paper); width: 100%; }
+
+    /* User info */
+    .user-info {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .user-info span { color: var(--dsmg-color-gray-600); font-size: 0.875rem; }
+    .user-info button { margin-top: 8px; background: var(--dsmg-color-gray-300); color: var(--dsmg-color-ink); }
+  </style>
+</head>
+<body>
+
+  <!-- Auth Section (shown when not logged in) -->
+  <div id="auth-section" class="supabase-auth">
+    <h2>Welcome FedEx</h2>
+
+    <div style="margin-bottom: 24px; border-bottom: 1px solid var(--dsmg-color-gray-200); padding-bottom: 16px;">
+      <button class="btn-secondary" onclick="showTab('login')" style="margin-bottom: 8px;">Login</button>
+      <button class="btn-primary" onclick="showTab('signup')" style="margin-bottom: 8px;">Sign Up</button>
+    </div>
+
+    <div id="login-tab" style="display: block;">
+      <h3 style="color: var(--dsmg-color-ink); margin-bottom: 16px;">Login</h3>
+      <form id="login-form">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="login-email" required>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="login-password" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Login</button>
+      </form>
+      <p class="link">Don't have an account? <a href="#" onclick="showTab('signup'); return false;">Sign up</a></p>
+    </div>
+
+    <div id="signup-tab" style="display: none;">
+      <h3 style="color: var(--dsmg-color-ink); margin-bottom: 16px;">Sign Up</h3>
+      <p style="font-size: 0.875rem; color: var(--dsmg-color-gray-600); margin-bottom: 16px;">
+        Create a free account to track your shipments
+      </p>
+      <form id="signup-form">
+        <div class="form-group">
+          <label>Name</label>
+          <input type="text" id="signup-name" required>
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="signup-email" required>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="signup-password" required minlength="6">
+        </div>
+        <button type="submit" class="btn btn-secondary">Create Account</button>
+      </form>
+      <p class="link">Already have an account? <a href="#" onclick="showTab('login'); return false;">Login</a></p>
+    </div>
+  </div>
+
+  <!-- User Dashboard (shown when logged in) -->
+  <div id="user-dashboard" class="tracking-page" style="display: none;">
+    <div class="tracking-hero">
+      <h1>Track Your Shipment</h1>
+      <p>Enter your FedEx tracking number to see progress</p>
+      <div class="user-info">
+        <span>Welcome, <span id="user-name"></span>!</span>
+        <button id="btn-signout" class="btn" onclick="signout()">Sign Out</button>
+      </div>
+    </div>
+
+    <div style="background: var(--dsmg-color-paper); padding: 24px; border-radius: 8px;">
+      <form id="track-shipment-form">
+        <div class="form-group">
+          <label>FedEx Tracking Number</label>
+          <input type="text" id="tracking-code" placeholder="e.g., 123456789012" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Track Shipment</button>
+      </form>
+    </div>
+
+    <div id="tracking-results" style="display: none; margin-top: 32px;">
+      <div class="tracking-status status-in-transit" id="status-badge">In Transit</div>
+
+      <div id="timeline" style="margin-top: 24px;"></div>
+
+      <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--dsmg-color-gray-200);">
+        <p><strong>Delivery Date:</strong> <span id="delivery-date">—</span></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const supabaseUrl = 'https://fsczaqtqscevllyvarwk.supabase.co';
+    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZzY3phcXRxc2NldmxseXZhcndrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMzNjU3NzQsImV4cCI6MjEwODk0MTc3NH0.Kc8gKnR76F5DsdgeZSXT1ylTwIRqhIby2Z4GSfZSlBg';
+    const supabase = supabase.createClient(supabaseUrl, supabaseAnonKey);
+
+    function showTab(tabName) {
+      document.getElementById('login-tab').style.display = tabName === 'login' ? 'block' : 'none';
+      document.getElementById('signup-tab').style.display = tabName === 'signup' ? 'block' : 'none';
+    }
+
+    async function initApp() {
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (user) {
+        document.getElementById('auth-section').style.display = 'none';
+        document.getElementById('user-dashboard').style.display = 'block';
+
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('full_name')
+          .eq('id', user.id)
+          .single();
+
+        document.getElementById('user-name').textContent = profile?.full_name || user.email?.split('@')[0] || 'User';
+      } else {
+        document.getElementById('auth-section').style.display = 'block';
+        document.getElementById('user-dashboard').style.display = 'none';
+      }
+    }
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        alert('Login failed: ' + error.message);
+      } else {
+        initApp();
+      }
+    });
+
+    document.getElementById('signup-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('signup-name').value;
+      const email = document.getElementById('signup-email').value;
+      const password = document.getElementById('signup-password').value;
+
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { full_name: name } }
+      });
+
+      if (error) {
+        alert('Signup failed: ' + error.message);
+      } else {
+        initApp();
+      }
+    });
+
+    document.getElementById('track-shipment-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const trackingCode = document.getElementById('tracking-code').value.trim();
+      if (!trackingCode) {
+        alert('Please enter a tracking number');
+        return;
+      }
+
+      const resultsSection = document.getElementById('tracking-results');
+      resultsSection.style.display = 'block';
+      document.getElementById('status-badge').textContent = 'Looking up...';
+      document.getElementById('timeline').innerHTML = '<p style="color: var(--dsmg-color-gray-500);">Looking up tracking events...</p>';
+      document.getElementById('delivery-date').textContent = '—';
+
+      const { error: insertError } = await supabase
+        .from('tracking_entries')
+        .insert([{ tracking_code: trackingCode, status: 'processing' }]);
+
+      if (insertError) console.error('Error saving tracking:', insertError);
+
+      setTimeout(async () => {
+        const statuses = ['In Transit', 'Out for Delivery', 'Delivered'];
+        const status = statuses[Math.floor(Math.random() * statuses.length)];
+
+        await supabase
+          .from('tracking_entries')
+          .update({ status })
+          .eq('tracking_code', trackingCode);
+
+        const events = [
+          { date: new Date().toLocaleDateString(), location: 'Origin Facility', status: 'Package picked up' },
+          { date: new Date().toLocaleDateString(), location: 'Sorting Center', status: 'In transit' },
+          { date: new Date().toLocaleDateString(), location: 'Local Facility', status: 'Out for delivery' }
+        ];
+
+        const statusClass = status === 'delivered' ? 'status-delivered' : status === 'In Transit' ? 'status-in-transit' : 'status-pending';
+        document.getElementById('status-badge').className = `tracking-status ${statusClass}`;
+        document.getElementById('status-badge').textContent = status;
+
+        document.getElementById('timeline').innerHTML = events.map(ev => `
+          <div class="timeline-event">
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+              <strong>${ev.date}</strong> • ${ev.location}<br>
+              <span style="font-size: 0.875rem;">${ev.status}</span>
+            </div>
+          </div>
+        `).join('');
+
+        document.getElementById('delivery-date').textContent = 'October 15, 2026';
+        resultsSection.style.display = 'block';
+      }, 1500);
+    });
+
+    window.signout = async () => {
+      const { error } = await supabase.auth.signOut();
+      if (!error) {
+        initApp();
+      }
+    };
+
+    initApp();
+  </script>
+</body>
+</html>

@@ -1,1 +1,115 @@
-'HTML' 
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FedEx | Package Tracking System</title>
+  
+  <style>
+    :root {
+      --dsmg-brand-purple: #4d148c;
+      --dsmg-brand-orange: #FF6200;
+      --dsmg-color-bg-light: #f6f7fb;
+      --dsmg-color-paper: #ffffff;
+      --dsmg-color-ink: #1f2937;
+      --dsmg-color-gray-600: #4b5563;
+    }
+
+    * { box-sizing: border-box; }
+    body { font-family: 'FedExSans', Arial, sans-serif; margin: 0; background: var(--dsmg-color-bg-light); color: var(--dsmg-color-ink); }
+
+    .container { max-width: 800px; margin: 0 auto; padding: 40px 20px; text-align: center; }
+
+    h1 { color: var(--dsmg-brand-purple); font-size: 2.5rem; margin-bottom: 16px; }
+
+    .hero {
+      background: var(--dsmg-color-paper);
+      padding: 48px 24px;
+      border-radius: 12px;
+      margin-bottom: 32px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .hero p { color: var(--dsmg-color-gray-600); margin-bottom: 24px; font-size: 1.1rem; }
+
+    .btn-group {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 14px 28px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 1rem;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-primary { background: var(--dsmg-brand-orange); color: var(--dsmg-color-paper); }
+    .btn-secondary { background: var(--dsmg-brand-purple); color: var(--dsmg-color-paper); }
+
+    .btn:hover { opacity: 0.9; }
+
+    .features {
+      margin-top: 40px;
+      text-align: left;
+    }
+
+    .features h3 { color: var(--dsmg-brand-purple); margin-bottom: 16px; }
+
+    .features ul { list-style: none; padding: 0; }
+
+    .features li {
+      padding: 8px 0;
+      color: var(--dsmg-color-gray-600);
+      border-bottom: 1px solid var(--dsmg-color-bg-light);
+    }
+
+    .features li:before { content: "✓"; color: var(--dsmg-brand-orange); font-weight: bold; margin-right: 8px; }
+
+    .footer {
+      margin-top: 40px;
+      padding-top: 24px;
+      border-top: 1px solid var(--dsmg-color-bg-light);
+      color: var(--dsmg-color-gray-600);
+      font-size: 0.875rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="hero">
+      <h1>📦 FedEx Package Tracking</h1>
+      <p>Track your shipments, manage deliveries, and view progress in real-time</p>
+
+      <div class="btn-group">
+        <a href="tracking-user.html" class="btn btn-primary">Track Package</a>
+        <a href="admin-portal.html" class="btn btn-secondary">Admin Portal</a>
+      </div>
+    </div>
+
+    <div class="features">
+      <h3>Features</h3>
+      <ul>
+        <li>User signup & login</li>
+        <li>Real-time package tracking</li>
+        <li>Progress timeline</li>
+        <li>Admin dashboard for managing all trackings</li>
+        <li>Image upload for proof of delivery</li>
+        <li>Supabase-powered backend</li>
+      </ul>
+    </div>
+
+    <div class="footer">
+      <p>© 2026 FedEx Tracking System. Built with Supabase + HTML/CSS.</p>
+    </div>
+  </div>
+
+</body>
+</html>

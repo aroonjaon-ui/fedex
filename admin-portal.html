@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FedEx Admin Portal</title>
+  
+  <!-- Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <!-- FedEx Brand Colors -->
+  <style>
+    :root {
+      --dsmg-brand-purple: #4d148c;
+      --dsmg-brand-orange: #FF6200;
+      --dsmg-color-bg-light: #f6f7fb;
+      --dsmg-color-paper: #ffffff;
+      --dsmg-color-ink: #1f2937;
+      --dsmg-color-gray-200: #e5e7eb;
+      --dsmg-color-gray-300: #d1d5db;
+      --dsmg-color-gray-500: #6b7280;
+      --dsmg-color-gray-600: #4b5563;
+      --dsmg-color-success: #059669;
+      --dsmg-color-info: #3b82f6;
+      --dsmg-color-warning: #d97706;
+      --dsmg-color-error: #dc262f;
+    }
+
+    * { box-sizing: border-box; }
+    body { font-family: 'FedExSans', Arial, sans-serif; margin: 0; background: var(--dsmg-color-bg-light); color: var(--dsmg-color-ink); }
+
+    .admin-container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+    .admin-card { background: var(--dsmg-color-paper); padding: 24px; margin-bottom: 20px; border-radius: 8px; }
+
+    .admin-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    .admin-table th, .admin-table td { padding: 12px; text-align: left; border-bottom: 1px solid var(--dsmg-color-gray-200); }
+    .admin-table th { color: var(--dsmg-color-gray-600); font-size: 0.875rem; }
+
+    .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 500; }
+    .status-pending { background: var(--dsmg-color-warning); color: var(--dsmg-color-paper); }
+    .status-in-transit { background: var(--dsmg-color-info); color: var(--dsmg-color-paper); }
+    .status-delivered { background: var(--dsmg-color-success); color: var(--dsmg-color-paper); }
+    .status-exception { background: var(--dsmg-color-error); color: var(--dsmg-color-paper); }
+
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: var(--dsmg-color-ink); }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; border: 1px solid var(--dsmg-color-gray-300); border-radius: 4px; font-family: 'FedExSans', sans-serif; }
+    .form-group textarea { min-height: 100px; resize: vertical; }
+
+    .btn { padding: 10px 20px; border: none; border-radius: 4px; font-weight: 500; cursor: pointer; font-size: 0.875rem; }
+    .btn-primary { background: var(--dsmg-brand-orange); color: var(--dsmg-color-paper); }
+    .btn-secondary { background: var(--dsmg-brand-purple); color: var(--dsmg-color-paper); }
+    .btn-danger { background: var(--dsmg-color-error); color: var(--dsmg-color-paper); }
+    .btn-small { padding: 6px 12px; font-size: 0.75rem; }
+
+    .supabase-auth { max-width: 400px; margin: 80px auto; padding: 32px; background: var(--dsmg-color-paper); border-radius: 8px; }
+    .supabase-auth h2 { color: var(--dsmg-brand-purple); text-align: center; margin-bottom: 24px; }
+
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: var(--dsmg-color-paper); padding: 24px; border-radius: 8px; text-align: center; }
+    .stat-value { font-size: 2rem; font-weight: bold; color: var(--dsmg-color-ink); }
+    .stat-label { color: var(--dsmg-color-gray-600); font-size: 0.875rem; margin-top: 8px; }
+  </style>
+</head>
+<body class="admin-container">
+
+  <!-- Admin Login -->
+  <div id="admin-auth" class="supabase-auth">
+    <h2>Admin Login</h2>
+    <form id="admin-login">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="admin-email" required placeholder="admin@fedex-tracking.local">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="admin-password" required placeholder="Admin123!">
+      </div>
+      <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
+    </form>
+    <p style="font-size: 0.75rem; color: var(--dsmg-color-gray-500); margin-top: 12px; text-align: center;">
+      Demo: admin@fedex-tracking.local / Admin123!
+    </p>
+  </div>
+
+  <!-- Admin Dashboard (hidden until login) -->
+  <div id="admin-dashboard" style="display: none;">
+    <h1 style="color: var(--dsmg-brand-purple); margin-bottom: 24px;">FedEx Admin Portal</h1>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value" id="admin-total">0</div>
+        <div class="stat-label">Total Trackings</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="admin-in-transit">0</div>
+        <div class="stat-label">In Transit</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="admin-delivered">0</div>
+        <div class="stat-label">Delivered</div>
+      </div>
+    </div>
+
+    <!-- Trackings Table -->
+    <div class="admin-card">
+      <h3 style="color: var(--dsmg-color-gray-600); font-size: 1rem; margin-bottom: 16px;">All Trackings</h3>
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Tracking Code</th>
+            <th>Status</th>
+            <th>Delivery Date</th>
+            <th>User</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="admin-trackings-table-body">
+          <!-- Dynamic rows -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Add Tracking Form -->
+    <div class="admin-card">
+      <h3 style="color: var(--dsmg-color-gray-600); font-size: 1rem; margin-bottom: 16px;">Add Tracking Entry</h3>
+      <form id="admin-tracking-form">
+        <input type="hidden" id="admin-tracking-id">
+        <div class="form-group">
+          <label>Tracking Code</label>
+          <input type="text" id="admin-tracking-code" required>
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="admin-status">
+            <option value="pending">Pending</option>
+            <option value="in-transit">In Transit</option>
+            <option value="delivered">Delivered</option>
+            <option value="exception">Exception</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Delivery Date</label>
+          <input type="date" id="admin-delivery-date">
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Save Tracking Entry</button>
+      </form>
+    </div>
+
+    <!-- Upload Image Form -->
+    <div class="admin-card">
+      <h3 style="color: var(--dsmg-color-gray-600); font-size: 1rem; margin-bottom: 16px;">Upload Tracking Image</h3>
+      <form id="admin-upload-image-form">
+        <div class="form-group">
+          <label>Tracking Code</label>
+          <input type="text" id="admin-image-tracking" required>
+        </div>
+        <div class="form-group">
+          <label>Image File</label>
+          <input type="file" id="admin-image-file" accept="image/*" required>
+        </div>
+        <button type="submit" class="btn btn-secondary" style="width: 100%;">Upload Image</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const supabaseUrl = 'https://fsczaqtqscevllyvarwk.supabase.co';
+    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZzY3phcXRxc2NldmxseXZhcndrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMzNjU3NzQsImV4cCI6MjEwODk0MTc3NH0.Kc8gKnR76F5DsdgeZSXT1ylTwIRqhIby2Z4GSfZSlBg';
+    const supabase = supabase.createClient(supabaseUrl, supabaseAnonKey);
+
+    const adminAuth = document.getElementById('admin-auth');
+    const adminDashboard = document.getElementById('admin-dashboard');
+
+    // Check if already logged in
+    const storedLogin = localStorage.getItem('admin_logged_in');
+    if (storedLogin === 'true') {
+      adminAuth.style.display = 'none';
+      adminDashboard.style.display = 'block';
+      loadAdminTrackings();
+    }
+
+    document.getElementById('admin-login').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('admin-email').value;
+      const password = document.getElementById('admin-password').value;
+
+      if (email === 'admin@fedex-tracking.local' && password === 'Admin123!') {
+        localStorage.setItem('admin_logged_in', 'true');
+        adminAuth.style.display = 'none';
+        adminDashboard.style.display = 'block';
+        loadAdminTrackings();
+      } else {
+        alert('Invalid admin credentials. Use: admin@fedex-tracking.local / Admin123!');
+      }
+    });
+
+    async function loadAdminTrackings() {
+      const { data, error } = await supabase
+        .from('tracking_entries')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error loading trackings:', error);
+        return;
+      }
+
+      document.getElementById('admin-total').textContent = data.length || 0;
+      document.getElementById('admin-in-transit').textContent = data.filter(t => t.status !== 'delivered').length || 0;
+      document.getElementById('admin-delivered').textContent = data.filter(t => t.status === 'delivered').length || 0;
+
+      const tbody = document.getElementById('admin-trackings-table-body');
+      let rows = '';
+
+      data.forEach(entry => {
+        const statusClass = entry.status === 'delivered' ? 'status-delivered' : entry.status === 'in-transit' ? 'status-in-transit' : 'status-pending';
+        rows += `
+          <tr>
+            <td style="font-weight: 500;">${entry.tracking_code}</td>
+            <td><span class="status-badge ${statusClass}">${entry.status}</span></td>
+            <td>${entry.delivery_date || '—'}</td>
+            <td>${entry.user_id || 'Admin'}</td>
+            <td>
+              <button class="btn btn-small btn-danger" onclick="deleteTracking('${entry.id}')">Delete</button>
+            </td>
+          </tr>
+        `;
+      });
+      tbody.innerHTML = rows || '<tr><td colspan="5" style="text-align: center; color: var(--dsmg-color-gray-500);">No trackings found</td></tr>';
+    }
+
+    const adminForm = document.getElementById('admin-tracking-form');
+    adminForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const trackingCode = document.getElementById('admin-tracking-code').value.trim();
+      const status = document.getElementById('admin-status').value;
+      const deliveryDate = document.getElementById('admin-delivery-date').value;
+
+      if (!trackingCode) {
+        alert('Please enter a tracking code');
+        return;
+      }
+
+      const { error } = await supabase
+        .from('tracking_entries')
+        .upsert([{ tracking_code: trackingCode, status, delivery_date: deliveryDate || null }], { onConflict: 'tracking_code' });
+
+      if (error) {
+        console.error('Error saving tracking:', error);
+        alert('Error saving tracking entry.');
+      } else {
+        alert('Tracking entry saved!');
+        adminForm.reset();
+        document.getElementById('admin-tracking-id').value = '';
+        loadAdminTrackings();
+      }
+    });
+
+    window.deleteTracking = async (id) => {
+      if (confirm('Are you sure you want to delete this tracking entry?')) {
+        const { error } = await supabase.from('tracking_entries').delete().eq('id', id);
+        if (error) {
+          alert('Error deleting tracking entry.');
+        } else {
+          alert('Tracking entry deleted.');
+          loadAdminTrackings();
+        }
+      }
+    };
+
+    const uploadForm = document.getElementById('admin-upload-image-form');
+    uploadForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const trackingCode = document.getElementById('admin-image-tracking').value.trim();
+      const file = document.getElementById('admin-image-file').files[0];
+
+      if (!trackingCode || !file) {
+        alert('Please fill in all fields');
+        return;
+      }
+
+      const filePath = `${trackingCode}/${Date.now()}_${file.name}`;
+
+      const { error: uploadError } = await supabase.storage.from('tracking-proofs').upload(filePath, file, { cacheControl: '3600', upsert: false });
+
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        alert('Error uploading image.');
+        return;
+      }
+
+      const { data: { publicUrl } } = supabase.storage.from('tracking-proofs').getPublicUrl(filePath);
+
+      const { error: dbError } = await supabase.from('tracking_images').insert([{ tracking_code: trackingCode, image_url: publicUrl, image_name: file.name }]);
+
+      if (dbError) {
+        alert('Image uploaded but error saving to database.');
+      } else {
+        alert('Image uploaded and saved!');
+        uploadForm.reset();
+        loadAdminTrackings();
+      }
+    });
+  </script>
+</body>
+</html>
