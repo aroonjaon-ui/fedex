@@ -3,40 +3,23 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Admin Portal | FedEx</title>
+  <title>Shipment Control Center | FedEx</title>
+  <link rel="icon" type="image/png" href="images/fedex-logo.png">
   <link rel="stylesheet" href="assets/site.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-  <!-- Utility bar -->
-  <div class="utility-bar">
-    <div class="utility-inner">
-      <div class="utility-left">
-        <a href="index.html">United States</a>
-        <a href="#">English</a>
-      </div>
-      <div class="utility-right">
-        <a href="index.html">Home</a>
-        <span style="color:#d1d1d8">|</span>
-        <a class="strong" href="tracking-user.html">Track</a>
-      </div>
-    </div>
-  </div>
-
   <!-- Header -->
   <header class="site-header">
     <div class="header-inner">
       <a class="logo" href="index.html" aria-label="FedEx home"><span class="fed">Fed</span><span class="ex">Ex</span></a>
-      <ul class="main-nav">
-        <li><a href="index.html#services">Ship</a></li>
-        <li><a href="tracking-user.html">Track</a></li>
-        <li><a href="index.html#services">Print</a></li>
-        <li><a href="index.html#locations">Locations</a></li>
-        <li><a class="active" href="admin-portal.html">Admin</a></li>
-      </ul>
+      <div class="admin-header-title">
+        <span class="admin-eyebrow">Shipment control center</span>
+      </div>
       <div class="header-right">
-        <a class="header-cta" href="tracking-user.html">Back to site</a>
+        <a class="header-account" href="tracking-user.html" target="_blank" rel="noopener">Open tracking page</a>
+        <a class="header-cta" href="index.html">Back to site</a>
       </div>
     </div>
   </header>
@@ -46,8 +29,8 @@
     <div class="auth-wrap">
       <div class="auth-card">
         <div class="brandline"><span class="logo" style="font-size:34px"><span class="fed">Fed</span><span class="ex">Ex</span></span></div>
-        <h1>Admin Portal</h1>
-        <p class="lead">Sign in to manage tracking entries and proof-of-delivery images.</p>
+        <h1>Admin sign in</h1>
+        <p class="lead">Sign in to create shipments, move them through carrier and warehouse stages, and upload images.</p>
 
         <div id="login-alert" class="alert"></div>
 
@@ -71,43 +54,70 @@
   <main id="dash-view" class="admin-wrap" style="display:none">
     <div class="admin-head">
       <div>
-        <h1>Admin Portal</h1>
-        <p class="page-sub" style="margin:2px 0 0">Manage tracking entries and proof-of-delivery images.</p>
+        <h1>Shipment control center</h1>
+        <p class="page-sub" style="margin:2px 0 0">Create shipments, change location and carrier stage, upload images, and watch every scan save to Supabase.</p>
       </div>
-      <button class="btn btn-outline btn-sm" id="admin-signout">Sign out</button>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-outline btn-sm" id="refresh-btn" type="button">Refresh</button>
+        <button class="btn btn-outline btn-sm" id="admin-signout" type="button">Sign out</button>
+      </div>
     </div>
 
-    <div class="stats">
+    <div id="admin-alert" class="alert"></div>
+
+    <div class="storage-note" id="storage-note">
+      <strong>Live storage:</strong> shipment details and scans are saved in Supabase. If the public <span class="mono">tracking-proofs</span> Storage bucket is missing, images are compressed and saved inside the database automatically.
+    </div>
+
+    <div class="stats stats-auto">
       <div class="stat"><div class="num" id="stat-total">0</div><div class="lbl">Total shipments</div></div>
-      <div class="stat"><div class="num" id="stat-transit">0</div><div class="lbl">In transit</div></div>
+      <div class="stat"><div class="num" id="stat-label">0</div><div class="lbl">Label created</div></div>
+      <div class="stat"><div class="num" id="stat-transit">0</div><div class="lbl">With carrier</div></div>
+      <div class="stat"><div class="num" id="stat-warehouse">0</div><div class="lbl">At warehouse</div></div>
+      <div class="stat"><div class="num" id="stat-out">0</div><div class="lbl">Out for delivery</div></div>
       <div class="stat"><div class="num" id="stat-delivered">0</div><div class="lbl">Delivered</div></div>
       <div class="stat"><div class="num" id="stat-exception">0</div><div class="lbl">Exceptions</div></div>
+      <div class="stat"><div class="num" id="stat-claimed">0</div><div class="lbl">Claimed by users</div></div>
     </div>
 
     <div class="admin-grid">
       <div>
         <div class="card">
-          <h2>All trackings</h2>
+          <div class="card-head-row">
+            <div>
+              <h2 style="margin:0">All shipments</h2>
+              <p class="card-sub">Every change is written to Supabase immediately.</p>
+            </div>
+            <input class="input input-compact" id="admin-search" type="search" placeholder="Search code, location, route">
+          </div>
           <div class="table-wrap">
             <table class="data">
               <thead>
                 <tr>
                   <th>Tracking code</th>
-                  <th>Status</th>
-                  <th>Delivery</th>
+                  <th>Stage</th>
+                  <th>Current location</th>
                   <th>Route</th>
+                  <th>Delivery</th>
+                  <th>Claimed</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody id="tracking-rows">
-                <tr><td colspan="5" class="empty">Loading…</td></tr>
+                <tr><td colspan="7" class="empty">Loading…</td></tr>
               </tbody>
             </table>
           </div>
         </div>
 
         <div class="card">
-          <h2>Tracking images</h2>
+          <div class="card-head-row">
+            <div>
+              <h2 style="margin:0">Image library</h2>
+              <p class="card-sub">Shipment photos and proof-of-delivery images saved in Supabase.</p>
+            </div>
+            <button class="btn btn-outline btn-sm" id="reload-images" type="button">Reload images</button>
+          </div>
           <div class="proof-grid" id="images-grid">
             <p class="empty" style="grid-column:1/-1">No images uploaded yet.</p>
           </div>
@@ -115,74 +125,175 @@
       </div>
 
       <div>
-        <div class="card">
-          <h2 id="form-title">Add / update tracking</h2>
+        <div class="card" id="create-card">
+          <div class="card-head-row">
+            <h2 id="form-title" style="margin:0">Create shipment</h2>
+            <span class="pill" id="editing-pill" style="display:none">Editing</span>
+          </div>
+          <p class="card-sub" id="form-sub">Add a tracking code, set the first carrier stage, and attach shipment images.</p>
           <form id="tracking-form">
             <div class="field">
               <label for="f-code">Tracking code *</label>
-              <input class="input" id="f-code" type="text" placeholder="e.g. 123456789012" required>
+              <input class="input mono" id="f-code" type="text" placeholder="e.g. 781234567890" required autocomplete="off">
             </div>
+
+            <div class="form-row">
+              <div class="field">
+                <label for="f-stage">Carrier / shipment stage</label>
+                <select class="input" id="f-stage">
+                  <option value="label_created">Label created</option>
+                  <option value="carrier_1">Carrier 1 · Picked up</option>
+                  <option value="carrier_2" selected>Carrier 2 · In transit</option>
+                  <option value="carrier_3">Carrier 3 · At hub</option>
+                  <option value="warehouse">At warehouse</option>
+                  <option value="out_for_delivery">Out for delivery</option>
+                  <option value="delivered">Delivered</option>
+                  <option value="exception">Exception</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="f-date">Estimated / delivery date</label>
+                <input class="input" id="f-date" type="date">
+              </div>
+            </div>
+
             <div class="field">
-              <label for="f-status">Status</label>
-              <select class="input" id="f-status">
-                <option value="pending">Label created / pending</option>
-                <option value="in-transit" selected>In transit</option>
-                <option value="out-for-delivery">Out for delivery</option>
-                <option value="delivered">Delivered</option>
-                <option value="exception">Exception</option>
-              </select>
+              <label for="f-location">Current location / state</label>
+              <input class="input" id="f-location" type="text" placeholder="e.g. Memphis, TN — FedEx hub">
             </div>
-            <div class="field">
-              <label for="f-date">Estimated / delivery date</label>
-              <input class="input" id="f-date" type="date">
+
+            <div class="form-row">
+              <div class="field">
+                <label for="f-origin">Shipped from</label>
+                <input class="input" id="f-origin" type="text" placeholder="Indianapolis, IN">
+              </div>
+              <div class="field">
+                <label for="f-destination">Destination</label>
+                <input class="input" id="f-destination" type="text" placeholder="San Jose, CA">
+              </div>
             </div>
+
             <div class="field">
               <label for="f-service">Service</label>
               <input class="input" id="f-service" type="text" placeholder="FedEx Express Saver">
             </div>
-            <div class="field">
-              <label for="f-origin">Shipped from</label>
-              <input class="input" id="f-origin" type="text" placeholder="Indianapolis, IN">
+
+            <div class="form-row">
+              <div class="field">
+                <label for="f-weight">Weight</label>
+                <input class="input" id="f-weight" type="text" placeholder="3.4 lbs">
+              </div>
+              <div class="field">
+                <label for="f-dimensions">Dimensions</label>
+                <input class="input" id="f-dimensions" type="text" placeholder="12 x 10 x 4 in">
+              </div>
             </div>
-            <div class="field">
-              <label for="f-destination">Destination</label>
-              <input class="input" id="f-destination" type="text" placeholder="San Jose, CA">
+
+            <div class="form-row">
+              <div class="field">
+                <label for="f-pieces">Total pieces</label>
+                <input class="input" id="f-pieces" type="number" min="1" value="1">
+              </div>
+              <div class="field">
+                <label for="f-packaging">Packaging</label>
+                <input class="input" id="f-packaging" type="text" placeholder="FedEx Box">
+              </div>
             </div>
+
             <div class="field">
-              <label for="f-weight">Weight</label>
-              <input class="input" id="f-weight" type="text" placeholder="3.4 lbs">
-            </div>
-            <div class="field">
-              <label for="f-dimensions">Dimensions</label>
-              <input class="input" id="f-dimensions" type="text" placeholder="12 x 10 x 4 in">
-            </div>
-            <div class="field">
-              <label for="f-pieces">Total pieces</label>
-              <input class="input" id="f-pieces" type="number" min="1" value="1">
-            </div>
-            <div class="field">
-              <label for="f-signed">Signed for by</label>
+              <label for="f-signed">Signed for by (delivered shipments)</label>
               <input class="input" id="f-signed" type="text" placeholder="J. SMITH">
             </div>
-            <button type="submit" class="btn btn-orange btn-block" id="save-btn">Save tracking entry</button>
-            <button type="button" class="btn btn-outline btn-block" id="reset-btn" style="margin-top:10px">Clear form</button>
+
+            <div class="field">
+              <label for="f-notes">Internal notes (not shown publicly)</label>
+              <textarea class="input" id="f-notes" placeholder="Optional notes for your team"></textarea>
+            </div>
+
+            <div class="field">
+              <label for="f-images">Shipment images</label>
+              <input class="input" id="f-images" type="file" accept="image/*" multiple>
+              <div class="upload-preview" id="f-images-preview"></div>
+              <p class="field-hint">Select one or more photos. Images are saved to Supabase Storage when available, otherwise compressed into the database.</p>
+            </div>
+
+            <div class="existing-images" id="existing-images"></div>
+
+            <label class="check-row">
+              <input type="checkbox" id="f-add-event" checked>
+              <span>Add this stage as a tracking scan on the public timeline</span>
+            </label>
+            <div class="field" id="event-note-wrap" style="margin-top:10px">
+              <label for="f-event-note">Scan note (optional)</label>
+              <input class="input" id="f-event-note" type="text" placeholder="e.g. Arrived at Memphis hub">
+            </div>
+
+            <button type="submit" class="btn btn-orange btn-block" id="save-btn">Save shipment</button>
+            <button type="button" class="btn btn-outline btn-block" id="reset-btn" style="margin-top:10px">Clear form / new shipment</button>
           </form>
         </div>
 
         <div class="card">
-          <h2>Upload proof image</h2>
+          <h2>Move shipment</h2>
+          <p class="card-sub">Change the current carrier stage and location. The update is added to the public tracking timeline.</p>
+          <form id="move-form">
+            <div class="field">
+              <label for="m-code">Shipment *</label>
+              <select class="input" id="m-code" required>
+                <option value="">No shipments yet</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <div class="field">
+                <label for="m-stage">New stage</label>
+                <select class="input" id="m-stage">
+                  <option value="carrier_1">Carrier 1 · Picked up</option>
+                  <option value="carrier_2" selected>Carrier 2 · In transit</option>
+                  <option value="carrier_3">Carrier 3 · At hub</option>
+                  <option value="warehouse">At warehouse</option>
+                  <option value="out_for_delivery">Out for delivery</option>
+                  <option value="delivered">Delivered</option>
+                  <option value="exception">Exception</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="m-signed">Signed for by</label>
+                <input class="input" id="m-signed" type="text" placeholder="For delivered">
+              </div>
+            </div>
+            <div class="field">
+              <label for="m-location">Current location</label>
+              <input class="input" id="m-location" type="text" placeholder="e.g. Oakland, CA — local facility">
+            </div>
+            <div class="field">
+              <label for="m-note">Scan description (optional)</label>
+              <input class="input" id="m-note" type="text" placeholder="e.g. On FedEx vehicle for delivery">
+            </div>
+            <button type="submit" class="btn btn-purple btn-block" id="move-btn">Add tracking update</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2>Add images to a shipment</h2>
+          <p class="card-sub">Attach shipment photos or proof of delivery to an existing tracking code.</p>
           <form id="upload-form">
             <div class="field">
               <label for="u-code">Tracking code *</label>
-              <input class="input" id="u-code" type="text" placeholder="123456789012" required>
+              <input class="input mono" id="u-code" type="text" placeholder="781234567890" required>
             </div>
             <div class="field">
-              <label for="u-file">Image file *</label>
-              <input class="input" id="u-file" type="file" accept="image/*" required>
+              <label for="u-kind">Image type</label>
+              <select class="input" id="u-kind">
+                <option value="shipment">Shipment photo</option>
+                <option value="proof" selected>Proof of delivery</option>
+              </select>
             </div>
-            <button type="submit" class="btn btn-purple btn-block" id="upload-btn">Upload image</button>
+            <div class="field">
+              <label for="u-file">Image files *</label>
+              <input class="input" id="u-file" type="file" accept="image/*" multiple required>
+            </div>
+            <button type="submit" class="btn btn-purple btn-block" id="upload-btn">Upload images</button>
           </form>
-          <p style="font-size:12px;color:#6b7280;margin:10px 0 0">Requires a public Storage bucket named <strong>tracking-proofs</strong>.</p>
         </div>
       </div>
     </div>
@@ -193,12 +304,11 @@
     <div class="footer-inner">
       <div class="footer-brand">
         <a class="logo" href="index.html"><span class="fed">Fed</span><span class="ex">Ex</span></a>
-        <p>Shipping, tracking, and delivery services for individuals and businesses around the world.</p>
+        <p>Shipment control center. This is a demo clone for educational use.</p>
       </div>
-      <div class="footer-col"><h4>Our Company</h4><a href="index.html">About FedEx</a><a href="index.html">Careers</a><a href="index.html">Newsroom</a></div>
-      <div class="footer-col"><h4>Our Solutions</h4><a href="tracking-user.html">Track a package</a><a href="index.html#services">Ship a package</a><a href="index.html#services">Get rates</a></div>
-      <div class="footer-col"><h4>Customer Support</h4><a href="index.html#support">Contact us</a><a href="index.html#support">FAQs</a><a href="index.html#support">File a claim</a></div>
-      <div class="footer-col"><h4>Admin</h4><a href="admin-portal.html">Admin portal</a><a href="tracking-user.html">Track page</a><a href="index.html">Home</a></div>
+      <div class="footer-col"><h4>Manage</h4><a href="admin-portal.html">Control center</a><a href="tracking-user.html">Track page</a><a href="index.html">Home</a></div>
+      <div class="footer-col"><h4>Stages</h4><a href="#">Label created</a><a href="#">Carrier 1–3</a><a href="#">Warehouse · Delivered</a></div>
+      <div class="footer-col"><h4>Data</h4><a href="#">Supabase saved</a><a href="#">Images included</a><a href="#">Claim records</a></div>
     </div>
     <div class="footer-bottom">
       <div class="footer-bottom-inner">
@@ -216,12 +326,145 @@
     const ADMIN_EMAIL = 'admin@fedex-tracking.local';
     const ADMIN_PASS = 'Admin123!';
     const SESSION_KEY = 'fedex_admin_session';
+    const BUCKET = 'tracking-proofs';
 
+    /* ================= Stage model ================= */
+    const STAGES = [
+      { key:'label_created',     label:'Label created',        short:'Label created',     status:'pending' },
+      { key:'carrier_1',         label:'Carrier 1 · Picked up', short:'Picked up',         status:'in-transit' },
+      { key:'carrier_2',         label:'Carrier 2 · In transit',short:'In transit',        status:'in-transit' },
+      { key:'carrier_3',         label:'Carrier 3 · At hub',    short:'In transit',        status:'in-transit' },
+      { key:'warehouse',         label:'At warehouse',          short:'At warehouse',      status:'in-transit' },
+      { key:'out_for_delivery',  label:'Out for delivery',      short:'Out for delivery',  status:'out-for-delivery' },
+      { key:'delivered',         label:'Delivered',             short:'Delivered',         status:'delivered' },
+      { key:'exception',         label:'Exception',             short:'Exception',         status:'exception' }
+    ];
+    const STAGE_BY_KEY = {};
+    STAGES.forEach(s => { STAGE_BY_KEY[s.key] = s; });
+    function stageMeta(key){ return STAGE_BY_KEY[key] || STAGE_BY_KEY['carrier_2']; }
+    function stageToStatus(key){ return stageMeta(key).status; }
+    function stageLabel(key){ return stageMeta(key).label; }
+    function stageShort(key){ return stageMeta(key).short; }
+    function stageBadgeClass(key){
+      const st = stageToStatus(key);
+      if (st === 'delivered') return 'delivered';
+      if (st === 'exception') return 'exception';
+      if (st === 'out-for-delivery') return 'out';
+      if (st === 'pending') return 'pending';
+      return 'transit';
+    }
+    function stageFromStatus(s){
+      s = String(s || '').toLowerCase().replace(/_/g,'-');
+      if (s.includes('deliver')) return 'delivered';
+      if (s.includes('out')) return 'out_for_delivery';
+      if (s.includes('exception') || s.includes('delay') || s.includes('fail')) return 'exception';
+      if (s.includes('pending') || s.includes('label')) return 'label_created';
+      if (s.includes('transit')) return 'carrier_2';
+      return 'label_created';
+    }
+    function parseMeta(raw){
+      if (raw && typeof raw === 'object') return raw;
+      const s = String(raw == null ? '' : raw).trim();
+      if (s.startsWith('{')) { try { return JSON.parse(s); } catch(e){} }
+      return { status: s };
+    }
+    function modelFromRow(row){
+      const meta = parseMeta(row.status);
+      const stage = meta.stage || (STAGE_BY_KEY[row.carrier] ? row.carrier : '') || stageFromStatus(meta.status || row.status);
+      return {
+        id: row.id,
+        tracking_code: row.tracking_code,
+        stage: stage,
+        status: meta.status || stageToStatus(stage),
+        current_location: meta.current_location || meta.location || '',
+        service: meta.service || '',
+        origin: meta.origin || '',
+        destination: meta.destination || '',
+        weight: meta.weight || '',
+        dimensions: meta.dimensions || '',
+        pieces: meta.pieces || 1,
+        packaging: meta.packaging || '',
+        signed_by: meta.signed_by || '',
+        notes: meta.notes || '',
+        delivery_date: row.delivery_date || meta.delivery_date || '',
+        events: Array.isArray(meta.events) ? meta.events.slice() : [],
+        claimed_by: row.user_id || meta.claimed_by || null,
+        claimed_at: meta.claimed_at || null,
+        created_at: row.created_at
+      };
+    }
+    function defaultEventText(stage){
+      switch (stage) {
+        case 'label_created': return 'Shipment information sent to FedEx';
+        case 'carrier_1': return 'Picked up';
+        case 'carrier_2': return 'In transit';
+        case 'carrier_3': return 'Arrived at FedEx hub';
+        case 'warehouse': return 'At FedEx warehouse';
+        case 'out_for_delivery': return 'On FedEx vehicle for delivery';
+        case 'delivered': return 'Delivered';
+        case 'exception': return 'Delivery exception';
+        default: return 'Shipment update';
+      }
+    }
+    function makeEvent(stage, location, note, when){
+      return {
+        time: when || new Date().toISOString(),
+        stage: stage,
+        status: stageToStatus(stage),
+        description: String(note || '').trim() || defaultEventText(stage),
+        location: String(location || '').trim()
+      };
+    }
+    function metaFromModel(model){
+      return {
+        v: 2,
+        stage: model.stage,
+        status: model.status || stageToStatus(model.stage),
+        current_location: model.current_location || '',
+        service: model.service || '',
+        origin: model.origin || '',
+        destination: model.destination || '',
+        weight: model.weight || '',
+        dimensions: model.dimensions || '',
+        pieces: model.pieces || 1,
+        packaging: model.packaging || '',
+        signed_by: model.signed_by || '',
+        notes: model.notes || '',
+        delivery_date: model.delivery_date || null,
+        events: model.events || [],
+        claimed_at: model.claimed_at || null
+      };
+    }
+    async function persistModel(model){
+      const payload = {
+        tracking_code: model.tracking_code,
+        status: JSON.stringify(metaFromModel(model)),
+        carrier: model.stage,
+        delivery_date: model.delivery_date || null,
+        user_id: model.claimed_by || null
+      };
+      const res = await db.from('tracking_entries').upsert([payload], { onConflict: 'tracking_code' });
+      if (res.error) throw new Error(res.error.message);
+      return payload;
+    }
+    function esc(s){
+      return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+    function fmtDate(d){
+      if (!d) return '—';
+      const dt = new Date(d + (String(d).length === 10 ? 'T12:00:00' : ''));
+      if (isNaN(dt)) return d;
+      return dt.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+    }
+    function todayISO(){ return new Date().toISOString().slice(0,10); }
+
+    /* ================= Boot / login ================= */
     const loginView = document.getElementById('login-view');
     const dashView = document.getElementById('dash-view');
     let entries = [];
+    let editingCode = null;
+    let currentFilter = '';
 
-    /* ---- Login ---- */
     function showLogin(){
       loginView.style.display = 'block';
       dashView.style.display = 'none';
@@ -231,7 +474,6 @@
       dashView.style.display = 'block';
       loadAll();
     }
-
     document.getElementById('admin-login-form').addEventListener('submit', (e) => {
       e.preventDefault();
       const email = document.getElementById('admin-email').value.trim();
@@ -240,200 +482,489 @@
         localStorage.setItem(SESSION_KEY, '1');
         showDash();
       } else {
-        const a = document.getElementById('login-alert');
-        a.className = 'alert show alert-error';
-        a.textContent = 'Invalid credentials. Use ' + ADMIN_EMAIL + ' / ' + ADMIN_PASS;
+        adminAlert('error', 'Invalid credentials. Use ' + ADMIN_EMAIL + ' / ' + ADMIN_PASS);
       }
     });
-
     document.getElementById('admin-signout').addEventListener('click', () => {
       localStorage.removeItem(SESSION_KEY);
       showLogin();
     });
+    document.getElementById('refresh-btn').addEventListener('click', loadAll);
+    document.getElementById('reload-images').addEventListener('click', loadImages);
 
-    /* ---- Data loads ---- */
-    async function loadAll(){
-      await Promise.all([loadTrackings(), loadImages()]);
+    function adminAlert(kind, msg){
+      const el = document.getElementById('admin-alert');
+      el.className = 'alert show alert-' + kind;
+      el.textContent = msg;
+      el.scrollIntoView({ behavior:'smooth', block:'center' });
+      clearTimeout(adminAlert._t);
+      adminAlert._t = setTimeout(() => { el.className = 'alert'; }, 7000);
     }
 
-    async function loadTrackings(){
-      const tbody = document.getElementById('tracking-rows');
-      const { data, error } = await db.from('tracking_entries').select('*').order('created_at', { ascending:false });
-      if (error){
-        tbody.innerHTML = '<tr><td colspan="5" class="empty">Error: ' + error.message + '</td></tr>';
-        return;
-      }
-      entries = data || [];
-      document.getElementById('stat-total').textContent = entries.length;
-      document.getElementById('stat-transit').textContent = entries.filter(e => norm(e.status) === 'in-transit' || norm(e.status) === 'out-for-delivery').length;
-      document.getElementById('stat-delivered').textContent = entries.filter(e => norm(e.status) === 'delivered').length;
-      document.getElementById('stat-exception').textContent = entries.filter(e => norm(e.status) === 'exception').length;
+    /* ================= Load ================= */
+    async function loadAll(){
+      await Promise.all([loadEntries(), loadImages()]);
+    }
 
-      if (!entries.length){
-        tbody.innerHTML = '<tr><td colspan="5" class="empty">No tracking entries yet. Add one using the form.</td></tr>';
+    async function loadEntries(){
+      const tbody = document.getElementById('tracking-rows');
+      const { data, error } = await db.from('tracking_entries').select('*').order('created_at', { ascending: false });
+      if (error){
+        tbody.innerHTML = '<tr><td colspan="7" class="empty">Error: ' + esc(error.message) + '</td></tr>';
+        adminAlert('error', 'Could not load shipments: ' + error.message);
         return;
       }
-      tbody.innerHTML = entries.map(e => {
-        const route = (e.origin || '—') + ' &rarr; ' + (e.destination || '—');
+      entries = (data || []).map(modelFromRow);
+      renderStats();
+      renderTable();
+      populateMoveCodes();
+    }
+
+    function renderStats(){
+      const count = k => entries.filter(e => e.stage === k).length;
+      document.getElementById('stat-total').textContent = entries.length;
+      document.getElementById('stat-label').textContent = count('label_created');
+      document.getElementById('stat-transit').textContent = entries.filter(e => ['carrier_1','carrier_2','carrier_3'].includes(e.stage)).length;
+      document.getElementById('stat-warehouse').textContent = count('warehouse');
+      document.getElementById('stat-out').textContent = count('out_for_delivery');
+      document.getElementById('stat-delivered').textContent = count('delivered');
+      document.getElementById('stat-exception').textContent = count('exception');
+      document.getElementById('stat-claimed').textContent = entries.filter(e => !!e.claimed_by).length;
+    }
+
+    function renderTable(){
+      const tbody = document.getElementById('tracking-rows');
+      const q = currentFilter.toLowerCase();
+      const list = entries.filter(e => {
+        if (!q) return true;
+        return (e.tracking_code + ' ' + e.current_location + ' ' + e.origin + ' ' + e.destination + ' ' + e.service).toLowerCase().includes(q);
+      });
+      if (!list.length){
+        tbody.innerHTML = '<tr><td colspan="7" class="empty">' + (entries.length ? 'No shipments match your search.' : 'No shipments yet. Create one using the form.') + '</td></tr>';
+        return;
+      }
+      tbody.innerHTML = list.map(e => {
+        const route = (e.origin || '—') + ' <span class="arrow">&rarr;</span> ' + (e.destination || '—');
         return '<tr>' +
           '<td class="mono">' + esc(e.tracking_code) + '</td>' +
-          '<td><span class="badge ' + norm(e.status) + '">' + esc(e.status || 'pending') + '</span></td>' +
-          '<td>' + (e.delivery_date || '—') + '</td>' +
-          '<td style="font-size:13px;color:#4b5563">' + route + '</td>' +
+          '<td><span class="stage-badge stage-' + stageBadgeClass(e.stage) + '">' + esc(stageLabel(e.stage)) + '</span></td>' +
+          '<td class="loc-cell">' + esc(e.current_location || '—') + '</td>' +
+          '<td class="route-cell">' + route + '</td>' +
+          '<td>' + esc(fmtDate(e.delivery_date)) + '</td>' +
+          '<td>' + (e.claimed_by ? '<span class="stage-badge stage-delivered">Claimed</span>' : '<span class="muted">—</span>') + '</td>' +
           '<td><div class="row-actions">' +
-            '<button class="btn btn-outline btn-sm" onclick="editEntry(\'' + e.id + '\')">Edit</button>' +
-            '<button class="btn btn-danger btn-sm" onclick="deleteEntry(\'' + e.id + '\')">Delete</button>' +
+            '<button class="btn btn-outline btn-sm" type="button" onclick="editEntry(\'' + esc(e.id) + '\')">Edit</button>' +
+            '<button class="btn btn-outline btn-sm" type="button" onclick="moveEntry(\'' + esc(e.tracking_code) + '\')">Move</button>' +
+            '<button class="btn btn-outline btn-sm" type="button" onclick="viewEntry(\'' + esc(e.tracking_code) + '\')">Track</button>' +
+            '<button class="btn btn-danger btn-sm" type="button" onclick="deleteEntry(\'' + esc(e.id) + '\',\'' + esc(e.tracking_code) + '\')">Delete</button>' +
           '</div></td>' +
         '</tr>';
       }).join('');
     }
 
+    function populateMoveCodes(){
+      const sel = document.getElementById('m-code');
+      const prev = sel.value;
+      if (!entries.length){
+        sel.innerHTML = '<option value="">No shipments yet</option>';
+        return;
+      }
+      sel.innerHTML = entries.map(e =>
+        '<option value="' + esc(e.tracking_code) + '">' + esc(e.tracking_code) + ' — ' + esc(stageShort(e.stage)) + '</option>'
+      ).join('');
+      if (prev && entries.some(e => e.tracking_code === prev)) sel.value = prev;
+    }
+
+    /* ================= Form ================= */
+    const form = document.getElementById('tracking-form');
+    const fileInput = document.getElementById('f-images');
+
+    function setFormMode(code){
+      editingCode = code || null;
+      const codeInput = document.getElementById('f-code');
+      const pill = document.getElementById('editing-pill');
+      if (editingCode){
+        codeInput.readOnly = true;
+        pill.style.display = 'inline-block';
+        document.getElementById('form-title').textContent = 'Edit shipment';
+        document.getElementById('form-sub').textContent = 'Update the shipment, stage, location, and images.';
+        document.getElementById('save-btn').textContent = 'Save changes';
+      } else {
+        codeInput.readOnly = false;
+        pill.style.display = 'none';
+        document.getElementById('form-title').textContent = 'Create shipment';
+        document.getElementById('form-sub').textContent = 'Add a tracking code, set the first carrier stage, and attach shipment images.';
+        document.getElementById('save-btn').textContent = 'Save shipment';
+      }
+    }
+
+    function resetForm(){
+      form.reset();
+      document.getElementById('f-stage').value = 'carrier_2';
+      document.getElementById('f-pieces').value = 1;
+      document.getElementById('f-add-event').checked = true;
+      document.getElementById('event-note-wrap').style.display = 'block';
+      document.getElementById('f-images-preview').innerHTML = '';
+      document.getElementById('existing-images').innerHTML = '';
+      setFormMode(null);
+    }
+    document.getElementById('reset-btn').addEventListener('click', resetForm);
+    document.getElementById('f-add-event').addEventListener('change', (e) => {
+      document.getElementById('event-note-wrap').style.display = e.target.checked ? 'block' : 'none';
+    });
+
+    fileInput.addEventListener('change', () => {
+      const wrap = document.getElementById('f-images-preview');
+      wrap.innerHTML = '';
+      Array.from(fileInput.files || []).forEach(file => {
+        const img = document.createElement('img');
+        img.className = 'preview-thumb';
+        img.alt = file.name;
+        img.src = URL.createObjectURL(file);
+        wrap.appendChild(img);
+      });
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('save-btn');
+      const code = document.getElementById('f-code').value.trim();
+      if (!code){ document.getElementById('f-code').focus(); return; }
+      btn.disabled = true; btn.textContent = 'Saving to Supabase…';
+
+      try {
+        // Load the existing row so we preserve claim + timeline history.
+        const ex = await db.from('tracking_entries').select('*').eq('tracking_code', code).maybeSingle();
+        const existing = (!ex.error && ex.data) ? modelFromRow(ex.data) : null;
+
+        const stage = document.getElementById('f-stage').value;
+        const location = document.getElementById('f-location').value.trim();
+        const model = {
+          tracking_code: code,
+          stage: stage,
+          status: stageToStatus(stage),
+          current_location: location,
+          delivery_date: document.getElementById('f-date').value || null,
+          service: document.getElementById('f-service').value.trim(),
+          origin: document.getElementById('f-origin').value.trim(),
+          destination: document.getElementById('f-destination').value.trim(),
+          weight: document.getElementById('f-weight').value.trim(),
+          dimensions: document.getElementById('f-dimensions').value.trim(),
+          pieces: Number(document.getElementById('f-pieces').value) || 1,
+          packaging: document.getElementById('f-packaging').value.trim(),
+          signed_by: document.getElementById('f-signed').value.trim(),
+          notes: document.getElementById('f-notes').value.trim(),
+          events: existing ? existing.events.slice() : [],
+          claimed_by: existing ? existing.claimed_by : null,
+          claimed_at: existing ? existing.claimed_at : null
+        };
+
+        const addEvent = document.getElementById('f-add-event').checked;
+        if (addEvent){
+          model.events.unshift(makeEvent(stage, location, document.getElementById('f-event-note').value));
+        } else if (!model.events.length){
+          // Still make sure a brand-new shipment has at least one public scan.
+          model.events.unshift(makeEvent(stage, location, ''));
+        }
+
+        await persistModel(model);
+
+        // Upload images after the shipment exists.
+        const files = Array.from(fileInput.files || []);
+        let uploadResult = { count: 0, storageCount: 0, errors: [] };
+        if (files.length){
+          btn.textContent = 'Uploading images…';
+          uploadResult = await uploadImages(code, files, 'shipment');
+        }
+
+        resetForm();
+        await loadAll();
+
+        let msg = (editingCode ? 'Shipment updated' : 'Shipment created') + ' and saved to Supabase.';
+        if (uploadResult.count) msg += ' ' + uploadResult.count + ' image' + (uploadResult.count === 1 ? '' : 's') + ' saved.';
+        if (uploadResult.storageCount) msg += ' ' + uploadResult.storageCount + ' stored in Storage.';
+        else if (uploadResult.count) msg += ' Images were saved inside the database (Storage bucket not available).';
+        if (uploadResult.errors.length) msg += ' Some images failed: ' + uploadResult.errors.join('; ');
+        adminAlert(uploadResult.errors.length ? 'info' : 'success', msg);
+      } catch (err) {
+        adminAlert('error', 'Could not save shipment: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = editingCode ? 'Save changes' : 'Save shipment';
+      }
+    });
+
+    window.editEntry = async function(id){
+      const e = entries.find(x => String(x.id) === String(id));
+      if (!e) return;
+      const set = (fid, val) => { document.getElementById(fid).value = val || ''; };
+      set('f-code', e.tracking_code);
+      set('f-stage', e.stage);
+      set('f-date', e.delivery_date);
+      set('f-location', e.current_location);
+      set('f-service', e.service);
+      set('f-origin', e.origin);
+      set('f-destination', e.destination);
+      set('f-weight', e.weight);
+      set('f-dimensions', e.dimensions);
+      set('f-pieces', e.pieces);
+      set('f-packaging', e.packaging);
+      set('f-signed', e.signed_by);
+      set('f-notes', e.notes);
+      document.getElementById('f-add-event').checked = false;
+      document.getElementById('event-note-wrap').style.display = 'none';
+      document.getElementById('f-event-note').value = '';
+      document.getElementById('f-images-preview').innerHTML = '';
+      fileInput.value = '';
+      setFormMode(e.tracking_code);
+      await renderExistingImages(e.tracking_code);
+      document.getElementById('create-card').scrollIntoView({ behavior:'smooth', block:'start' });
+    };
+
+    window.moveEntry = function(code){
+      const sel = document.getElementById('m-code');
+      if (code) sel.value = code;
+      const entry = entries.find(e => e.tracking_code === sel.value) || entries.find(e => e.tracking_code === code);
+      if (entry){
+        document.getElementById('m-location').value = entry.current_location || '';
+        document.getElementById('m-stage').value = entry.stage || 'carrier_2';
+        document.getElementById('m-signed').value = entry.signed_by || '';
+      }
+      document.querySelector('#move-form').scrollIntoView({ behavior:'smooth', block:'center' });
+    };
+
+    window.viewEntry = function(code){
+      window.open('tracking-user.html?code=' + encodeURIComponent(code), '_blank', 'noopener');
+    };
+
+    window.deleteEntry = async function(id, code){
+      if (!confirm('Delete shipment ' + code + ' and all of its images? This cannot be undone.')) return;
+      const imgDel = await db.from('tracking_images').delete().eq('tracking_code', code);
+      if (imgDel.error) console.warn('Image cleanup failed:', imgDel.error.message);
+      const { error } = await db.from('tracking_entries').delete().eq('id', id);
+      if (error){ adminAlert('error', 'Could not delete shipment: ' + error.message); return; }
+      if (editingCode === code) resetForm();
+      await loadAll();
+      adminAlert('success', 'Shipment ' + code + ' deleted.');
+    };
+
+    /* ================= Move shipment ================= */
+    document.getElementById('move-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('move-btn');
+      const code = document.getElementById('m-code').value;
+      if (!code){ adminAlert('error', 'Choose a shipment first.'); return; }
+      btn.disabled = true; btn.textContent = 'Saving update…';
+
+      try {
+        const res = await db.from('tracking_entries').select('*').eq('tracking_code', code).maybeSingle();
+        if (res.error) throw new Error(res.error.message);
+        if (!res.data) throw new Error('Shipment not found.');
+        const model = modelFromRow(res.data);
+
+        const stage = document.getElementById('m-stage').value;
+        const location = document.getElementById('m-location').value.trim();
+        const signed = document.getElementById('m-signed').value.trim();
+        const note = document.getElementById('m-note').value.trim();
+
+        model.stage = stage;
+        model.status = stageToStatus(stage);
+        if (location) model.current_location = location;
+        if (signed) model.signed_by = signed;
+        if (stage === 'delivered'){
+          if (!model.signed_by) model.signed_by = 'RECIPIENT';
+          if (!model.delivery_date) model.delivery_date = todayISO();
+        }
+        model.events.unshift(makeEvent(stage, location, note));
+        await persistModel(model);
+
+        document.getElementById('m-note').value = '';
+        document.getElementById('m-signed').value = '';
+        await loadAll();
+        const sel = document.getElementById('m-code');
+        if (entries.some(x => x.tracking_code === code)) sel.value = code;
+        adminAlert('success', code + ' moved to ' + stageShort(stage) + (location ? ' at ' + location : '') + '. Tracking timeline updated.');
+      } catch (err) {
+        adminAlert('error', 'Could not move shipment: ' + err.message);
+      } finally {
+        btn.disabled = false; btn.textContent = 'Add tracking update';
+      }
+    });
+
+    /* ================= Images ================= */
+    function parseImage(row){
+      const name = row.image_name || '';
+      let kind = 'proof';
+      let label = name;
+      if (/^(shipment|proof)\|/.test(name)){
+        const parts = name.split('|');
+        kind = parts.shift();
+        label = parts.join('|') || 'image';
+      } else if (row.kind){
+        kind = row.kind;
+      }
+      return { id: row.id, tracking_code: row.tracking_code, image_url: row.image_url, kind: kind, label: label };
+    }
+
     async function loadImages(){
       const grid = document.getElementById('images-grid');
-      const { data, error } = await db.from('tracking_images').select('*').order('created_at', { ascending:false });
+      const { data, error } = await db.from('tracking_images').select('*');
       if (error){
-        grid.innerHTML = '<p class="empty" style="grid-column:1/-1">Error: ' + error.message + '</p>';
+        grid.innerHTML = '<p class="empty" style="grid-column:1/-1">Error: ' + esc(error.message) + '</p>';
         return;
       }
       if (!data || !data.length){
         grid.innerHTML = '<p class="empty" style="grid-column:1/-1">No images uploaded yet.</p>';
         return;
       }
-      grid.innerHTML = data.map(img =>
-        '<div style="border:1px solid #e6e6eb;border-radius:10px;overflow:hidden;background:#f5f5f7">' +
-          '<a href="' + img.image_url + '" target="_blank" rel="noopener"><img src="' + img.image_url + '" alt="Proof" style="width:100%;height:110px;object-fit:cover"></a>' +
-          '<div style="padding:8px 10px;font-size:12px;color:#4b5563">' + esc(img.tracking_code) + '</div>' +
-          '<button class="btn btn-danger btn-sm" style="width:100%;border-radius:0" onclick="deleteImage(\'' + img.id + '\')">Delete</button>' +
+      const imgs = data.map(parseImage);
+      grid.innerHTML = imgs.map(img =>
+        '<div class="image-card">' +
+          '<a href="' + esc(img.image_url) + '" target="_blank" rel="noopener"><img src="' + esc(img.image_url) + '" alt="' + esc(img.label) + '"></a>' +
+          '<div class="image-meta">' +
+            '<span class="image-kind">' + (img.kind === 'shipment' ? 'Shipment' : 'Proof') + '</span>' +
+            '<span class="mono">' + esc(img.tracking_code) + '</span>' +
+          '</div>' +
+          '<button class="btn btn-danger btn-sm image-del" type="button" onclick="deleteImage(\'' + esc(img.id) + '\')">Delete</button>' +
         '</div>'
       ).join('');
     }
 
-    function norm(s){
-      s = (s || 'pending').toLowerCase().replace(/_/g,'-');
-      if (s.includes('exception') || s.includes('delay') || s.includes('fail')) return 'exception';
-      if (s.includes('out')) return 'in-transit';
-      if (s.includes('transit')) return 'in-transit';
-      if (s.includes('deliver')) return 'delivered';
-      return 'pending';
+    async function renderExistingImages(code){
+      const wrap = document.getElementById('existing-images');
+      wrap.innerHTML = '';
+      const { data, error } = await db.from('tracking_images').select('*').eq('tracking_code', code);
+      if (error || !data || !data.length) return;
+      const imgs = data.map(parseImage);
+      wrap.innerHTML = '<div class="existing-title">Images on this shipment</div><div class="existing-grid">' +
+        imgs.map(img =>
+          '<div class="existing-item">' +
+            '<a href="' + esc(img.image_url) + '" target="_blank" rel="noopener"><img src="' + esc(img.image_url) + '" alt="' + esc(img.label) + '"></a>' +
+            '<button type="button" class="existing-del" onclick="deleteImage(\'' + esc(img.id) + '\')" aria-label="Delete image">&times;</button>' +
+            '<span>' + (img.kind === 'shipment' ? 'Shipment' : 'Proof') + '</span>' +
+          '</div>'
+        ).join('') + '</div>';
     }
-    function esc(s){
-      return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    }
 
-    /* ---- Tracking form ---- */
-    const form = document.getElementById('tracking-form');
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const btn = document.getElementById('save-btn');
-      btn.disabled = true; btn.textContent = 'Saving...';
+    async function uploadImages(code, files, kind){
+      const result = { count: 0, storageCount: 0, errors: [], urls: [] };
+      for (const file of files){
+        try {
+          let url = null;
+          let usedStorage = false;
+          const safe = String(file.name || 'image').replace(/[^a-zA-Z0-9._-]/g, '_');
+          const path = code + '/' + Date.now() + '_' + Math.random().toString(36).slice(2, 7) + '_' + safe;
 
-      const payload = {
-        tracking_code: document.getElementById('f-code').value.trim(),
-        status: document.getElementById('f-status').value,
-        delivery_date: document.getElementById('f-date').value || null,
-        service: document.getElementById('f-service').value.trim() || null,
-        origin: document.getElementById('f-origin').value.trim() || null,
-        destination: document.getElementById('f-destination').value.trim() || null,
-        weight: document.getElementById('f-weight').value.trim() || null,
-        dimensions: document.getElementById('f-dimensions').value.trim() || null,
-        pieces: Number(document.getElementById('f-pieces').value) || 1,
-        signed_by: document.getElementById('f-signed').value.trim() || null
-      };
-      if (!payload.tracking_code){ btn.disabled = false; btn.textContent = 'Save tracking entry'; return; }
+          try {
+            const up = await db.storage.from(BUCKET).upload(path, file, { cacheControl: '3600', upsert: false });
+            if (!up.error){
+              const pub = db.storage.from(BUCKET).getPublicUrl(path);
+              url = pub.data.publicUrl;
+              usedStorage = true;
+            }
+          } catch (storageErr) {
+            // Bucket missing or policy blocked — fall back to a database data URL.
+          }
 
-      let res = await db.from('tracking_entries').upsert([payload], { onConflict:'tracking_code' });
+          if (!url) url = await compressToDataUrl(file);
 
-      // Fallback for older schema without the extra columns
-      if (res.error && /column|schema cache|could not find/i.test(res.error.message)){
-        const minimal = { tracking_code: payload.tracking_code, status: payload.status, delivery_date: payload.delivery_date };
-        res = await db.from('tracking_entries').upsert([minimal], { onConflict:'tracking_code' });
+          const ins = await db.from('tracking_images').insert([{
+            tracking_code: code,
+            image_url: url,
+            image_name: kind + '|' + (file.name || 'image')
+          }]);
+          if (ins.error) throw new Error(ins.error.message);
+
+          result.count++;
+          if (usedStorage) result.storageCount++;
+          result.urls.push(url);
+        } catch (err) {
+          result.errors.push((file.name || 'image') + ': ' + err.message);
+        }
       }
-
-      btn.disabled = false; btn.textContent = 'Save tracking entry';
-
-      if (res.error){
-        alert('Error saving tracking entry:\n' + res.error.message);
-        return;
-      }
-      resetForm();
-      await loadTrackings();
-      alert('Tracking entry saved.');
-    });
-
-    function resetForm(){
-      form.reset();
-      document.getElementById('f-status').value = 'in-transit';
-      document.getElementById('f-pieces').value = 1;
-      document.getElementById('form-title').textContent = 'Add / update tracking';
+      return result;
     }
-    document.getElementById('reset-btn').addEventListener('click', resetForm);
 
-    window.editEntry = function(id){
-      const e = entries.find(x => String(x.id) === String(id));
-      if (!e) return;
-      document.getElementById('f-code').value = e.tracking_code || '';
-      document.getElementById('f-status').value = e.status || 'in-transit';
-      document.getElementById('f-date').value = e.delivery_date || '';
-      document.getElementById('f-service').value = e.service || '';
-      document.getElementById('f-origin').value = e.origin || '';
-      document.getElementById('f-destination').value = e.destination || '';
-      document.getElementById('f-weight').value = e.weight || '';
-      document.getElementById('f-dimensions').value = e.dimensions || '';
-      document.getElementById('f-pieces').value = e.pieces || 1;
-      document.getElementById('f-signed').value = e.signed_by || '';
-      document.getElementById('form-title').textContent = 'Edit tracking';
-      form.scrollIntoView({ behavior:'smooth', block:'start' });
-    };
+    function loadImageFile(file){
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        const objectUrl = URL.createObjectURL(file);
+        img.onload = () => { URL.revokeObjectURL(objectUrl); resolve(img); };
+        img.onerror = () => { URL.revokeObjectURL(objectUrl); reject(new Error('Could not read image')); };
+        img.src = objectUrl;
+      });
+    }
 
-    window.deleteEntry = async function(id){
-      if (!confirm('Delete this tracking entry? This cannot be undone.')) return;
-      const { error } = await db.from('tracking_entries').delete().eq('id', id);
-      if (error){ alert('Error deleting entry: ' + error.message); return; }
-      await loadTrackings();
-    };
+    async function compressOnce(file, maxDim, quality){
+      const img = await loadImageFile(file);
+      let w = img.naturalWidth || img.width;
+      let h = img.naturalHeight || img.height;
+      const scale = Math.min(1, maxDim / Math.max(w, h));
+      w = Math.max(1, Math.round(w * scale));
+      h = Math.max(1, Math.round(h * scale));
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, w, h);
+      ctx.drawImage(img, 0, 0, w, h);
+      return canvas.toDataURL('image/jpeg', quality);
+    }
 
-    /* ---- Upload ---- */
+    async function compressToDataUrl(file){
+      const attempts = [[1200, 0.78], [1000, 0.7], [850, 0.62], [700, 0.55], [560, 0.5]];
+      let last = '';
+      for (const a of attempts){
+        last = await compressOnce(file, a[0], a[1]);
+        if (last.length < 780000) return last;
+      }
+      throw new Error('image is too large even after compression; choose a smaller file');
+    }
+
     document.getElementById('upload-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const btn = document.getElementById('upload-btn');
       const code = document.getElementById('u-code').value.trim();
-      const fileInput = document.getElementById('u-file');
-      const file = fileInput.files[0];
-      if (!code || !file) return;
+      const kind = document.getElementById('u-kind').value;
+      const files = Array.from(document.getElementById('u-file').files || []);
+      if (!code || !files.length) return;
 
-      btn.disabled = true; btn.textContent = 'Uploading...';
-      const path = code + '/' + Date.now() + '_' + file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      btn.disabled = true; btn.textContent = 'Uploading…';
+      try {
+        const codeCheck = await db.from('tracking_entries').select('tracking_code').eq('tracking_code', code).maybeSingle();
+        if (codeCheck.error) throw new Error(codeCheck.error.message);
+        if (!codeCheck.data) throw new Error('No shipment exists with tracking code ' + code + '. Create the shipment first.');
 
-      const up = await db.storage.from('tracking-proofs').upload(path, file, { cacheControl:'3600', upsert:false });
-      if (up.error){
-        btn.disabled = false; btn.textContent = 'Upload image';
-        alert('Upload failed: ' + up.error.message + '\n\nMake sure a public bucket named "tracking-proofs" exists in Supabase Storage.');
-        return;
-      }
-
-      const pub = db.storage.from('tracking-proofs').getPublicUrl(path);
-      const url = pub.data.publicUrl;
-      let ins = await db.from('tracking_images').insert([{ tracking_code: code, image_url: url, image_name: file.name }]);
-
-      btn.disabled = false; btn.textContent = 'Upload image';
-
-      if (ins.error){
-        alert('Image uploaded to storage, but saving the record failed: ' + ins.error.message);
-      } else {
-        fileInput.value = '';
+        const r = await uploadImages(code, files, kind);
+        document.getElementById('u-file').value = '';
         await loadImages();
-        alert('Image uploaded successfully.');
+        await renderExistingImages(code);
+        let msg = r.count + ' image' + (r.count === 1 ? '' : 's') + ' saved.';
+        if (r.count && !r.storageCount) msg += ' Saved inside the database (Storage bucket not available).';
+        if (r.errors.length) msg += ' Failed: ' + r.errors.join('; ');
+        adminAlert(r.errors.length ? 'info' : 'success', msg);
+      } catch (err) {
+        adminAlert('error', 'Upload failed: ' + err.message);
+      } finally {
+        btn.disabled = false; btn.textContent = 'Upload images';
       }
     });
 
     window.deleteImage = async function(id){
-      if (!confirm('Delete this image record?')) return;
+      if (!confirm('Delete this image?')) return;
       const { error } = await db.from('tracking_images').delete().eq('id', id);
-      if (error){ alert('Error: ' + error.message); return; }
+      if (error){ adminAlert('error', 'Could not delete image: ' + error.message); return; }
       await loadImages();
+      if (editingCode) await renderExistingImages(editingCode);
+      adminAlert('success', 'Image deleted.');
     };
 
-    /* ---- Boot ---- */
+    document.getElementById('admin-search').addEventListener('input', (e) => {
+      currentFilter = e.target.value.trim();
+      renderTable();
+    });
+
+    /* ================= Boot ================= */
     if (localStorage.getItem(SESSION_KEY) === '1') showDash();
     else showLogin();
   </script>

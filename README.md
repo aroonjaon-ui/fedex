@@ -1,86 +1,139 @@
 # FedEx Tracking Clone
 
-A FedEx-style shipping and tracking website with a public tracking page, user
-accounts, and an admin portal backed by Supabase.
+A FedEx-style shipping and tracking site with a public tracking page, user
+accounts and claims, and an admin control center backed by Supabase.
 
 > This is a **demo / educational clone**. It is not affiliated with or endorsed by FedEx.
 
-## What's included
+## Pages
 
 | Page | Purpose |
 | --- | --- |
-| `index.html` | FedEx-style homepage with hero, services, promos, and tracking box |
-| `tracking-user.html` | Public tracking page + optional login/signup |
-| `admin-portal.html` | Admin dashboard to add/update shipments and upload proof images |
+| `index.html` | FedEx-style homepage with hero, tracking box, services, and promotions |
+| `tracking-user.html` | Public tracking, signup/login, account dashboard, claims, images |
+| `admin-portal.html` | Direct-URL admin portal for shipments, stages, scans, and images |
 | `assets/site.css` | Shared FedEx-style design system |
-| `images/` | FedEx imagery used across the pages |
+| `images/` | FedEx-style imagery used across the pages |
 
-### Features
+The admin portal is intentionally **not linked from the public pages**. Open it
+directly at `/admin-portal.html`.
 
-- FedEx look and feel (purple `#4D148C` / orange `#FF6600`, header, footer, hero)
-- Public package tracking with status summary, progress rail, shipment facts,
-  and a travel-history timeline
+## Features
+
+- FedEx look and feel (purple `#4D148C`, orange `#FF6600`)
+- Public tracking without login
 - Demo tracking number: **`123456789012`**
-- User signup / login (Supabase Auth)
-- Admin portal: create/update/delete shipments, upload proof-of-delivery images
+- Supabase Auth signup/login with a persistent account dashboard
+- Users can claim a shipment and see it under **My shipments**
+- Admin create/edit/delete shipments
+- Carrier stages: label created, carrier 1–3, warehouse, out for delivery,
+  delivered, and exception
+- Automatic public scan timeline, current location, and stage progress rail
+- Shipment photos and proof-of-delivery images
+- Responsive layout for desktop and mobile
 
 ---
 
-## 1. Supabase setup
+## Live Supabase data model
 
-Project used by the pages: `https://fsczaqtqscevllyvarwk.supabase.co`
+Project: `https://fsczaqtqscevllyvarwk.supabase.co`
 
-The URL and **anon** key are embedded in `tracking-user.html` and
-`admin-portal.html`. The anon key is designed to be public; security is enforced
-with Row Level Security (RLS). **Never** put the service-role key in client code.
+The site is already wired to the live project. The anon key is public by design;
+RLS controls access. **Never** put the service-role key in client code.
 
-### 1a. Create the tables
+The live tables use a compact schema. Shipment metadata and scan history are
+stored as JSON in `tracking_entries.status`, so **no schema migration is needed**
+for the current site.
 
-Open **Supabase Dashboard → SQL Editor**, paste and run:
+### `tracking_entries`
+
+| Column | Purpose |
+| --- | --- |
+| `id` | UUID primary key |
+| `tracking_code` | Public tracking number (unique) |
+| `status` | JSON string with stage, location, route, service, scan events, etc. |
+| `delivery_date` | Scheduled or delivered date |
+| `carrier` | Current stage key, e.g. `carrier_2` / `warehouse` |
+| `user_id` | Set when a user claims the shipment |
+| `created_at` | Row creation time |
+
+JSON stored in `status`:
+
+```json
+{
+  "v": 2,
+  "stage": "warehouse",
+  "status": "in-transit",
+  "current_location": "Memphis, TN — FedEx hub",
+  "service": "FedEx Express Saver",
+  "origin": "Indianapolis, IN",
+  "destination": "San Jose, CA",
+  "weight": "3.4 lbs",
+  "dimensions": "12 x 10 x 4 in",
+  "pieces": 1,
+  "packaging": "FedEx Box",
+  "signed_by": "",
+  "notes": "Internal note",
+  "delivery_date": "2026-11-02",
+  "events": [
+    {
+      "time": "2026-10-31T18:00:00.000Z",
+      "stage": "warehouse",
+      "description": "Arrived at Memphis warehouse",
+      "location": "Memphis, TN — FedEx hub"
+    }
+  ],
+  "claimed_at": null
+}
+```
+
+### `tracking_images`
+
+| Column | Purpose |
+| --- | --- |
+| `id` | UUID primary key |
+| `tracking_code` | Shipment this image belongs to |
+| `image_url` | Public Storage URL or a compressed `data:image/...` URL |
+| `image_name` | Image type prefix + filename, e.g. `shipment|box.jpg` or `proof|signature.jpg` |
+| `uploaded_at` | Upload time (if present in the project) |
+
+The admin first tries the public `tracking-proofs` Storage bucket. If the bucket
+or its policies are missing, the image is compressed in the browser and stored
+as a data URL in `tracking_images.image_url`, so uploads still work.
+
+### Stages
+
+| Stage key | Public label |
+| --- | --- |
+| `label_created` | Label created |
+| `carrier_1` | Carrier 1 · Picked up |
+| `carrier_2` | Carrier 2 · In transit |
+| `carrier_3` | Carrier 3 · At hub |
+| `warehouse` | At warehouse |
+| `out_for_delivery` | Out for delivery |
+| `delivered` | Delivered |
+| `exception` | Exception |
+
+`tracking_entries.carrier` stores the stage key. A plain-text legacy `status`
+value is still understood and mapped to a stage automatically.
+
+---
+
+## User accounts
+
+Supabase Auth is the source of truth for accounts. Signup creates a real
+`auth.users` record and stores the display name in the user's metadata
+(`full_name`). The tracking page reads that metadata, so the account dashboard
+and name survive logout/login even when the optional `user_profiles` table is
+read-only.
+
+The live `user_profiles` table is currently **select-only** under RLS, so the
+app treats a blocked profile write as non-fatal. If you want a profile row too,
+run this once in **Supabase → SQL Editor**:
 
 ```sql
--- ============ TABLES ============
-create extension if not exists pgcrypto;
+alter table public.user_profiles enable row level security;
 
-create table if not exists public.user_profiles (
-  id uuid primary key references auth.users(id) on delete cascade,
-  full_name text,
-  email text,
-  created_at timestamptz not null default now()
-);
-
-create table if not exists public.tracking_entries (
-  id uuid primary key default gen_random_uuid(),
-  tracking_code text not null unique,
-  status text not null default 'pending',
-  delivery_date date,
-  service text,
-  origin text,
-  destination text,
-  weight text,
-  dimensions text,
-  pieces int default 1,
-  packaging text,
-  signed_by text,
-  user_id uuid references auth.users(id) on delete set null,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-
-create table if not exists public.tracking_images (
-  id uuid primary key default gen_random_uuid(),
-  tracking_code text not null,
-  image_url text not null,
-  image_name text,
-  created_at timestamptz not null default now()
-);
-
--- ============ ROW LEVEL SECURITY ============
-alter table public.user_profiles    enable row level security;
-alter table public.tracking_entries enable row level security;
-alter table public.tracking_images  enable row level security;
-
--- user_profiles: each user can only read/write their own row
 drop policy if exists "profiles select own" on public.user_profiles;
 create policy "profiles select own" on public.user_profiles
   for select using (auth.uid() = id);
@@ -92,157 +145,137 @@ create policy "profiles insert own" on public.user_profiles
 drop policy if exists "profiles update own" on public.user_profiles;
 create policy "profiles update own" on public.user_profiles
   for update using (auth.uid() = id);
-
--- tracking_entries / tracking_images:
--- PUBLIC read (so the tracking page works without login) and
--- PUBLIC write for this prototype (the admin portal uses the anon key).
--- NOTE: open writes are fine for a demo but should be replaced with
--- authenticated admin-only policies before any real use.
-drop policy if exists "trackings public read"   on public.tracking_entries;
-create policy "trackings public read"   on public.tracking_entries for select using (true);
-
-drop policy if exists "trackings public insert" on public.tracking_entries;
-create policy "trackings public insert" on public.tracking_entries for insert with check (true);
-
-drop policy if exists "trackings public update" on public.tracking_entries;
-create policy "trackings public update" on public.tracking_entries for update using (true);
-
-drop policy if exists "trackings public delete" on public.tracking_entries;
-create policy "trackings public delete" on public.tracking_entries for delete using (true);
-
-drop policy if exists "images public read"      on public.tracking_images;
-create policy "images public read"      on public.tracking_images for select using (true);
-
-drop policy if exists "images public insert"    on public.tracking_images;
-create policy "images public insert"    on public.tracking_images for insert with check (true);
-
-drop policy if exists "images public delete"    on public.tracking_images;
-create policy "images public delete"    on public.tracking_images for delete using (true);
-
--- keep updated_at fresh
-create or replace function public.set_updated_at()
-returns trigger language plpgsql as $$
-begin
-  new.updated_at = now();
-  return new;
-end $$;
-
-drop trigger if exists trg_tracking_updated on public.tracking_entries;
-create trigger trg_tracking_updated
-  before update on public.tracking_entries
-  for each row execute function public.set_updated_at();
 ```
 
-> If you already created `tracking_entries` previously, the `create table if not exists`
-> will not add the new columns. Run this to add them:
->
-> ```sql
-> alter table public.tracking_entries
->   add column if not exists service text,
->   add column if not exists origin text,
->   add column if not exists destination text,
->   add column if not exists weight text,
->   add column if not exists dimensions text,
->   add column if not exists pieces int default 1,
->   add column if not exists packaging text,
->   add column if not exists signed_by text;
-> ```
+The app only sends `id` and `full_name` to that table; it does not require an
+`email` column.
 
-### 1b. Create the Storage bucket
-
-**Supabase Dashboard → Storage → New bucket**
-
-- Name: `tracking-proofs`
-- Public bucket: **on**
-
-Then add policies (Storage → `tracking-proofs` → Policies) so the demo admin can
-upload and everyone can view:
-
-```sql
--- allow public read of proof images
-create policy "proofs public read"
-  on storage.objects for select
-  using (bucket_id = 'tracking-proofs');
-
--- allow uploads for the prototype admin
-create policy "proofs public insert"
-  on storage.objects for insert
-  with check (bucket_id = 'tracking-proofs');
-
--- allow deletes for the prototype admin
-create policy "proofs public delete"
-  on storage.objects for delete
-  using (bucket_id = 'tracking-proofs');
-```
-
-### 1c. Email confirmation (optional, recommended for testing)
-
-**Authentication → Providers → Email** → turn **off** *Confirm email* so new
-signups can log in immediately. If you leave it on, users must click the
-confirmation link before logging in.
+Email confirmation is currently off in the project, so signup returns a session
+immediately. If you turn it on later, users must confirm their email before
+logging in.
 
 ---
 
-## 2. Run locally
+## Optional fresh-project schema
 
-Because the site is plain HTML, just open `index.html` in a browser, or serve the
-folder:
+If you create a brand-new Supabase project instead of using the live one, run:
+
+```sql
+create extension if not exists pgcrypto;
+
+create table if not exists public.tracking_entries (
+  id uuid primary key default gen_random_uuid(),
+  tracking_code text not null unique,
+  status text not null default 'pending',
+  delivery_date date,
+  carrier text,
+  user_id uuid references auth.users(id) on delete set null,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.tracking_images (
+  id uuid primary key default gen_random_uuid(),
+  tracking_code text not null,
+  image_url text not null,
+  image_name text,
+  uploaded_at timestamptz not null default now()
+);
+
+create table if not exists public.user_profiles (
+  id uuid primary key references auth.users(id) on delete cascade,
+  full_name text,
+  created_at timestamptz not null default now()
+);
+
+alter table public.tracking_entries enable row level security;
+alter table public.tracking_images enable row level security;
+alter table public.user_profiles enable row level security;
+
+-- Public tracking reads; prototype admin writes with the anon key.
+create policy "trackings public read" on public.tracking_entries
+  for select using (true);
+create policy "trackings public insert" on public.tracking_entries
+  for insert with check (true);
+create policy "trackings public update" on public.tracking_entries
+  for update using (true);
+create policy "trackings public delete" on public.tracking_entries
+  for delete using (true);
+
+create policy "images public read" on public.tracking_images
+  for select using (true);
+create policy "images public insert" on public.tracking_images
+  for insert with check (true);
+create policy "images public delete" on public.tracking_images
+  for delete using (true);
+
+create policy "profiles select own" on public.user_profiles
+  for select using (auth.uid() = id);
+create policy "profiles insert own" on public.user_profiles
+  for insert with check (auth.uid() = id);
+create policy "profiles update own" on public.user_profiles
+  for update using (auth.uid() = id);
+```
+
+Optional Storage bucket for real image files:
+
+1. **Storage → New bucket** → name `tracking-proofs`, public **on**.
+2. Add public read/insert/delete policies for `storage.objects` scoped to that
+   bucket. If you skip this, the site falls back to data URLs automatically.
+
+---
+
+## Run locally
+
+The site is plain HTML. Serve the folder:
 
 ```bash
-# any static server works
 npx serve .
 ```
 
-Then visit `http://localhost:3000`.
+Then open the local URL. A static server is better than `file://` because
+Supabase requests and clipboard access work more reliably over HTTP.
 
 ---
 
-## 3. Deploy to Netlify
+## Deploy to Netlify
 
-The repo is ready to deploy as a static site (`netlify.toml` publishes the repo root).
+`netlify.toml` publishes the repository root.
 
-**Option A — Git (recommended):**
+**Git deploy:** connect `aroonjaon-ui/fedex`, leave the build command empty, set
+the publish directory to `.` and deploy.
 
-1. Netlify → **Add new site → Import an existing project**
-2. Connect `aroonjaon-ui/fedex`
-3. Build command: *(leave empty)* — Publish directory: `.`
-4. Deploy
+**Manual deploy:** drag the `fedex-tracking-system` folder into Netlify's deploy
+area.
 
-**Option B — Drag & drop:**
-
-1. Netlify → **Sites → Add new site → Deploy manually**
-2. Drag the whole `fedex-tracking-system` folder (or its contents) into the drop area
-
-You do **not** need environment variables on Netlify — the Supabase URL and anon
-key are already in the HTML files.
+No Netlify environment variables are required; the Supabase URL and anon key are
+already included in the HTML.
 
 ---
 
-## 4. Using the site
+## Using the site
 
-### Track a package
-- Go to **Track** and enter `123456789012` to see a sample shipment.
-- Shipments you add in the admin portal are trackable by their tracking code.
+### Track and claim
+
+1. Open **Track** and enter a tracking number.
+2. Use `123456789012` for the built-in sample.
+3. Log in or sign up, then click **Claim this shipment**.
+4. Claimed shipments appear under **My shipments** on the account panel.
 
 ### Admin portal
-- URL: `/admin-portal.html`
+
+- Direct URL: `/admin-portal.html`
 - Email: `admin@fedex-tracking.local`
 - Password: `Admin123!`
 
-From the admin portal you can add/update shipments (status, delivery date,
-route, weight, etc.) and upload proof-of-delivery images.
-
-### User accounts
-- Click **Log In / Sign Up** on the tracking page to create an account.
+Create a shipment, set its stage/location/route, add images, then use **Move
+shipment** to add new scans. Every change is written to Supabase immediately and
+shows on the public tracking page.
 
 ---
 
 ## Security note
 
-This is a prototype. Open write policies and hard-coded admin credentials are used
-so the demo works without extra backend code. For production you should:
-
-- Move admin actions behind a real authenticated admin role (Supabase Auth + RLS
-  policies scoped to that role), and remove public write policies.
-- Remove the hard-coded admin credentials.
-- Consider using Supabase Edge Functions for privileged operations.
+This is a prototype: admin writes use open RLS policies and a demo credential.
+Before production, move admin actions behind a real authenticated admin role,
+scope RLS to that role, remove public write policies, and replace the hard-coded
+admin login.

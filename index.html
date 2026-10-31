@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>FedEx | Shipping, Tracking, and Delivery Services</title>
   <meta name="description" content="Ship, manage, track, and return your packages with FedEx. Track a package, get rates, find locations, and more.">
+  <link rel="icon" type="image/png" href="images/fedex-logo.png">
   <link rel="stylesheet" href="assets/site.css">
 </head>
 <body>
@@ -69,7 +70,10 @@
       </div>
 
       <div class="hero-media">
-        <img src="images/hero.webp" alt="FedEx courier delivering a package">
+        <picture>
+          <source media="(max-width:720px)" srcset="images/home-hero-mobile.jpg">
+          <img src="images/home-hero.jpg" alt="FedEx courier carrying packages">
+        </picture>
         <div class="hero-badge"><span class="dot"></span> On-time delivery, every time</div>
       </div>
     </div>
@@ -109,6 +113,25 @@
     </div>
   </section>
 
+  <!-- Why ship with FedEx -->
+  <section class="section" id="why-fedex">
+    <div class="why-grid">
+      <img class="why-img" src="images/why-ship.jpg" alt="FedEx team member preparing a shipment">
+      <div class="why-copy">
+        <span class="eyebrow">Why ship with FedEx?</span>
+        <h2>More than delivery. A partner for every package.</h2>
+        <p>From your first label to the final doorstep scan, FedEx gives you the tools, visibility, and support to ship with confidence.</p>
+        <ul class="why-list">
+          <li>Reliable delivery to more than 220 countries and territories</li>
+          <li>Live tracking, delivery updates, and proof of delivery</li>
+          <li>Flexible drop-off, pickup, and warehouse options</li>
+          <li>One account to manage every shipment and claim</li>
+        </ul>
+        <a class="btn btn-purple" href="tracking-user.html">Track or manage a shipment</a>
+      </div>
+    </div>
+  </section>
+
   <!-- Promotions -->
   <section class="section">
     <div class="section-head">
@@ -121,57 +144,57 @@
 
     <div class="promo-grid">
       <a class="promo-card" href="tracking-user.html">
-        <img src="images/ship.webp" alt="International shipping">
+        <img src="images/manage-delivery.jpg" alt="Managing a FedEx delivery">
         <div class="promo-body">
-          <span class="tag">Shipping</span>
-          <h3>International shipping made simple</h3>
-          <p>Reach more than 220 countries and territories with reliable, door-to-door delivery.</p>
-          <span class="more">Learn more &rarr;</span>
+          <span class="tag">Delivery</span>
+          <h3>Delivery that fits your life</h3>
+          <p>Set preferences, get updates, and manage packages from one place.</p>
+          <span class="more">Manage deliveries &rarr;</span>
         </div>
       </a>
       <a class="promo-card" href="tracking-user.html">
-        <img src="images/track.webp" alt="Package tracking">
+        <img src="images/manage-app.jpg" alt="FedEx mobile app">
         <div class="promo-body">
-          <span class="tag">Tracking</span>
-          <h3>Know where your package is</h3>
-          <p>Get proactive updates and a clear delivery timeline from pickup to doorstep.</p>
-          <span class="more">Track now &rarr;</span>
+          <span class="tag">Mobile</span>
+          <h3>Track and manage on the go</h3>
+          <p>Use the FedEx app to follow every package and receive proactive alerts.</p>
+          <span class="more">Explore the app &rarr;</span>
         </div>
       </a>
       <a class="promo-card" href="tracking-user.html">
-        <img src="images/returns.webp" alt="Easy returns">
+        <img src="images/manage-proof.jpg" alt="FedEx proof of delivery">
         <div class="promo-body">
-          <span class="tag">Returns</span>
-          <h3>Returns that keep customers happy</h3>
-          <p>Offer flexible, easy returns with FedEx drop-off and pickup options.</p>
-          <span class="more">Learn more &rarr;</span>
+          <span class="tag">Proof</span>
+          <h3>Know when it arrives</h3>
+          <p>See delivery confirmation, signature details, and proof-of-delivery images.</p>
+          <span class="more">View tracking &rarr;</span>
         </div>
       </a>
       <a class="promo-card" href="tracking-user.html">
-        <img src="images/documents.webp" alt="Documents and borders">
+        <img src="images/smart-trade.jpg" alt="Global trade made simple">
         <div class="promo-body">
-          <span class="tag">Customs</span>
-          <h3>Documents across borders</h3>
-          <p>Ship important documents internationally with speed and confidence.</p>
-          <span class="more">Learn more &rarr;</span>
+          <span class="tag">Global</span>
+          <h3>Simplify global trade</h3>
+          <p>Navigate customs and cross-border shipping with FedEx expertise.</p>
+          <span class="more">Go global &rarr;</span>
         </div>
       </a>
       <a class="promo-card" href="tracking-user.html">
-        <img src="images/developer.webp" alt="Developer tools">
+        <img src="images/smart-ground.jpg" alt="FedEx Ground shipping">
         <div class="promo-body">
-          <span class="tag">Developers</span>
-          <h3>Build with our APIs</h3>
-          <p>Integrate shipping, rates, and tracking into your own applications.</p>
-          <span class="more">Explore APIs &rarr;</span>
+          <span class="tag">Ground</span>
+          <h3>Everyday shipping, elevated</h3>
+          <p>Economical ground delivery for business and residential packages.</p>
+          <span class="more">Ship ground &rarr;</span>
         </div>
       </a>
       <a class="promo-card" href="tracking-user.html">
-        <img src="images/journey.webp" alt="Post-purchase journey">
+        <img src="images/smart-rewards.jpg" alt="FedEx Rewards">
         <div class="promo-body">
-          <span class="tag">E-commerce</span>
-          <h3>Delight customers after checkout</h3>
-          <p>Turn delivery into a branded, transparent experience your customers love.</p>
-          <span class="more">Learn more &rarr;</span>
+          <span class="tag">Rewards</span>
+          <h3>Earn more with every shipment</h3>
+          <p>Join FedEx Rewards and turn everyday shipping into valuable benefits.</p>
+          <span class="more">See rewards &rarr;</span>
         </div>
       </a>
     </div>
@@ -185,10 +208,10 @@
         <p>Save addresses, track every package in one place, and manage deliveries from any device.</p>
         <div class="banner-actions">
           <a class="btn btn-orange" href="tracking-user.html">Create free account</a>
-          <a class="btn btn-ghost" href="admin-portal.html">Admin portal</a>
+          <a class="btn btn-ghost" href="tracking-user.html">Track a package</a>
         </div>
       </div>
-      <img src="images/banner.webp" alt="Shipping dashboard">
+      <img src="images/go-global.jpg" alt="FedEx global shipping">
     </div>
   </div>
 
@@ -228,7 +251,7 @@
       </div>
       <div class="footer-col">
         <h4>Resources</h4>
-        <a href="admin-portal.html">Admin portal</a>
+        <a href="tracking-user.html">My account</a>
         <a href="#">Developer APIs</a>
         <a href="#">Site map</a>
         <a href="#">Accessibility</a>
