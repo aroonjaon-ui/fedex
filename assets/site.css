@@ -442,6 +442,7 @@ table.data tr:hover td{background:#faf7fe}
   .header-cta{display:none}
   .utility-left{display:none}
   .hero-inner{padding:40px 20px 48px}
+  .hero-media img{height:240px;object-position:center}
   .quick-grid,.promo-grid{grid-template-columns:1fr}
   .meta-grid{grid-template-columns:1fr}
   .footer-inner{grid-template-columns:1fr 1fr}
