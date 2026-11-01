@@ -110,8 +110,8 @@ textarea.input{min-height:96px;resize:vertical}
 .track-hint a{color:var(--fedex-purple);font-weight:600;text-decoration:none}
 .track-hint a:hover{text-decoration:underline}
 
-.hero-media{position:relative}
-.hero-media img{width:100%;height:360px;object-fit:cover;border-radius:16px;box-shadow:var(--shadow-lg)}
+.hero-media{position:relative;background:rgba(255,255,255,.12);border-radius:16px}
+.hero-media img{width:100%;height:360px;object-fit:cover;object-position:center;border-radius:16px;box-shadow:var(--shadow-lg)}
 .hero-badge{position:absolute;left:-18px;bottom:22px;background:#fff;color:var(--fedex-purple);border-radius:12px;padding:14px 18px;box-shadow:var(--shadow-lg);font-weight:700;font-size:14px;display:flex;align-items:center;gap:10px}
 .hero-badge .dot{width:10px;height:10px;border-radius:50%;background:var(--green);box-shadow:0 0 0 4px rgba(15,123,63,.18)}
 
@@ -426,6 +426,7 @@ table.data tr:hover td{background:#faf7fe}
 /* ===== Responsive ===== */
 @media(max-width:1040px){
   .hero-inner{grid-template-columns:1fr;gap:34px}
+  .hero-media{order:-1}
   .hero-media img{height:300px}
   .why-grid{grid-template-columns:1fr;gap:26px}
   .why-img{height:280px}
