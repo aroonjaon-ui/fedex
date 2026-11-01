@@ -30,22 +30,22 @@
       <div class="auth-card">
         <div class="brandline"><span class="logo" style="font-size:34px"><span class="fed">Fed</span><span class="ex">Ex</span></span></div>
         <h1>Admin sign in</h1>
-        <p class="lead">Sign in to create shipments, move them through carrier and warehouse stages, and upload images.</p>
+        <p class="lead">Sign in with your administrator account to create shipments, move them through carrier and warehouse stages, and upload images.</p>
 
         <div id="login-alert" class="alert"></div>
 
         <form id="admin-login-form">
           <div class="field">
-            <label for="admin-email">Admin email</label>
-            <input class="input" type="email" id="admin-email" placeholder="admin@fedex-tracking.local" required>
+            <label for="admin-email">Email</label>
+            <input class="input" type="email" id="admin-email" placeholder="you@example.com" autocomplete="username" required>
           </div>
           <div class="field">
             <label for="admin-password">Password</label>
-            <input class="input" type="password" id="admin-password" placeholder="Admin123!" required>
+            <input class="input" type="password" id="admin-password" placeholder="Your password" autocomplete="current-password" required>
           </div>
           <button type="submit" class="btn btn-purple btn-block" id="admin-login-btn">Sign in</button>
         </form>
-        <p class="auth-alt" style="font-size:12px">Demo credentials: <strong>admin@fedex-tracking.local</strong> / <strong>Admin123!</strong></p>
+        <p class="auth-alt" style="font-size:12px">Admin access is restricted to authorized accounts.</p>
       </div>
     </div>
   </main>
@@ -98,8 +98,8 @@
                   <th>Stage</th>
                   <th>Current location</th>
                   <th>Route</th>
-                  <th>Delivery</th>
-                  <th>Claimed</th>
+                  <th>Dates</th>
+                  <th>Claims</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -152,7 +152,18 @@
                 </select>
               </div>
               <div class="field">
-                <label for="f-date">Estimated / delivery date</label>
+                <label for="f-ship-date">Date shipped</label>
+                <input class="input" id="f-ship-date" type="date">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="field">
+                <label for="f-eta">Estimated delivery</label>
+                <input class="input" id="f-eta" type="date">
+              </div>
+              <div class="field">
+                <label for="f-date">Actual delivery date</label>
                 <input class="input" id="f-date" type="date">
               </div>
             </div>
@@ -323,10 +334,17 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZzY3phcXRxc2NldmxseXZhcndrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMzNjU3NzQsImV4cCI6MjEwODk0MTc3NH0.Kc8gKnR76F5DsdgeZSXT1ylTwIRqhIby2Z4GSfZSlBg';
     const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const ADMIN_EMAIL = 'admin@fedex-tracking.local';
-    const ADMIN_PASS = 'Admin123!';
     const SESSION_KEY = 'fedex_admin_session';
     const BUCKET = 'tracking-proofs';
+
+    // Only these Supabase accounts can open the admin portal.
+    // Add more administrator emails here if needed.
+    const ADMIN_EMAILS = ['admin@fedex-tracking.local'];
+    function isAdminUser(user){
+      if (!user) return false;
+      const email = String(user.email || '').toLowerCase();
+      return ADMIN_EMAILS.map(x => String(x).toLowerCase()).includes(email);
+    }
 
     /* ================= Stage model ================= */
     const STAGES = [
@@ -371,6 +389,14 @@
     function modelFromRow(row){
       const meta = parseMeta(row.status);
       const stage = meta.stage || (STAGE_BY_KEY[row.carrier] ? row.carrier : '') || stageFromStatus(meta.status || row.status);
+      let claims = Array.isArray(meta.claims)
+        ? meta.claims.filter(c => c && c.user_id).map(c => Object.assign({}, c))
+        : [];
+      const primary = row.user_id || meta.claimed_by || null;
+      if (primary && !claims.some(c => String(c.user_id) === String(primary))){
+        claims.unshift({ user_id: primary, claimed_at: meta.claimed_at || null });
+      }
+      const primaryClaim = claims.find(c => primary && String(c.user_id) === String(primary)) || claims[0] || null;
       return {
         id: row.id,
         tracking_code: row.tracking_code,
@@ -386,10 +412,13 @@
         packaging: meta.packaging || '',
         signed_by: meta.signed_by || '',
         notes: meta.notes || '',
+        ship_date: meta.ship_date || '',
+        estimated_delivery: meta.estimated_delivery || meta.eta || '',
         delivery_date: row.delivery_date || meta.delivery_date || '',
         events: Array.isArray(meta.events) ? meta.events.slice() : [],
-        claimed_by: row.user_id || meta.claimed_by || null,
-        claimed_at: meta.claimed_at || null,
+        claims: claims,
+        claimed_by: primary || (primaryClaim && primaryClaim.user_id) || null,
+        claimed_at: meta.claimed_at || (primaryClaim && primaryClaim.claimed_at) || null,
         created_at: row.created_at
       };
     }
@@ -430,8 +459,11 @@
         packaging: model.packaging || '',
         signed_by: model.signed_by || '',
         notes: model.notes || '',
+        ship_date: model.ship_date || null,
+        estimated_delivery: model.estimated_delivery || null,
         delivery_date: model.delivery_date || null,
         events: model.events || [],
+        claims: model.claims || [],
         claimed_at: model.claimed_at || null
       };
     }
@@ -457,6 +489,11 @@
       return dt.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
     }
     function todayISO(){ return new Date().toISOString().slice(0,10); }
+    function addDaysISO(days){
+      const d = new Date();
+      d.setDate(d.getDate() + days);
+      return d.toISOString().slice(0,10);
+    }
 
     /* ================= Boot / login ================= */
     const loginView = document.getElementById('login-view');
@@ -474,23 +511,47 @@
       dashView.style.display = 'block';
       loadAll();
     }
-    document.getElementById('admin-login-form').addEventListener('submit', (e) => {
+    document.getElementById('admin-login-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const email = document.getElementById('admin-email').value.trim();
       const pass = document.getElementById('admin-password').value;
-      if (email === ADMIN_EMAIL && pass === ADMIN_PASS){
-        localStorage.setItem(SESSION_KEY, '1');
+      const btn = document.getElementById('admin-login-btn');
+      btn.disabled = true;
+      btn.textContent = 'Signing in…';
+      document.getElementById('login-alert').className = 'alert';
+      try {
+        // Admin access uses a real Supabase Auth account.
+        const { data, error } = await db.auth.signInWithPassword({ email, password: pass });
+        if (error){
+          loginAlert('error', 'Email or password is incorrect.');
+          return;
+        }
+        if (!isAdminUser(data.user)){
+          await db.auth.signOut();
+          loginAlert('error', 'This account is not authorized for the admin portal.');
+          return;
+        }
         showDash();
-      } else {
-        adminAlert('error', 'Invalid credentials. Use ' + ADMIN_EMAIL + ' / ' + ADMIN_PASS);
+      } catch (err) {
+        loginAlert('error', 'Sign in failed: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Sign in';
       }
     });
-    document.getElementById('admin-signout').addEventListener('click', () => {
+    document.getElementById('admin-signout').addEventListener('click', async () => {
       localStorage.removeItem(SESSION_KEY);
+      try { await db.auth.signOut(); } catch(e){}
       showLogin();
     });
     document.getElementById('refresh-btn').addEventListener('click', loadAll);
     document.getElementById('reload-images').addEventListener('click', loadImages);
+
+    function loginAlert(kind, msg){
+      const el = document.getElementById('login-alert');
+      el.className = 'alert show alert-' + kind;
+      el.textContent = msg;
+    }
 
     function adminAlert(kind, msg){
       const el = document.getElementById('admin-alert');
@@ -545,13 +606,20 @@
       }
       tbody.innerHTML = list.map(e => {
         const route = (e.origin || '—') + ' <span class="arrow">&rarr;</span> ' + (e.destination || '—');
+        const claims = e.claims || [];
+        const claimTitle = claims.map(c => c.claimed_at ? fmtDate(c.claimed_at) : 'date unknown').join(', ');
+        const dates = '<div class="date-stack">' +
+          '<span><b>Shipped:</b> ' + esc(fmtDate(e.ship_date)) + '</span>' +
+          '<span><b>ETA:</b> ' + esc(fmtDate(e.estimated_delivery)) + '</span>' +
+          (e.delivery_date ? '<span><b>Delivered:</b> ' + esc(fmtDate(e.delivery_date)) + '</span>' : '') +
+        '</div>';
         return '<tr>' +
           '<td class="mono">' + esc(e.tracking_code) + '</td>' +
           '<td><span class="stage-badge stage-' + stageBadgeClass(e.stage) + '">' + esc(stageLabel(e.stage)) + '</span></td>' +
           '<td class="loc-cell">' + esc(e.current_location || '—') + '</td>' +
           '<td class="route-cell">' + route + '</td>' +
-          '<td>' + esc(fmtDate(e.delivery_date)) + '</td>' +
-          '<td>' + (e.claimed_by ? '<span class="stage-badge stage-delivered">Claimed</span>' : '<span class="muted">—</span>') + '</td>' +
+          '<td>' + dates + '</td>' +
+          '<td>' + (claims.length ? '<span class="stage-badge stage-delivered" title="' + esc(claimTitle) + '">' + claims.length + ' claim' + (claims.length === 1 ? '' : 's') + '</span>' : '<span class="muted">—</span>') + '</td>' +
           '<td><div class="row-actions">' +
             '<button class="btn btn-outline btn-sm" type="button" onclick="editEntry(\'' + esc(e.id) + '\')">Edit</button>' +
             '<button class="btn btn-outline btn-sm" type="button" onclick="moveEntry(\'' + esc(e.tracking_code) + '\')">Move</button>' +
@@ -602,6 +670,8 @@
       form.reset();
       document.getElementById('f-stage').value = 'carrier_2';
       document.getElementById('f-pieces').value = 1;
+      document.getElementById('f-ship-date').value = todayISO();
+      document.getElementById('f-eta').value = addDaysISO(3);
       document.getElementById('f-add-event').checked = true;
       document.getElementById('event-note-wrap').style.display = 'block';
       document.getElementById('f-images-preview').innerHTML = '';
@@ -609,6 +679,9 @@
       setFormMode(null);
     }
     document.getElementById('reset-btn').addEventListener('click', resetForm);
+    // Sensible defaults for a brand-new shipment.
+    document.getElementById('f-ship-date').value = todayISO();
+    document.getElementById('f-eta').value = addDaysISO(3);
     document.getElementById('f-add-event').addEventListener('change', (e) => {
       document.getElementById('event-note-wrap').style.display = e.target.checked ? 'block' : 'none';
     });
@@ -644,6 +717,8 @@
           stage: stage,
           status: stageToStatus(stage),
           current_location: location,
+          ship_date: document.getElementById('f-ship-date').value || null,
+          estimated_delivery: document.getElementById('f-eta').value || null,
           delivery_date: document.getElementById('f-date').value || null,
           service: document.getElementById('f-service').value.trim(),
           origin: document.getElementById('f-origin').value.trim(),
@@ -655,6 +730,7 @@
           signed_by: document.getElementById('f-signed').value.trim(),
           notes: document.getElementById('f-notes').value.trim(),
           events: existing ? existing.events.slice() : [],
+          claims: existing ? existing.claims.slice() : [],
           claimed_by: existing ? existing.claimed_by : null,
           claimed_at: existing ? existing.claimed_at : null
         };
@@ -700,6 +776,8 @@
       const set = (fid, val) => { document.getElementById(fid).value = val || ''; };
       set('f-code', e.tracking_code);
       set('f-stage', e.stage);
+      set('f-ship-date', e.ship_date);
+      set('f-eta', e.estimated_delivery);
       set('f-date', e.delivery_date);
       set('f-location', e.current_location);
       set('f-service', e.service);
@@ -965,8 +1043,18 @@
     });
 
     /* ================= Boot ================= */
-    if (localStorage.getItem(SESSION_KEY) === '1') showDash();
-    else showLogin();
+    (async () => {
+      // Remove the old demo-session flag; admin access now requires Supabase Auth.
+      localStorage.removeItem(SESSION_KEY);
+      try {
+        const { data } = await db.auth.getSession();
+        if (data && data.session && isAdminUser(data.session.user)) {
+          showDash();
+          return;
+        }
+      } catch(e){}
+      showLogin();
+    })();
   </script>
 </body>
 </html>

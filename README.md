@@ -252,6 +252,28 @@ already included in the HTML.
 
 ---
 
+## Deploy to Vercel
+
+`vercel.json` tells Vercel to serve this repository as a static site from the
+root directory, with no build step.
+
+**Git deploy:** import the repository in Vercel and deploy. The included
+`vercel.json` sets the framework to Other, skips the build command, and uses `.`
+as the output directory.
+
+**CLI deploy:**
+
+```bash
+npx vercel --prod
+```
+
+No Vercel environment variables are required. The site talks directly to the
+same Supabase project, and all internal links use relative `.html` paths, so
+`/`, `/tracking-user.html`, and `/admin-portal.html` work as-is. The
+`netlify.toml` file is ignored by Vercel.
+
+---
+
 ## Using the site
 
 ### Track and claim
@@ -264,8 +286,12 @@ already included in the HTML.
 ### Admin portal
 
 - Direct URL: `/admin-portal.html`
-- Email: `admin@fedex-tracking.local`
-- Password: `Admin123!`
+- Sign in with an authorized Supabase Auth account.
+
+Only email addresses listed in `ADMIN_EMAILS` inside `admin-portal.html` can open
+the dashboard. To add another administrator, create the account in Supabase Auth
+and add its email to that list. The admin URL is intentionally not linked from
+the public pages.
 
 Create a shipment, set its stage/location/route, add images, then use **Move
 shipment** to add new scans. Every change is written to Supabase immediately and
@@ -275,7 +301,7 @@ shows on the public tracking page.
 
 ## Security note
 
-This is a prototype: admin writes use open RLS policies and a demo credential.
-Before production, move admin actions behind a real authenticated admin role,
-scope RLS to that role, remove public write policies, and replace the hard-coded
-admin login.
+This is a prototype. Admin access is gated by Supabase Auth and an email
+allowlist, but the allowlist lives in client-side code and the tracking tables
+still use open RLS policies. Before production, move admin writes behind a real
+server-side admin role, scope RLS to that role, and remove public write policies.

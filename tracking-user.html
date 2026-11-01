@@ -129,7 +129,7 @@
             <div class="v" id="r-origin">—</div>
           </div>
           <div class="sm">
-            <div class="k">Scheduled delivery</div>
+            <div class="k" id="r-eta-label">Scheduled delivery</div>
             <div class="v" id="r-eta">—</div>
           </div>
         </div>
@@ -316,6 +316,14 @@
     function modelFromRow(row){
       const meta = parseMeta(row.status);
       const stage = meta.stage || (STAGE_BY_KEY[row.carrier] ? row.carrier : '') || stageFromStatus(meta.status || row.status);
+      let claims = Array.isArray(meta.claims)
+        ? meta.claims.filter(c => c && c.user_id).map(c => Object.assign({}, c))
+        : [];
+      const primary = row.user_id || meta.claimed_by || null;
+      if (primary && !claims.some(c => String(c.user_id) === String(primary))){
+        claims.unshift({ user_id: primary, claimed_at: meta.claimed_at || null });
+      }
+      const primaryClaim = claims.find(c => primary && String(c.user_id) === String(primary)) || claims[0] || null;
       return {
         id: row.id,
         tracking_code: row.tracking_code,
@@ -331,10 +339,13 @@
         packaging: meta.packaging || '',
         signed_by: meta.signed_by || '',
         notes: meta.notes || '',
+        ship_date: meta.ship_date || '',
+        estimated_delivery: meta.estimated_delivery || meta.eta || '',
         delivery_date: row.delivery_date || meta.delivery_date || '',
         events: Array.isArray(meta.events) ? meta.events.slice() : [],
-        claimed_by: row.user_id || meta.claimed_by || null,
-        claimed_at: meta.claimed_at || null,
+        claims: claims,
+        claimed_by: primary || (primaryClaim && primaryClaim.user_id) || null,
+        claimed_at: meta.claimed_at || (primaryClaim && primaryClaim.claimed_at) || null,
         created_at: row.created_at
       };
     }
@@ -353,8 +364,11 @@
         packaging: model.packaging || '',
         signed_by: model.signed_by || '',
         notes: model.notes || '',
+        ship_date: model.ship_date || null,
+        estimated_delivery: model.estimated_delivery || null,
         delivery_date: model.delivery_date || null,
         events: model.events || [],
+        claims: model.claims || [],
         claimed_at: model.claimed_at || null
       };
     }
@@ -481,7 +495,6 @@
       const requestId = ++myShipmentsRequest;
       const { data, error } = await db.from('tracking_entries')
         .select('*')
-        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
       // Ignore an older response if sign-out, sign-in, or a newer claim reload finished first.
       if (requestId !== myShipmentsRequest || !currentUser || currentUser.id !== user.id) return;
@@ -489,12 +502,18 @@
         wrap.innerHTML = '<p class="empty" style="margin:0">Could not load your shipments: ' + escHtml(error.message) + '</p>';
         return;
       }
-      if (!data || !data.length){
+      const mine = (data || []).map(row => modelFromRow(row)).filter(e =>
+        (e.claims || []).some(c => String(c.user_id) === String(user.id)) ||
+        String(e.claimed_by) === String(user.id)
+      );
+      if (!mine.length){
         wrap.innerHTML = '<p class="empty" style="margin:0">No claimed shipments yet. Track a package and click “Claim this shipment”.</p>';
         return;
       }
-      wrap.innerHTML = data.map(row => {
-        const e = modelFromRow(row);
+      wrap.innerHTML = mine.map(e => {
+        const myClaim = (e.claims || []).find(c => String(c.user_id) === String(user.id));
+        const claimDate = myClaim && myClaim.claimed_at ? fmtDate(myClaim.claimed_at) : '';
+        const eta = e.estimated_delivery ? fmtDate(e.estimated_delivery) : '';
         return '<a class="my-ship" href="?code=' + encodeURIComponent(e.tracking_code) + '">' +
           '<div class="my-ship-top">' +
             '<span class="mono">' + escHtml(e.tracking_code) + '</span>' +
@@ -502,6 +521,7 @@
           '</div>' +
           '<div class="my-ship-route">' + escHtml(e.origin || '—') + ' <span class="arrow">&rarr;</span> ' + escHtml(e.destination || '—') + '</div>' +
           '<div class="my-ship-loc">' + escHtml(e.current_location || 'Waiting for the first scan') + '</div>' +
+          '<div class="my-ship-date">' + (claimDate ? 'Claimed ' + escHtml(claimDate) : '') + (claimDate && eta ? ' · ' : '') + (eta ? 'ETA ' + escHtml(eta) : '') + '</div>' +
         '</a>';
       }).join('');
     }
@@ -623,8 +643,11 @@
         pieces: 1,
         packaging: 'FedEx Box',
         signed_by: '',
-        delivery_date: addDaysISO(2),
+        ship_date: addDaysISO(-3),
+        estimated_delivery: addDaysISO(2),
+        delivery_date: '',
         events: [],
+        claims: [],
         claimed_by: null,
         claimed_at: null,
         _demo: true
@@ -727,14 +750,18 @@
       const stage = entry.stage || 'carrier_2';
       const status = entry.status || stageToStatus(stage);
       const code = entry.tracking_code || '—';
-      const eta = entry.delivery_date ? fmtDate(entry.delivery_date) : '—';
+      const etaDate = entry.estimated_delivery || entry.delivery_date || '';
+      const eta = etaDate ? fmtDate(etaDate) : '—';
+      const deliveredDate = entry.delivery_date ? fmtDate(entry.delivery_date) : '';
+      const shippedDate = entry.ship_date ? fmtDate(entry.ship_date) : '—';
       const origin = entry.origin || 'Origin facility';
       const dest = entry.destination || 'Destination facility';
       const loc = entry.current_location || '';
 
       document.getElementById('r-code').textContent = code;
       document.getElementById('r-origin').textContent = origin;
-      document.getElementById('r-eta').textContent = eta;
+      document.getElementById('r-eta-label').textContent = stage === 'delivered' ? 'Delivered on' : 'Scheduled delivery';
+      document.getElementById('r-eta').textContent = stage === 'delivered' && deliveredDate ? deliveredDate : eta;
 
       const titleEl = document.getElementById('r-status-title');
       titleEl.textContent = titleForStage(stage);
@@ -746,7 +773,7 @@
 
       let sub = '';
       if (stage === 'delivered'){
-        sub = 'Delivered ' + eta + (entry.signed_by ? ' · Signed for by ' + entry.signed_by : '');
+        sub = 'Delivered ' + (deliveredDate || eta) + (entry.signed_by ? ' · Signed for by ' + entry.signed_by : '');
       } else if (stage === 'exception'){
         sub = 'Delivery exception' + (loc ? ' · ' + loc : '') + '. We are working to resolve it.';
       } else if (stage === 'out_for_delivery'){
@@ -784,9 +811,12 @@
         ['Dimensions', entry.dimensions || '—'],
         ['Total pieces', entry.pieces || 1],
         ['Packaging', entry.packaging || '—'],
+        ['Date shipped', shippedDate],
+        ['Estimated delivery', eta],
         ['Shipped from', origin],
         ['Destination', dest]
       ];
+      if (status === 'delivered' && deliveredDate) facts.push(['Delivered on', deliveredDate]);
       if (status === 'delivered' && entry.signed_by) facts.push(['Signed for by', entry.signed_by]);
       document.getElementById('r-facts').innerHTML = facts.map(f =>
         '<div class="fact"><span class="k">' + escHtml(f[0]) + '</span><span class="v">' + escHtml(f[1]) + '</span></div>'
@@ -939,13 +969,22 @@
         pill.className = 'pill';
         return;
       }
-      if (entry.claimed_by){
+      const claims = entry.claims || [];
+      const myClaim = currentUser && claims.find(c => String(c.user_id) === String(currentUser.id));
+      if (myClaim){
+        const claimedDate = myClaim.claimed_at ? fmtDate(myClaim.claimed_at) : '';
         pill.style.display = 'inline-block';
-        pill.textContent = currentUser && String(entry.claimed_by) === String(currentUser.id) ? 'Claimed by you' : 'Claimed';
+        pill.textContent = 'Claimed by you' + (claimedDate ? ' · ' + claimedDate : '');
         pill.className = 'pill claim-pill';
         btn.style.display = 'none';
       } else {
-        pill.style.display = 'none';
+        if (claims.length){
+          pill.style.display = 'inline-block';
+          pill.textContent = claims.length + ' claim' + (claims.length === 1 ? '' : 's');
+          pill.className = 'pill';
+        } else {
+          pill.style.display = 'none';
+        }
         btn.style.display = 'inline-flex';
         btn.textContent = currentUser ? 'Claim this shipment' : 'Log in to claim';
       }
@@ -965,42 +1004,50 @@
       if (!res.data){ toast('This sample shipment cannot be claimed. Create a real shipment in the admin portal.'); return; }
 
       const fresh = modelFromRow(res.data);
-      if (fresh.claimed_by){
-        if (String(fresh.claimed_by) === String(currentUser.id)){
-          currentEntry = fresh;
-          updateClaimUI(fresh);
-          await loadMyShipments();
-          toast('This shipment is already in your account.');
-        } else {
-          toast('This shipment has already been claimed by another account.');
-        }
+      const existingClaim = (fresh.claims || []).find(c => String(c.user_id) === String(currentUser.id));
+      if (existingClaim){
+        currentEntry = fresh;
+        updateClaimUI(fresh);
+        await loadMyShipments();
+        const when = existingClaim.claimed_at ? fmtDate(existingClaim.claimed_at) : '';
+        toast('You already claimed this shipment' + (when ? ' on ' + when : '') + '.');
         return;
       }
 
-      fresh.claimed_by = currentUser.id;
-      fresh.claimed_at = new Date().toISOString();
+      const claim = {
+        user_id: currentUser.id,
+        claimed_at: new Date().toISOString(),
+        name: (currentUser.user_metadata && currentUser.user_metadata.full_name) || '',
+        email: currentUser.email || ''
+      };
+      fresh.claims = (fresh.claims || []).concat([claim]);
+      if (!fresh.claimed_by) fresh.claimed_by = currentUser.id;
+      if (!fresh.claimed_at) fresh.claimed_at = claim.claimed_at;
+
+      const update = {
+        status: JSON.stringify(metaFromModel(fresh))
+      };
+      if (!res.data.user_id) update.user_id = currentUser.id;
+
       const upd = await db.from('tracking_entries')
-        .update({ user_id: currentUser.id, status: JSON.stringify(metaFromModel(fresh)) })
+        .update(update)
         .eq('tracking_code', code)
-        .is('user_id', null)
         .select();
 
       if (upd.error){ toast('Could not claim shipment: ' + upd.error.message); return; }
-
       if (!upd.data || !upd.data.length){
-        const again = await db.from('tracking_entries').select('*').eq('tracking_code', code).maybeSingle();
-        if (again.data && String(again.data.user_id) === String(currentUser.id)){
-          currentEntry = modelFromRow(again.data);
-          updateClaimUI(currentEntry);
-          await loadMyShipments();
-          toast('Shipment claimed.');
-        } else {
-          toast('This shipment has already been claimed by another account.');
-        }
+        toast('Could not save your claim. Please try again.');
         return;
       }
 
-      currentEntry = modelFromRow(upd.data[0]);
+      const saved = modelFromRow(upd.data[0]);
+      const savedClaim = (saved.claims || []).find(c => String(c.user_id) === String(currentUser.id));
+      if (!savedClaim){
+        toast('Another claim was saved at the same time. Please try again.');
+        return;
+      }
+
+      currentEntry = saved;
       updateClaimUI(currentEntry);
       await loadMyShipments();
       toast('Shipment claimed. It is now saved under My shipments.');
