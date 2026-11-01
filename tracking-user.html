@@ -6,7 +6,7 @@
   <title>Track Your Package | FedEx</title>
   <meta name="description" content="Track your FedEx package and view delivery progress, shipment facts, and travel history.">
   <link rel="icon" type="image/png" href="images/fedex-logo.png">
-  <link rel="stylesheet" href="assets/site.css?v=2">
+  <link rel="stylesheet" href="assets/site.css?v=3">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -38,6 +38,7 @@
         <li><a href="index.html#support">Support</a></li>
       </ul>
       <div class="header-right">
+        <a class="header-account admin-link" id="hdr-admin" href="admin-portal.html" style="display:none">Admin dashboard</a>
         <span class="header-account" id="hdr-user" style="display:none"></span>
         <a class="header-account" id="hdr-logout" href="#" style="display:none">Sign out</a>
         <a class="header-cta" id="hdr-login" href="#" onclick="openAuth(); return false;">Log In / Sign Up</a>
@@ -84,6 +85,10 @@
           <p id="acct-email"></p>
         </div>
         <button class="btn btn-outline btn-sm" id="acct-signout" type="button">Sign out</button>
+      </div>
+      <div class="admin-callout" id="acct-admin" style="display:none">
+        <span><strong>Administrator account.</strong> Create shipments, update stages, and upload images in the admin portal.</span>
+        <a class="btn btn-purple btn-sm" href="admin-portal.html">Open admin dashboard</a>
       </div>
       <div class="account-body">
         <h3>My shipments</h3>
@@ -274,6 +279,12 @@
     let pendingClaimCode = null;
     let myShipmentsRequest = 0;
 
+    // Keep this list in sync with ADMIN_EMAILS in admin-portal.html.
+    const ADMIN_EMAILS = ['admin@fedex-tracking.local'];
+    function isAdminEmail(email){
+      return ADMIN_EMAILS.map(x => String(x).toLowerCase()).includes(String(email || '').toLowerCase());
+    }
+
     /* ================= Stage model ================= */
     const STAGES = [
       { key:'label_created',     label:'Label created',        short:'Label created',     status:'pending' },
@@ -439,8 +450,13 @@
       const loginBtn = document.getElementById('hdr-login');
       const userEl = document.getElementById('hdr-user');
       const logoutEl = document.getElementById('hdr-logout');
+      const adminLink = document.getElementById('hdr-admin');
+      const adminCallout = document.getElementById('acct-admin');
       const panel = document.getElementById('account-panel');
       const util = document.getElementById('utility-account');
+      const admin = !!(user && isAdminEmail(user.email));
+      if (adminLink) adminLink.style.display = admin ? 'inline-block' : 'none';
+      if (adminCallout) adminCallout.style.display = admin ? 'flex' : 'none';
       if (user){
         loginBtn.style.display = 'none';
         userEl.style.display = 'inline-block';
@@ -537,9 +553,14 @@
       if (error){ showAlert('error', error.message); return; }
       await refreshUser();
       closeAuth();
+      if (pendingClaimCode){ const c = pendingClaimCode; pendingClaimCode = null; await claimShipment(c); }
+      if (isAdminEmail(email)){
+        toast('Admin account detected. Opening the admin dashboard…');
+        setTimeout(() => { window.location.href = 'admin-portal.html'; }, 800);
+        return;
+      }
       toast('Welcome back!');
       document.getElementById('account-panel').scrollIntoView({ behavior:'smooth', block:'start' });
-      if (pendingClaimCode){ const c = pendingClaimCode; pendingClaimCode = null; await claimShipment(c); }
     });
 
     document.getElementById('signup-form').addEventListener('submit', async (e) => {

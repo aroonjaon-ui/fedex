@@ -64,6 +64,7 @@ button{font-family:inherit}
 .header-cta:hover{background:var(--fedex-orange-dark)}
 .header-account{font-size:14px;color:var(--gray-700);text-decoration:none;white-space:nowrap}
 .header-account:hover{color:var(--fedex-purple)}
+.header-account.admin-link{color:var(--fedex-purple);font-weight:700}
 
 /* ===== Buttons ===== */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:6px;font-weight:700;cursor:pointer;font-size:15px;padding:13px 22px;text-decoration:none;transition:background .15s,transform .05s;line-height:1.1}
@@ -404,6 +405,9 @@ table.data tr:hover td{background:#faf7fe}
 .account-head p{margin:2px 0 0;font-size:13px;color:var(--gray-500)}
 .account-head .btn{margin-left:auto}
 .account-body{margin-top:18px;border-top:1px solid var(--gray-200);padding-top:16px}
+.admin-callout{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:#f4edff;border:1px solid #d9c6f5;border-radius:10px;padding:12px 14px;margin-top:14px}
+.admin-callout span{font-size:13px;color:#3f2b63}
+.admin-callout .btn{margin-left:0}
 .account-body h3{margin:0 0 12px;font-size:15px;color:var(--fedex-purple)}
 .my-ship-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
 .my-ship{display:block;text-decoration:none;color:var(--ink);border:1px solid var(--gray-200);border-radius:10px;padding:14px;background:#fff;transition:box-shadow .15s,border-color .15s}

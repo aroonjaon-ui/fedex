@@ -290,8 +290,12 @@ same Supabase project, and all internal links use relative `.html` paths, so
 
 Only email addresses listed in `ADMIN_EMAILS` inside `admin-portal.html` can open
 the dashboard. To add another administrator, create the account in Supabase Auth
-and add its email to that list. The admin URL is intentionally not linked from
-the public pages.
+and add its email to that list. The same list is mirrored in `tracking-user.html`
+so the admin sees an **Admin dashboard** shortcut after logging in from the public
+site, and is redirected there after an admin login. Keep both lists in sync.
+
+The admin URL is intentionally not linked from the public pages for non-admin
+visitors.
 
 Create a shipment, set its stage/location/route, add images, then use **Move
 shipment** to add new scans. Every change is written to Supabase immediately and
