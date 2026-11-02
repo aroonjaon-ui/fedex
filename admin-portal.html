@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Shipment Control Center | FedEx</title>
   <link rel="icon" type="image/png" href="images/fedex-logo.png">
-  <link rel="stylesheet" href="assets/site.css?v=3">
+  <link rel="stylesheet" href="assets/site.css?v=5">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -78,6 +78,43 @@
       <div class="stat"><div class="num" id="stat-delivered">0</div><div class="lbl">Delivered</div></div>
       <div class="stat"><div class="num" id="stat-exception">0</div><div class="lbl">Exceptions</div></div>
       <div class="stat"><div class="num" id="stat-claimed">0</div><div class="lbl">Claimed by users</div></div>
+    </div>
+
+    <div class="card support-card" id="support-card">
+      <div class="card-head-row">
+        <div>
+          <h2 style="margin:0">Customer service</h2>
+          <p class="card-sub">Live chats from signed-in customers. Replies sync automatically every few seconds.</p>
+        </div>
+        <span class="pill support-count-pill" id="support-count">0 conversations</span>
+      </div>
+      <div class="support-layout">
+        <div class="support-list-wrap">
+          <div class="support-list" id="support-threads">
+            <p class="support-empty">No customer conversations yet.</p>
+          </div>
+        </div>
+        <div class="support-thread-wrap">
+          <div class="support-placeholder" id="support-placeholder">
+            <strong>Select a conversation</strong>
+            <span>Customer messages appear here. Open a thread to reply.</span>
+          </div>
+          <div class="support-thread" id="support-thread" style="display:none">
+            <div class="support-thread-head">
+              <div class="support-thread-who">
+                <strong id="support-user">Customer</strong>
+                <span id="support-email"></span>
+              </div>
+              <span class="support-unread-pill" id="support-unread" style="display:none"></span>
+            </div>
+            <div class="support-messages" id="support-messages"></div>
+            <form class="support-reply" id="support-reply-form">
+              <input class="input" id="support-reply-input" type="text" placeholder="Reply to the customer…" autocomplete="off" maxlength="2000" aria-label="Reply to customer">
+              <button class="btn btn-purple" id="support-reply-btn" type="submit">Send</button>
+            </form>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="admin-grid">
@@ -495,10 +532,55 @@
       return d.toISOString().slice(0,10);
     }
 
+    /* ================= Customer service chat ================= */
+    function isSupportRow(row){
+      if (!row) return false;
+      if (String(row.carrier || '') === 'support_chat') return true;
+      const meta = parseMeta(row.status);
+      return meta.kind === 'support_chat';
+    }
+    function supportThreadFromRow(row){
+      const meta = parseMeta(row.status);
+      return {
+        id: row.id,
+        code: row.tracking_code,
+        user_id: row.user_id || null,
+        user_name: meta.user_name || 'Customer',
+        user_email: meta.user_email || '',
+        messages: Array.isArray(meta.messages) ? meta.messages.slice() : [],
+        created_at: row.created_at,
+        updated_at: meta.updated_at || row.created_at
+      };
+    }
+    function supportUnreadForAdmin(thread){
+      return (thread && thread.messages ? thread.messages : []).filter(m => m.role === 'user' && !m.read_by_admin).length;
+    }
+    function supportLastMessage(thread){
+      const list = (thread && thread.messages) || [];
+      return list.length ? list[list.length - 1] : null;
+    }
+    function fmtChatTime(value){
+      const d = new Date(value);
+      if (isNaN(d)) return '';
+      const now = new Date();
+      const sameDay = d.toDateString() === now.toDateString();
+      return sameDay
+        ? d.toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' })
+        : d.toLocaleDateString('en-US', { month:'short', day:'numeric' }) + ' · ' + d.toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' });
+    }
+    function chatMessageId(){
+      if (window.crypto && typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+      return 'm-' + Date.now() + '-' + Math.random().toString(16).slice(2);
+    }
+
     /* ================= Boot / login ================= */
     const loginView = document.getElementById('login-view');
     const dashView = document.getElementById('dash-view');
     let entries = [];
+    let supportThreads = [];
+    let activeSupportCode = null;
+    let supportPollTimer = null;
+    let supportLoading = false;
     let editingCode = null;
     let currentFilter = '';
 
@@ -510,6 +592,7 @@
       loginView.style.display = 'none';
       dashView.style.display = 'block';
       loadAll();
+      startSupportPolling();
     }
     document.getElementById('admin-login-form').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -541,6 +624,7 @@
     });
     document.getElementById('admin-signout').addEventListener('click', async () => {
       localStorage.removeItem(SESSION_KEY);
+      if (supportPollTimer){ clearInterval(supportPollTimer); supportPollTimer = null; }
       try { await db.auth.signOut(); } catch(e){}
       showLogin();
     });
@@ -575,10 +659,188 @@
         adminAlert('error', 'Could not load shipments: ' + error.message);
         return;
       }
-      entries = (data || []).map(modelFromRow);
+      const rows = data || [];
+      supportThreads = rows.filter(isSupportRow).map(supportThreadFromRow);
+      entries = rows.filter(row => !isSupportRow(row)).map(modelFromRow);
       renderStats();
       renderTable();
       populateMoveCodes();
+      renderSupportList();
+      renderSupportThread();
+    }
+
+    async function loadSupportThreads(silent){
+      if (supportLoading) return;
+      supportLoading = true;
+      try {
+        const { data, error } = await db.from('tracking_entries').select('*').order('created_at', { ascending: false });
+        if (error){
+          if (!silent) adminAlert('error', 'Could not load customer service chats: ' + error.message);
+          return;
+        }
+        supportThreads = (data || []).filter(isSupportRow).map(supportThreadFromRow);
+        renderSupportList();
+        renderSupportThread();
+      } catch (err) {
+        if (!silent) adminAlert('error', 'Could not load customer service chats: ' + err.message);
+      } finally {
+        supportLoading = false;
+      }
+    }
+
+    function startSupportPolling(){
+      if (supportPollTimer) return;
+      supportPollTimer = setInterval(() => {
+        if (document.visibilityState === 'visible') loadSupportThreads(true);
+      }, 4000);
+    }
+
+    function renderSupportList(){
+      const list = document.getElementById('support-threads');
+      const count = document.getElementById('support-count');
+      if (!list) return;
+      const totalUnread = supportThreads.reduce((sum, t) => sum + supportUnreadForAdmin(t), 0);
+      if (count){
+        count.textContent = supportThreads.length
+          ? supportThreads.length + ' conversation' + (supportThreads.length === 1 ? '' : 's') + (totalUnread ? ' · ' + totalUnread + ' new' : '')
+          : 'No conversations';
+      }
+      if (!supportThreads.length){
+        list.innerHTML = '<p class="support-empty">No customer conversations yet. Messages sent from the tracking page will appear here.</p>';
+        return;
+      }
+      list.innerHTML = supportThreads.map(thread => {
+        const last = supportLastMessage(thread);
+        const unread = supportUnreadForAdmin(thread);
+        return '<button type="button" class="support-thread-item' + (thread.code === activeSupportCode ? ' active' : '') + '" onclick="openSupportThread(\'' + esc(thread.code) + '\')">' +
+          '<span class="support-thread-top"><strong>' + esc(thread.user_name || 'Customer') + '</strong>' +
+          (unread ? '<span class="support-unread-pill">' + unread + '</span>' : '') + '</span>' +
+          '<span class="support-thread-email">' + esc(thread.user_email || 'Signed-in customer') + '</span>' +
+          '<span class="support-thread-preview">' + esc(last ? last.body : 'No messages yet') + '</span>' +
+          '<span class="support-thread-time">' + esc(last ? fmtChatTime(last.at) : (thread.updated_at ? fmtChatTime(thread.updated_at) : '')) + '</span>' +
+        '</button>';
+      }).join('');
+    }
+
+    function renderSupportThread(){
+      const thread = supportThreads.find(t => t.code === activeSupportCode);
+      const placeholder = document.getElementById('support-placeholder');
+      const panel = document.getElementById('support-thread');
+      if (!placeholder || !panel) return;
+      if (!thread){
+        placeholder.style.display = 'flex';
+        panel.style.display = 'none';
+        return;
+      }
+      placeholder.style.display = 'none';
+      panel.style.display = 'flex';
+      document.getElementById('support-user').textContent = thread.user_name || 'Customer';
+      document.getElementById('support-email').textContent = thread.user_email || 'Signed-in customer';
+      const unread = supportUnreadForAdmin(thread);
+      const unreadPill = document.getElementById('support-unread');
+      if (unreadPill){
+        unreadPill.style.display = unread ? 'inline-flex' : 'none';
+        unreadPill.textContent = unread + ' new';
+      }
+      const messagesEl = document.getElementById('support-messages');
+      const messages = thread.messages || [];
+      messagesEl.innerHTML = messages.length
+        ? messages.map(message => {
+            const mine = message.role === 'admin';
+            return '<div class="support-msg ' + (mine ? 'support-msg-admin' : 'support-msg-user') + '">' +
+              '<div class="support-bubble">' + esc(message.body) + '</div>' +
+              '<div class="support-msg-time">' + (mine ? 'You' : esc(thread.user_name || 'Customer')) + ' · ' + esc(fmtChatTime(message.at)) + '</div>' +
+            '</div>';
+          }).join('')
+        : '<p class="support-empty">No messages yet.</p>';
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    async function markSupportReadForAdmin(thread){
+      if (!thread) return;
+      const hasUnread = (thread.messages || []).some(m => m.role === 'user' && !m.read_by_admin);
+      if (!hasUnread) return;
+      thread.messages = thread.messages.map(m => m.role === 'user' ? Object.assign({}, m, { read_by_admin:true }) : m);
+      const status = {
+        kind: 'support_chat',
+        user_name: thread.user_name || '',
+        user_email: thread.user_email || '',
+        messages: thread.messages,
+        updated_at: thread.updated_at || new Date().toISOString()
+      };
+      try {
+        await db.from('tracking_entries').update({ status: JSON.stringify(status) }).eq('tracking_code', thread.code);
+      } catch (e) {}
+      renderSupportList();
+      renderSupportThread();
+    }
+
+    window.openSupportThread = function(code){
+      activeSupportCode = code;
+      renderSupportList();
+      renderSupportThread();
+      const thread = supportThreads.find(t => t.code === code);
+      if (thread) markSupportReadForAdmin(thread);
+      const input = document.getElementById('support-reply-input');
+      if (input) setTimeout(() => input.focus(), 60);
+    };
+
+    async function sendSupportReply(body){
+      const thread = supportThreads.find(t => t.code === activeSupportCode);
+      if (!thread) return;
+      body = String(body || '').trim();
+      if (!body) return;
+      const btn = document.getElementById('support-reply-btn');
+      const input = document.getElementById('support-reply-input');
+      if (btn){ btn.disabled = true; btn.textContent = 'Sending…'; }
+      try {
+        const res = await db.from('tracking_entries').select('*').eq('tracking_code', thread.code).maybeSingle();
+        if (res.error) throw new Error(res.error.message);
+        if (!res.data) throw new Error('This conversation no longer exists.');
+        const latest = supportThreadFromRow(res.data);
+        const message = {
+          id: chatMessageId(),
+          role: 'admin',
+          body: body,
+          at: new Date().toISOString(),
+          read_by_admin: true,
+          read_by_user: false
+        };
+        latest.messages = (latest.messages || []).concat(message);
+        latest.updated_at = message.at;
+        const status = {
+          kind: 'support_chat',
+          user_name: latest.user_name || thread.user_name || '',
+          user_email: latest.user_email || thread.user_email || '',
+          messages: latest.messages,
+          updated_at: latest.updated_at
+        };
+        const write = await db.from('tracking_entries')
+          .update({ status: JSON.stringify(status) })
+          .eq('tracking_code', thread.code)
+          .select();
+        if (write.error) throw new Error(write.error.message);
+        thread.messages = latest.messages;
+        thread.updated_at = latest.updated_at;
+        thread.user_name = latest.user_name || thread.user_name;
+        thread.user_email = latest.user_email || thread.user_email;
+        if (input) input.value = '';
+        renderSupportList();
+        renderSupportThread();
+      } catch (err) {
+        adminAlert('error', 'Could not send reply: ' + err.message);
+      } finally {
+        if (btn){ btn.disabled = false; btn.textContent = 'Send'; }
+      }
+    }
+
+    const supportReplyForm = document.getElementById('support-reply-form');
+    if (supportReplyForm) {
+      supportReplyForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const input = document.getElementById('support-reply-input');
+        sendSupportReply(input ? input.value : '');
+      });
     }
 
     function renderStats(){

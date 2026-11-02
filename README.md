@@ -9,14 +9,17 @@ accounts and claims, and an admin control center backed by Supabase.
 
 | Page | Purpose |
 | --- | --- |
-| `index.html` | FedEx-style homepage with hero, tracking box, services, and promotions |
-| `tracking-user.html` | Public tracking, signup/login, account dashboard, claims, images |
-| `admin-portal.html` | Direct-URL admin portal for shipments, stages, scans, and images |
+| `index.html` | FedEx-style homepage rebuilt from the real FedEx layout, with tracking, services, and promotions |
+| `tracking-user.html` | Public tracking, signup/login, account dashboard, claims, images, live support chat |
+| `admin-portal.html` | Admin portal for shipments, stages, scans, images, claims, and customer service |
 | `assets/site.css` | Shared FedEx-style design system |
+| `assets/site.js` | Mobile navigation helper used by the tracking page |
+| `assets/home.js` | Homepage tracking forms, navigation, and mobile drawer behavior |
 | `images/` | FedEx-style imagery used across the pages |
 
-The admin portal is intentionally **not linked from the public pages**. Open it
-directly at `/admin-portal.html`.
+Open the admin portal at `/admin-portal.html` and sign in with an authorized
+admin account. The homepage footer also links to it for convenience; access is
+still guarded by Supabase Auth plus the admin allowlist.
 
 ## Features
 
@@ -30,6 +33,7 @@ directly at `/admin-portal.html`.
   delivered, and exception
 - Automatic public scan timeline, current location, and stage progress rail
 - Shipment photos and proof-of-delivery images
+- Live customer-service chat between signed-in users and the admin inbox
 - Responsive layout for desktop and mobile
 
 ---
@@ -301,11 +305,33 @@ Create a shipment, set its stage/location/route, add images, then use **Move
 shipment** to add new scans. Every change is written to Supabase immediately and
 shows on the public tracking page.
 
+### Customer service chat
+
+Signed-in users open the chat launcher on `tracking-user.html` (or from the
+homepage) and send messages to the admin inbox. The admin sees conversations in
+the **Customer service** panel on the dashboard and can reply in the same thread.
+Both sides poll every four seconds while the tab is visible.
+
+Chat threads reuse `tracking_entries` so no extra table is required:
+
+- `tracking_code` is `CS-<user-id>`.
+- `carrier` is `support_chat`.
+- `status` contains `kind: "support_chat"`, the user name/email, an `updated_at`
+  timestamp, and a `messages` array.
+- Each message has `id`, `role` (`user` or `admin`), `body`, `at`,
+  `read_by_admin`, and `read_by_user`.
+
+Support rows are filtered out of shipment tables, tracking results, stats, and
+**My shipments**. A `CS-…` code cannot be used to look up a shipment publicly.
+
 ---
 
 ## Security note
 
 This is a prototype. Admin access is gated by Supabase Auth and an email
 allowlist, but the allowlist lives in client-side code and the tracking tables
-still use open RLS policies. Before production, move admin writes behind a real
-server-side admin role, scope RLS to that role, and remove public write policies.
+still use open RLS policies. Chat messages are stored as one JSON array and use
+last-write-wins updates, so simultaneous replies are not transactionally locked.
+Before production, move admin writes behind a real server-side admin role, scope
+RLS to that role, remove public write policies, and store chat messages in a
+dedicated table or use a transactional chat service.

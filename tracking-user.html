@@ -6,7 +6,8 @@
   <title>Track Your Package | FedEx</title>
   <meta name="description" content="Track your FedEx package and view delivery progress, shipment facts, and travel history.">
   <link rel="icon" type="image/png" href="images/fedex-logo.png">
-  <link rel="stylesheet" href="assets/site.css?v=3">
+  <link rel="stylesheet" href="assets/site.css?v=5">
+  <script src="assets/site.js?v=1" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -42,8 +43,20 @@
         <span class="header-account" id="hdr-user" style="display:none"></span>
         <a class="header-account" id="hdr-logout" href="#" style="display:none">Sign out</a>
         <a class="header-cta" id="hdr-login" href="#" onclick="openAuth(); return false;">Log In / Sign Up</a>
+        <button class="icon-btn menu-toggle" id="menu-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-nav">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        </button>
       </div>
     </div>
+    <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation">
+      <a href="index.html#services">Ship</a>
+      <a class="active" href="tracking-user.html">Track</a>
+      <a href="index.html#services">Print</a>
+      <a href="index.html#locations">Locations</a>
+      <a href="index.html#support">Support</a>
+      <a class="mobile-nav-cta" href="#" id="mobile-account" data-open-auth>Log In / Sign Up</a>
+      <a class="mobile-nav-cta" href="admin-portal.html" id="mobile-admin" style="display:none">Admin dashboard</a>
+    </nav>
   </header>
 
   <!-- Tracking search -->
@@ -265,6 +278,31 @@
     </div>
   </footer>
 
+  <!-- Live customer service chat -->
+  <div class="cs-widget" id="cs-widget">
+    <button class="cs-launcher" id="cs-launcher" type="button" aria-label="Chat with customer service" aria-expanded="false" aria-controls="cs-panel">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/></svg>
+      <span class="cs-badge" id="cs-badge" style="display:none">0</span>
+    </button>
+    <section class="cs-panel" id="cs-panel" aria-label="Customer service chat">
+      <div class="cs-head">
+        <div class="cs-head-title">
+          <span class="cs-live-dot"></span>
+          <div><strong>FedEx Customer Service</strong><span>Live support · replies sync automatically</span></div>
+        </div>
+        <button class="cs-close" id="cs-close" type="button" aria-label="Close chat">&times;</button>
+      </div>
+      <div class="cs-messages" id="cs-messages">
+        <p class="cs-empty">Hi! How can we help with your shipment today?</p>
+      </div>
+      <form class="cs-form" id="cs-form" style="display:none">
+        <input class="input" id="cs-input" type="text" placeholder="Type your message…" autocomplete="off" maxlength="2000" required aria-label="Message customer service">
+        <button class="btn btn-purple" id="cs-send" type="submit">Send</button>
+      </form>
+      <p class="cs-login" id="cs-login">Log in to message customer service. <a href="#" onclick="openAuth(); return false;">Log in</a></p>
+    </section>
+  </div>
+
   <div class="toast" id="toast"></div>
 
   <script>
@@ -278,6 +316,11 @@
     let currentImages = [];
     let pendingClaimCode = null;
     let myShipmentsRequest = 0;
+    let csThread = null;
+    let csOpen = false;
+    let csPollTimer = null;
+    let csLoading = false;
+    const SUPPORT_PREFIX = 'CS-';
 
     // Keep this list in sync with ADMIN_EMAILS in admin-portal.html.
     const ADMIN_EMAILS = ['admin@fedex-tracking.local'];
@@ -323,6 +366,11 @@
       const s = String(raw == null ? '' : raw).trim();
       if (s.startsWith('{')) { try { return JSON.parse(s); } catch(e){} }
       return { status: s };
+    }
+    function isSupportRow(row){
+      if (!row) return false;
+      const meta = parseMeta(row.status);
+      return meta.kind === 'support_chat' || String(row.carrier || '') === 'support_chat';
     }
     function modelFromRow(row){
       const meta = parseMeta(row.status);
@@ -454,9 +502,23 @@
       const adminCallout = document.getElementById('acct-admin');
       const panel = document.getElementById('account-panel');
       const util = document.getElementById('utility-account');
+      const mobileAccount = document.getElementById('mobile-account');
+      const mobileAdmin = document.getElementById('mobile-admin');
       const admin = !!(user && isAdminEmail(user.email));
       if (adminLink) adminLink.style.display = admin ? 'inline-block' : 'none';
       if (adminCallout) adminCallout.style.display = admin ? 'flex' : 'none';
+      if (mobileAdmin) mobileAdmin.style.display = admin ? 'block' : 'none';
+      if (mobileAccount){
+        if (user){
+          mobileAccount.textContent = 'My account / My shipments';
+          mobileAccount.href = '#account-panel';
+          mobileAccount.removeAttribute('data-open-auth');
+        } else {
+          mobileAccount.textContent = 'Log In / Sign Up';
+          mobileAccount.href = '#';
+          mobileAccount.setAttribute('data-open-auth', '');
+        }
+      }
       if (user){
         loginBtn.style.display = 'none';
         userEl.style.display = 'inline-block';
@@ -476,6 +538,7 @@
         if (util) util.textContent = 'Log In / Sign Up';
       }
       if (currentEntry) updateClaimUI(currentEntry);
+      initSupportChat();
     }
 
     async function refreshUser(){
@@ -518,10 +581,13 @@
         wrap.innerHTML = '<p class="empty" style="margin:0">Could not load your shipments: ' + escHtml(error.message) + '</p>';
         return;
       }
-      const mine = (data || []).map(row => modelFromRow(row)).filter(e =>
-        (e.claims || []).some(c => String(c.user_id) === String(user.id)) ||
-        String(e.claimed_by) === String(user.id)
-      );
+      const mine = (data || [])
+        .filter(row => !isSupportRow(row))
+        .map(row => modelFromRow(row))
+        .filter(e =>
+          (e.claims || []).some(c => String(c.user_id) === String(user.id)) ||
+          String(e.claimed_by) === String(user.id)
+        );
       if (!mine.length){
         wrap.innerHTML = '<p class="empty" style="margin:0">No claimed shipments yet. Track a package and click “Claim this shipment”.</p>';
         return;
@@ -712,6 +778,8 @@
         try { history.replaceState(null, '', '?code=' + encodeURIComponent(code)); } catch(e){}
         return;
       }
+
+      if (row && isSupportRow(row)) row = null;
 
       if (!row){
         notfound.classList.add('show');
@@ -1080,6 +1148,245 @@
       claimShipment(currentEntry.tracking_code);
     });
 
+    /* ================= Live customer service ================= */
+    function supportCode(user){ return SUPPORT_PREFIX + user.id; }
+    function chatId(){
+      if (window.crypto && typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+      return 'm-' + Date.now() + '-' + Math.random().toString(16).slice(2);
+    }
+    function fmtChatTime(at){
+      const d = new Date(at);
+      if (isNaN(d)) return '';
+      const today = new Date();
+      const day = d.toDateString() === today.toDateString()
+        ? 'Today'
+        : d.toLocaleDateString('en-US', { month:'short', day:'numeric' });
+      return day + ' · ' + d.toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' });
+    }
+    function supportThreadFromRow(row){
+      const meta = parseMeta(row.status);
+      const messages = Array.isArray(meta.messages)
+        ? meta.messages.filter(m => m && m.body).map(m => Object.assign({}, m))
+        : [];
+      messages.sort((a, b) => new Date(a.at || 0) - new Date(b.at || 0));
+      return {
+        code: row.tracking_code,
+        user_id: row.user_id,
+        user_name: meta.user_name || '',
+        user_email: meta.user_email || '',
+        messages: messages,
+        created_at: row.created_at,
+        updated_at: meta.updated_at || row.created_at
+      };
+    }
+    function supportMeta(thread){
+      return {
+        kind: 'support_chat',
+        user_name: thread.user_name || '',
+        user_email: thread.user_email || '',
+        messages: thread.messages || [],
+        updated_at: thread.updated_at || new Date().toISOString()
+      };
+    }
+    function supportDisplayName(){
+      if (!currentUser) return 'Customer';
+      return (currentUser.user_metadata && currentUser.user_metadata.full_name) ||
+        currentUser.email || 'Customer';
+    }
+    function supportUnreadForUser(thread){
+      if (!thread) return 0;
+      return (thread.messages || []).filter(m => m.role === 'admin' && !m.read_by_user).length;
+    }
+    function updateSupportBadge(count){
+      const badge = document.getElementById('cs-badge');
+      const launcher = document.getElementById('cs-launcher');
+      if (!badge) return;
+      if (count > 0){
+        badge.textContent = count > 9 ? '9+' : String(count);
+        badge.style.display = 'flex';
+      } else {
+        badge.style.display = 'none';
+      }
+      if (launcher) launcher.setAttribute('aria-label', count > 0 ? 'Chat with customer service (' + count + ' new)' : 'Chat with customer service');
+    }
+    function renderSupportChat(){
+      const messagesEl = document.getElementById('cs-messages');
+      const form = document.getElementById('cs-form');
+      const login = document.getElementById('cs-login');
+      if (!messagesEl) return;
+      if (!currentUser){
+        messagesEl.innerHTML = '<p class="cs-empty">Log in to start a live chat with FedEx customer service.</p>';
+        if (form) form.style.display = 'none';
+        if (login) login.style.display = 'block';
+        updateSupportBadge(0);
+        return;
+      }
+      if (form) form.style.display = 'flex';
+      if (login) login.style.display = 'none';
+      const messages = (csThread && csThread.messages) || [];
+      messagesEl.innerHTML = messages.length
+        ? messages.map(m => {
+            const mine = m.role === 'user';
+            return '<div class="cs-msg ' + (mine ? 'cs-msg-user' : 'cs-msg-admin') + '">' +
+              '<div class="cs-bubble">' + escHtml(m.body) + '</div>' +
+              '<div class="cs-time">' + (mine ? 'You' : 'FedEx Support') + ' · ' + escHtml(fmtChatTime(m.at)) + '</div>' +
+            '</div>';
+          }).join('')
+        : '<p class="cs-empty">Hi! How can we help with your shipment today? Send us a message and a support agent will reply here.</p>';
+      const unread = supportUnreadForUser(csThread);
+      updateSupportBadge(unread);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+    async function markSupportReadForUser(){
+      if (!currentUser || !csThread) return;
+      const hasUnread = (csThread.messages || []).some(m => m.role === 'admin' && !m.read_by_user);
+      if (!hasUnread) return;
+      csThread.messages = csThread.messages.map(m => m.role === 'admin' ? Object.assign({}, m, { read_by_user:true }) : m);
+      renderSupportChat();
+      try {
+        await db.from('tracking_entries')
+          .update({ status: JSON.stringify(supportMeta(csThread)) })
+          .eq('tracking_code', csThread.code);
+      } catch(e){}
+    }
+    async function loadSupportThread(silent){
+      if (!currentUser){ csThread = null; renderSupportChat(); return; }
+      if (csLoading) return;
+      csLoading = true;
+      try {
+        const code = supportCode(currentUser);
+        const res = await db.from('tracking_entries').select('*').eq('tracking_code', code).maybeSingle();
+        if (res.error){
+          if (!silent) toast('Could not load customer service: ' + res.error.message);
+          return;
+        }
+        if (res.data && isSupportRow(res.data)){
+          csThread = supportThreadFromRow(res.data);
+        } else if (!res.data){
+          csThread = { code: code, messages: [], user_name: supportDisplayName(), user_email: currentUser.email || '', created_at: null, updated_at: null };
+        } else {
+          csThread = { code: code, messages: [], user_name: supportDisplayName(), user_email: currentUser.email || '', created_at: null, updated_at: null };
+        }
+        renderSupportChat();
+        if (csOpen) await markSupportReadForUser();
+      } catch(e){
+        if (!silent) toast('Could not load customer service. Please try again.');
+      } finally {
+        csLoading = false;
+      }
+    }
+    async function sendSupportMessage(body){
+      if (!currentUser){ openAuth(); return; }
+      body = String(body || '').trim();
+      if (!body) return;
+      const btn = document.getElementById('cs-send');
+      const input = document.getElementById('cs-input');
+      if (btn){ btn.disabled = true; btn.textContent = 'Sending…'; }
+      try {
+        const code = supportCode(currentUser);
+        const res = await db.from('tracking_entries').select('*').eq('tracking_code', code).maybeSingle();
+        if (res.error) throw new Error(res.error.message);
+        let thread;
+        if (res.data){
+          if (!isSupportRow(res.data)) throw new Error('This support channel is unavailable.');
+          thread = supportThreadFromRow(res.data);
+        } else {
+          thread = { code: code, messages: [], user_name: supportDisplayName(), user_email: currentUser.email || '', created_at: null, updated_at: null };
+        }
+        const msg = {
+          id: chatId(),
+          role: 'user',
+          body: body,
+          at: new Date().toISOString(),
+          read_by_admin: false,
+          read_by_user: true
+        };
+        thread.messages.push(msg);
+        thread.updated_at = msg.at;
+        thread.user_name = thread.user_name || supportDisplayName();
+        thread.user_email = thread.user_email || currentUser.email || '';
+        const meta = supportMeta(thread);
+        let write;
+        if (res.data){
+          write = await db.from('tracking_entries')
+            .update({ status: JSON.stringify(meta) })
+            .eq('tracking_code', code)
+            .select();
+        } else {
+          write = await db.from('tracking_entries')
+            .insert([{ tracking_code: code, user_id: currentUser.id, carrier: 'support_chat', status: JSON.stringify(meta) }])
+            .select();
+        }
+        if (write.error) throw new Error(write.error.message);
+        csThread = thread;
+        if (input) input.value = '';
+        renderSupportChat();
+        if (csOpen) await markSupportReadForUser();
+      } catch(e){
+        toast('Could not send your message: ' + e.message);
+      } finally {
+        if (btn){ btn.disabled = false; btn.textContent = 'Send'; }
+      }
+    }
+    function openSupportChat(){
+      const widget = document.getElementById('cs-widget');
+      const panel = document.getElementById('cs-panel');
+      const launcher = document.getElementById('cs-launcher');
+      if (!widget || !panel) return;
+      csOpen = true;
+      widget.classList.add('open');
+      panel.classList.add('open');
+      if (launcher) launcher.setAttribute('aria-expanded', 'true');
+      renderSupportChat();
+      if (currentUser){
+        loadSupportThread(true);
+        setTimeout(() => { const input = document.getElementById('cs-input'); if (input) input.focus(); }, 80);
+      }
+    }
+    function closeSupportChat(){
+      const widget = document.getElementById('cs-widget');
+      const panel = document.getElementById('cs-panel');
+      const launcher = document.getElementById('cs-launcher');
+      csOpen = false;
+      if (widget) widget.classList.remove('open');
+      if (panel) panel.classList.remove('open');
+      if (launcher) launcher.setAttribute('aria-expanded', 'false');
+    }
+    function initSupportChat(){
+      const launcher = document.getElementById('cs-launcher');
+      if (!launcher) return;
+      renderSupportChat();
+      if (currentUser){
+        loadSupportThread(true);
+        if (!csPollTimer){
+          csPollTimer = setInterval(() => {
+            if (document.visibilityState !== 'visible') return;
+            loadSupportThread(true);
+          }, 4000);
+        }
+      } else {
+        if (csPollTimer){ clearInterval(csPollTimer); csPollTimer = null; }
+        csThread = null;
+        renderSupportChat();
+      }
+    }
+    const csLauncher = document.getElementById('cs-launcher');
+    if (csLauncher) csLauncher.addEventListener('click', () => {
+      if (csOpen) closeSupportChat(); else openSupportChat();
+    });
+    const csClose = document.getElementById('cs-close');
+    if (csClose) csClose.addEventListener('click', closeSupportChat);
+    const csForm = document.getElementById('cs-form');
+    if (csForm) csForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const input = document.getElementById('cs-input');
+      const body = input ? input.value.trim() : '';
+      if (!body) return;
+      sendSupportMessage(body);
+    });
+    window.openSupportChat = openSupportChat;
+    window.closeSupportChat = closeSupportChat;
+
     window.showDemo = async function(){
       notfound.classList.remove('show');
       await track('123456789012');
@@ -1108,6 +1415,7 @@
       const params = new URLSearchParams(window.location.search);
       const code = params.get('code');
       if (code){ codeInput.value = code; await track(code); }
+      if (params.get('chat') === '1') openSupportChat();
     })();
   </script>
 </body>
