@@ -491,8 +491,14 @@
       }
     }
     function updateUI(){ }
-    function openAuth(){ authModal.classList.add('show'); }
-    function closeAuth(){ authModal.classList.remove('show'); }
+    function openAuth(){ 
+  if(authModal) authModal.classList.add('show'); 
+  else { const m=document.getElementById('auth-modal'); if(m) m.classList.add('show'); }
+}
+    function closeAuth(){ 
+  if(authModal) authModal.classList.remove('show'); 
+  else { const m=document.getElementById('auth-modal'); if(m) m.classList.remove('show'); }
+}
     function showTab(tab){
       const isLogin=tab==='login';
       document.getElementById('tab-login').classList.toggle('active',isLogin);
