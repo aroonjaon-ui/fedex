@@ -1,0 +1,143 @@
+/* ===== React-reference tracking page styles ===== */
+/* Makes the clone tracking page match the real FedEx tracking UI exactly.
+   Pen/edit icon intentionally omitted. */
+
+/* Header: purple bar, full width, logo left, account + menu right */
+.track-header{position:sticky;top:0;z-index:60;background:#4d1884;color:#fff;box-shadow:0 2px 10px rgba(0,0,0,.15)}
+.track-header-inner{max-width:1280px;margin:0 auto;padding:0 8%;display:flex;align-items:center;justify-content:space-between;height:105px;flex-wrap:wrap;gap:12px}
+.track-logo{display:flex;align-items:baseline;text-decoration:none;font-size:46px;font-weight:800;letter-spacing:-4px;line-height:1;color:#fff}
+.track-logo .fed{color:#fff}
+.track-logo .ex{color:#f38a32}
+.track-logo sup{font-size:12px;color:#f38a32;margin-left:4px}
+.track-header-right{display:flex;align-items:center;gap:37px}
+.track-icon-btn{width:42px;height:42px;border-radius:50%;border:2.5px solid #fff;background:transparent;color:#fff;display:grid;place-items:center;cursor:pointer;font-size:24px;line-height:1}
+.track-icon-btn:hover{background:rgba(255,255,255,.12)}
+.track-icon-btn:focus-visible{outline:3px solid #ffb400;outline-offset:2px}
+
+/* Dropdown menu (opens under header) */
+.track-menu{position:absolute;left:0;right:0;top:105px;z-index:35;background:#4d1884;padding:20px 8%;display:none;flex-direction:column;gap:14px;box-shadow:0 18px 40px rgba(0,0,0,.25)}
+.track-menu.open{display:flex}
+.track-menu-item{width:100%;text-align:left;background:transparent;border:0;color:#fff;font-size:18px;padding:6px 0;cursor:pointer;font-family:inherit}
+.track-menu-item:hover{color:#ffcd43;text-decoration:underline}
+
+/* Get status updates bar (under header, not-history view) */
+.track-updates{display:flex;align-items:center;gap:20px;padding:0 8%;height:49px}
+.track-updates-btn{display:flex;align-items:center;gap:20px;height:49px;background:none;border:0;color:#477d91;font-size:20px;cursor:pointer;font-family:inherit}
+.track-updates-btn svg{width:29px;height:29px}
+.track-updates-form{display:flex;flex-wrap:wrap;gap:10px;align-items:center;border:1px solid var(--gray-200);border-radius:10px;padding:12px 16px;background:#fff}
+.track-updates-form label{font-size:13px;color:var(--gray-700);margin:0}
+.track-updates-form .input{min-width:0;flex:1;padding:9px 12px;border:1px solid var(--gray-300);border-radius:6px;font-size:15px}
+
+/* Page shell */
+.track-page{max-width:591px;margin:0 auto;overflow-x-hidden;min-height:100vh;background:#fff;color:#292929;font-family:'FedEx Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif}
+.track-wrap{padding-bottom:110px}
+
+/* Sections */
+.track-section{padding-left:27px;padding-right:27px;padding-top:23px}
+.track-h1{font-size:52px;font-weight:normal;line-height:65px;margin:0 0 10px;letter-spacing:normal}
+.track-expected{font-size:18px;font-weight:300;font-style:italic;line-height:27px;letter-spacing:-0.5px;color:#292929;margin:0 0 31px}
+.track-badge{display:inline-flex;align-items:center;height:28px;gap:8px;border:3px solid #55491f;background:#ffcd43;border-radius:999px;padding:0 11px;font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;line-height:1;white-space:nowrap}
+.track-badge.delayed{color:#292929}
+.track-h2{font-size:17px;font-weight:700;line-height:25px;letter-spacing:1px;margin:37px 0 3px;text-transform:uppercase}
+
+/* Delivery status row: In Transit + exclamation */
+.track-status-inline{display:flex;align-items:center;gap:8px;font-size:28px;font-weight:300;line-height:36px}
+.track-exclaim{display:flex;align-items:center;justify-content:center;width:32px;height:32px;border:2px solid #584b20;border-radius:50%;background:#ffcc42;color:#292929;font-size:24px;font-weight:700;line-height:1}
+
+/* Action required row */
+.track-action-inline{display:flex;align-items:center;gap:10px;font-size:23px;font-weight:300;line-height:32px;letter-spacing:-0.5px;margin-top:1px}
+.track-help{background:none;border:0;color:#51838a;cursor:pointer;padding:0;display:inline-flex;align-items:center;font-size:29px;line-height:1}
+.track-help:focus-visible{outline:2px solid #51838a}
+.track-help-text{font-size:14px;margin-top:2px;background:#f5f5f5;border-radius:6px;padding:10px;color:#292929}
+
+/* Tracking ID row (NO pen icon) */
+.track-id-row{display:flex;align-items:center;gap:10px;height:43px;margin-top:5px}
+.track-id-value{display:inline-block;width:158px;font-size:20px;font-weight:400;border-bottom:1px solid #477d91;line-height:1}
+.track-save-star{background:none;border:0;color:#397f92;cursor:pointer;font-size:38px;line-height:1;padding:0}
+.track-save-star:focus-visible{outline:2px solid #397f92;outline-offset:2px}
+
+/* Vertical timeline */
+.track-timeline-wrap{position:relative;margin-top:24px}
+.track-vline{position:absolute;left:35px;top:0;bottom:0;width:19px;border-left:1px solid #514b34;background:#dedede;border-top-left-radius:999px;border-top-right-radius:999px}
+.track-vstep{position:relative;padding-left:103px;padding-top:13px;margin-bottom:0}
+.track-vstep:not(:first-child){padding-top:0}
+.track-vdot{position:absolute;left:40px;width:8px;height:8px;border-radius:50%;background:#645220}
+.track-vstep.done .track-vdot{background:#645220}
+.track-vstep.current .track-vdot{background:#ffcc42;border:3px solid #695920;box-sizing:border-box;width:44px;height:44px;left:33px;top:-8px}
+.track-vstep.current .track-vdot::before{content:"!";display:grid;place-items:center;width:100%;height:100%;font-size:34px;font-weight:700;line-height:1;color:#292929}
+.track-vstep.current .track-vcontent{border-radius:40px;background:#f6f6f6}
+.track-vcontent h3{font-size:17px;font-weight:700;letter-spacing:1px;margin:0 0 2px;text-transform:uppercase}
+.track-vcontent .track-loc{font-size:20px;line-height:28px;margin:0}
+.track-vcontent .track-desc{font-size:17px;font-style:italic;letter-spacing:1px;margin:16px 0 2px}
+.track-vcontent .track-time{font-size:20px;line-height:28px;margin:0}
+.track-vstep.current .track-vcontent h3{margin-top:20px}
+.track-vstep.current .track-vcontent{padding-top:15px;padding-bottom:23px}
+.track-vstep.upcoming{color:#777}
+.track-vstep.upcoming .track-vdot{background:#f5f7ee}
+.track-vstep.upcoming .track-vcontent h3{color:#777;font-weight:700}
+.track-vstep.upcoming .track-vcontent .track-loc,
+.track-vstep.upcoming .track-vcontent .track-time{color:#292929}
+
+/* Delivery controls (manage shipment / facts) */
+.track-delivery{margin-top:27px;border-top:1px solid #d6d6d6}
+.track-delivery section{border-bottom:1px solid #dedede}
+.track-delivery button.track-accordion{width:100%;text-align:left;background:none;border:0;padding:35px 35px 0;font-size:28px;font-weight:300;cursor:pointer;color:#292929;display:flex;justify-content:space-between;align-items:center;min-height:110px}
+.track-delivery button.track-accordion svg{width:36px;height:36px}
+.track-delivery button.track-accordion svg.rotate{transform:rotate(180deg)}
+.track-delivery .track-accordion-body{padding:0 35px 24px;font-size:18px;line-height:7px}
+.track-delivery .track-accordion-body p{margin:0 0 4px}
+
+/* Support widget (bottom right, purple round) */
+.track-support{position:fixed;bottom:30px;right:calc(max(12%, (100vw - 591px)/2 + 73px));z-index:40}
+.track-support-btn{width:71px;height:71px;border:3px solid #a58cb8;border-radius:50%;background:#58258a;color:#fff;display:grid;place-items:center;cursor:pointer;box-shadow:3px 3px 0 #d1d1d8}
+.track-support-btn svg{width:45px;height:45px}
+.track-support-panel{position:fixed;bottom:113px;right:calc(max(20px, (100vw - 591px)/2 + 27px));z-index:40;width:300px;border:1px solid var(--gray-200);border-radius:10px;background:#fff;padding:16px;box-shadow:0 10px 30px rgba(0,0,0,.12);display:none}
+.track-support-panel h2{margin:0 0 6px;font-size:16px;font-weight:600;color:#4d1884}
+.track-support-panel p{margin:0;font-size:14px;line-height:6px;color:#292929}
+
+/* Result: searched shipment (React-style) */
+.result{margin-top:28px;display:none;scroll-margin-top:90px}
+.result.show{display:block}
+.result-card{background:#fff;border:1px solid var(--gray-200);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)}
+.result-head{background:linear-gradient(118deg,var(--fedex-purple),#7b2fc4);color:#fff;padding:24px 26px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.result-head .code{font-size:13px;opacity:.85;letter-spacing:.5px}
+.result-head h2{margin:4px 0 0;font-size:22px}
+.result-body{padding:26px}
+.status-icon{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--fedex-lavender);color:var(--fedex-purple);flex-shrink:0}
+.status-icon svg{width:32px;height:32px}
+.status-summary{background:#fff;border:1px solid var(--gray-200);border-radius:14px;box-shadow:var(--shadow);padding:26px;display:grid;grid-template-columns:auto 1fr auto;gap:22px;align-items:center;margin-top:0}
+.progress-rail{display:grid;grid-template-columns:repeat(6,1fr);gap:0;margin:26px 0 6px}
+.scan{display:grid;grid-template-columns:110px 1fr;gap:16px;position:relative;padding:10px 0 10px 26px}
+.scan .dot{position:absolute;left:0;top:16px;width:14px;height:14px;border-radius:50%;background:#fff;border:3px solid var(--gray-300)}
+.scan.latest .dot{background:var(--fedex-orange);border-color:var(--fedex-orange)}
+.facts{display:grid;grid-template-columns:repeat(2,1fr);gap:0 34px;padding:6px 24px 22px}
+.fact{display:flex;justify-content:space-between;gap:16px;padding:11px 0;border-bottom:1px solid var(--gray-200);font-size:14px}
+.fact .k{color:var(--gray-500)}
+.fact .v{font-weight:700;color:var(--ink);text-align:right}
+
+/* Auth modal: keep existing but align */
+.modal-overlay{position:fixed;inset:0;background:rgba(26,10,45,.55);display:none;align-items:center;justify-content:center;padding:40px 18px;z-index:200;overflow:auto}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:16px;width:100%;max-width:440px;box-shadow:var(--shadow-lg);padding:30px;position:relative}
+
+/* Mobile adjustments */
+@media(max-width:720px){
+  .track-header-inner{padding:0 16px;height:74px}
+  .track-menu{top:74px;padding:16px}
+  .track-logo{font-size:30px}
+  .track-page{max-width:100%;padding:0}
+  .track-wrap{padding-bottom:90px}
+  .track-section{padding-left:20px;padding-right:20px}
+  .track-header-right{gap:16px}
+}
+
+/* Ensure existing site classes still work for result containers */
+.track-empty-hint{background:#fff;border:1px dashed var(--gray-300);border-radius:14px;padding:34px;text-align:center;color:var(--gray-500);font-size:14px;margin-top:26px}
+.track-empty-hint strong{color:var(--fedex-purple)}
+.notfound{background:#fff;border:1px solid var(--gray-200);border-left:5px solid var(--fedex-orange);border-radius:10px;padding:22px;margin-top:24px;display:none}
+.notfound.show{display:block}
+.notfound h3{margin:0 0 6px;color:var(--fedex-purple)}
+.notfound p{margin:0;color:var(--gray-500);font-size:14px}
+
+/* Hide the old quick-actions/hero from site.css if present on this page */
+.track-hero,.quick,.section,.promo-grid,.banner,.why-grid{display:none}

@@ -14,6 +14,14 @@
     return Array.prototype.slice.call((root || document).querySelectorAll(selector));
   }
 
+  /* The saved page relied on a lazy-image script that we intentionally strip.
+     Hydrate its data-src attributes so every promo image still renders. */
+  $all('img[data-src]').forEach(function (img) {
+    if (!img.getAttribute('src')) {
+      img.setAttribute('src', img.getAttribute('data-src'));
+    }
+  });
+
   function setHref(selector, href) {
     $all(selector).forEach(function (link) {
       link.setAttribute('href', href);

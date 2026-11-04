@@ -7,6 +7,7 @@
   <meta name="description" content="Track your FedEx package and view delivery progress, shipment facts, and travel history.">
   <link rel="icon" type="image/png" href="images/fedex-logo.png">
   <link rel="stylesheet" href="assets/site.css?v=5">
+  <link rel="stylesheet" href="assets/tracking-extra.css?v=1">
   <script src="assets/site.js?v=1" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -27,171 +28,173 @@
     </div>
   </div>
 
-  <!-- Header -->
-  <header class="site-header">
-    <div class="header-inner">
-      <a class="logo" href="index.html" aria-label="FedEx home"><span class="fed">Fed</span><span class="ex">Ex</span></a>
-      <ul class="main-nav">
-        <li><a href="index.html#services">Ship</a></li>
-        <li><a class="active" href="tracking-user.html">Track</a></li>
-        <li><a href="index.html#services">Print</a></li>
-        <li><a href="index.html#locations">Locations</a></li>
-        <li><a href="index.html#support">Support</a></li>
-      </ul>
-      <div class="header-right">
+  <!-- Purple header bar (reference style) -->
+  <header class="track-header" id="track-header">
+    <div class="track-header-inner">
+      <a class="track-logo" href="index.html" aria-label="FedEx home"><span class="fed">Fed</span><span class="ex">Ex</span><sup>®</sup></a>
+      <div class="track-header-right">
         <a class="header-account admin-link" id="hdr-admin" href="admin-portal.html" style="display:none">Admin dashboard</a>
         <span class="header-account" id="hdr-user" style="display:none"></span>
         <a class="header-account" id="hdr-logout" href="#" style="display:none">Sign out</a>
         <a class="header-cta" id="hdr-login" href="#" onclick="openAuth(); return false;">Log In / Sign Up</a>
-        <button class="icon-btn menu-toggle" id="menu-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-nav">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
-        </button>
+        <button class="track-icon-btn" id="menu-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="track-menu">☰</button>
       </div>
     </div>
-    <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation">
-      <a href="index.html#services">Ship</a>
-      <a class="active" href="tracking-user.html">Track</a>
-      <a href="index.html#services">Print</a>
-      <a href="index.html#locations">Locations</a>
-      <a href="index.html#support">Support</a>
-      <a class="mobile-nav-cta" href="#" id="mobile-account" data-open-auth>Log In / Sign Up</a>
-      <a class="mobile-nav-cta" href="admin-portal.html" id="mobile-admin" style="display:none">Admin dashboard</a>
-    </nav>
   </header>
 
-  <!-- Tracking search -->
-  <section class="track-hero">
-    <div class="track-hero-inner">
-      <h1>Track your package</h1>
-      <p class="lead">Enter your tracking number to see the latest status, delivery updates, and full travel history.</p>
+  <!-- Dropdown menu (opens under header) -->
+  <div class="track-menu" id="track-menu" aria-label="Site menu">
+    <button class="track-menu-item" onclick="closeTrackMenu(); window.location.href='index.html#services';">Ship</button>
+    <button class="track-menu-item active" onclick="closeTrackMenu(); window.location.href='tracking-user.html';">Track</button>
+    <button class="track-menu-item" onclick="closeTrackMenu(); window.location.href='index.html#services';">Print</button>
+    <button class="track-menu-item" onclick="closeTrackMenu(); window.location.href='index.html#locations';">Locations</button>
+    <button class="track-menu-item" onclick="closeTrackMenu(); window.location.href='index.html#support';">Support</button>
+    <div style="height:14px"></div>
+    <button class="track-menu-item mobile-nav-cta" id="mobile-account" data-open-auth onclick="closeTrackMenu(); openAuth();">Log In / Sign Up</button>
+    <button class="track-menu-item mobile-nav-cta" id="mobile-admin" href="admin-portal.html" style="display:none" onclick="closeTrackMenu(); window.location.href='admin-portal.html';">Admin dashboard</button>
+  </div>
 
-      <div class="track-tabs">
-        <button type="button" class="active" data-mode="number">Tracking number</button>
-        <button type="button" data-mode="reference">Reference</button>
-        <button type="button" data-mode="doortag">Door tag</button>
-      </div>
+  <!-- Get status updates bar (shown when not viewing history) -->
+  <div class="track-updates" id="track-updates">
+    <button class="track-updates-btn" id="track-updates-btn" aria-label="Get status updates">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4h16v16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM22 6l-10 -10L2 6l10 10z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Get Status Updates
+    </button>
+  </div>
 
-      <div class="track-search-card">
-        <form id="track-form">
-          <div class="track-search-row">
-            <input class="input" id="tracking-code" type="text" placeholder="Enter your tracking number" autocomplete="off" aria-label="Tracking number" required>
-            <button class="btn" type="submit" id="track-btn">Track</button>
-          </div>
-        </form>
-        <p class="track-search-note">
-          Demo tracking number: <strong class="mono">123456789012</strong> &nbsp;·&nbsp;
-          <a href="#" onclick="openAuth(); return false;">Log in</a> to claim and manage your shipments.
-        </p>
-      </div>
-    </div>
-  </section>
+  <!-- Page shell (reference narrow column) -->
+  <div class="track-page">
+    <div class="track-wrap">
 
-  <!-- Results area -->
-  <main class="track-area">
-
-    <!-- Account dashboard (shown after signup/login) -->
-    <section class="account-panel" id="account-panel" style="display:none">
-      <div class="account-head">
-        <div class="account-avatar" id="acct-avatar">U</div>
-        <div>
-          <h2 id="acct-name">Welcome back</h2>
-          <p id="acct-email"></p>
-        </div>
-        <button class="btn btn-outline btn-sm" id="acct-signout" type="button">Sign out</button>
-      </div>
-      <div class="admin-callout" id="acct-admin" style="display:none">
-        <span><strong>Administrator account.</strong> Create shipments, update stages, and upload images in the admin portal.</span>
-        <a class="btn btn-purple btn-sm" href="admin-portal.html">Open admin dashboard</a>
-      </div>
-      <div class="account-body">
-        <h3>My shipments</h3>
-        <div class="my-ship-grid" id="my-shipments">
-          <p class="empty" style="margin:0">No claimed shipments yet. Track a package and click “Claim this shipment”.</p>
-        </div>
-      </div>
-    </section>
-
-    <div class="track-empty-hint" id="empty-hint">
-      <p style="margin:0 0 6px"><strong>Ready when you are.</strong></p>
-      <p style="margin:0">Enter a tracking number above to see where your package is.</p>
-    </div>
-
-    <!-- Not found -->
-    <div class="notfound" id="notfound">
-      <h3>We couldn't find that tracking number</h3>
-      <p>Please check the number and try again, or contact the sender to confirm the tracking number.</p>
-      <p style="margin-top:10px"><a href="#" onclick="showDemo(); return false;" style="color:#4d148c;font-weight:700">See a sample shipment &rarr;</a></p>
-    </div>
-
-    <!-- Result -->
-    <div class="result" id="result">
-      <div class="ship-head">
-        <div class="tn">Tracking number <b id="r-code">—</b></div>
-        <div class="actions">
-          <span class="pill claim-pill" id="r-claim-pill" style="display:none"></span>
-          <button class="btn btn-outline btn-sm" id="btn-claim" style="display:none">Claim this shipment</button>
-          <button class="btn btn-outline btn-sm" id="btn-proof">Obtain proof of delivery</button>
-          <button class="btn btn-outline btn-sm" id="btn-share">Share</button>
-        </div>
-      </div>
-
-      <div class="status-summary">
-        <div class="status-icon" id="r-icon"></div>
-        <div class="status-main">
-          <h2 class="status-title" id="r-status-title">In transit</h2>
-          <p class="status-sub" id="r-status-sub">Estimated delivery —</p>
-        </div>
-        <div class="status-meta">
-          <div class="sm">
-            <div class="k">Shipped from</div>
-            <div class="v" id="r-origin">—</div>
-          </div>
-          <div class="sm">
-            <div class="k" id="r-eta-label">Scheduled delivery</div>
-            <div class="v" id="r-eta">—</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="progress-rail" id="r-progress"></div>
-
-      <div class="panel">
-        <div class="panel-head">
-          <h2>Shipment facts</h2>
-          <span class="pill" id="r-service-pill">FedEx Express</span>
-        </div>
-        <div class="facts" id="r-facts"></div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-head">
-          <h2>Travel history</h2>
-          <span class="pill" id="r-scans-count">0 scans</span>
-        </div>
-        <div class="panel-body" id="r-history"></div>
-      </div>
-
-      <div class="panel" id="shipment-images-panel" style="display:none">
-        <div class="panel-head">
-          <h2>Shipment images</h2>
-          <span class="pill" id="r-ship-img-count"></span>
-        </div>
-        <div class="panel-body">
-          <div class="proof-grid" id="r-ship-images"></div>
-        </div>
-      </div>
-
-      <div class="panel" id="proof-panel" style="display:none">
-        <div class="panel-head"><h2>Proof of delivery</h2></div>
-        <div class="panel-body">
-          <div class="proof-grid" id="r-proof"></div>
-          <p id="r-proof-empty" style="display:none;color:#6b7280;font-size:14px;margin:0">
-            No proof-of-delivery image is available for this shipment yet.
+      <!-- Tracking search -->
+      <section class="track-section" id="track-search-section">
+        <div class="track-search-card">
+          <form id="track-form">
+            <div class="track-tabs">
+              <button type="button" class="active" data-mode="number">Tracking number</button>
+              <button type="button" data-mode="reference">Reference</button>
+              <button type="button" data-mode="doortag">Door tag</button>
+            </div>
+            <div class="track-search-row">
+              <input class="input" id="tracking-code" type="text" placeholder="Enter your tracking number" autocomplete="off" aria-label="Tracking number" required>
+              <button class="btn" type="submit" id="track-btn">Track</button>
+            </div>
+          </form>
+          <p class="track-search-note">
+            Demo tracking number: <strong class="mono">123456789012</strong> &nbsp;·&nbsp;
+            <a href="#" onclick="openAuth(); return false;">Log in</a> to claim and manage your shipments.
           </p>
         </div>
-      </div>
+      </section>
+
+      <!-- Results area -->
+      <main class="track-area">
+
+        <!-- Account dashboard (shown after signup/login) -->
+        <section class="account-panel" id="account-panel" style="display:none">
+          <div class="account-head">
+            <div class="account-avatar" id="acct-avatar">U</div>
+            <div>
+              <h2 id="acct-name">Welcome back</h2>
+              <p id="acct-email"></p>
+            </div>
+            <button class="btn btn-outline btn-sm" id="acct-signout" type="button">Sign out</button>
+          </div>
+          <div class="admin-callout" id="acct-admin" style="display:none">
+            <span><strong>Administrator account.</strong> Create shipments, update stages, and upload images in the admin portal.</span>
+            <a class="btn btn-purple btn-sm" href="admin-portal.html">Open admin dashboard</a>
+          </div>
+          <div class="account-body">
+            <h3>My shipments</h3>
+            <div class="my-ship-grid" id="my-shipments">
+              <p class="empty" style="margin:0">No claimed shipments yet. Track a package and click “Claim this shipment”.</p>
+            </div>
+          </div>
+        </section>
+
+        <div class="track-empty-hint" id="empty-hint">
+          <p style="margin:0 0 6px"><strong>Ready when you are.</strong></p>
+          <p style="margin:0">Enter a tracking number above to see where your package is.</p>
+        </div>
+
+        <!-- Not found -->
+        <div class="notfound" id="notfound">
+          <h3>We couldn't find that tracking number</h3>
+          <p>Please check the number and try again, or contact the sender to confirm the tracking number.</p>
+          <p style="margin-top:10px"><a href="#" onclick="showDemo(); return false;" style="color:#4d148c;font-weight:700">See a sample shipment &rarr;</a></p>
+        </div>
+
+        <!-- Result -->
+        <div class="result" id="result">
+          <div class="ship-head">
+            <div class="tn">Tracking number <b id="r-code">—</b></div>
+            <div class="actions">
+              <span class="pill claim-pill" id="r-claim-pill" style="display:none"></span>
+              <button class="btn btn-outline btn-sm" id="btn-claim" style="display:none">Claim this shipment</button>
+              <button class="btn btn-outline btn-sm" id="btn-proof">Obtain proof of delivery</button>
+              <button class="btn btn-outline btn-sm" id="btn-share">Share</button>
+            </div>
+          </div>
+
+          <div class="status-summary">
+            <div class="status-icon" id="r-icon"></div>
+            <div class="status-main">
+              <h2 class="status-title" id="r-status-title">In transit</h2>
+              <p class="status-sub" id="r-status-sub">Estimated delivery —</p>
+            </div>
+            <div class="status-meta">
+              <div class="sm">
+                <div class="k">Shipped from</div>
+                <div class="v" id="r-origin">—</div>
+              </div>
+              <div class="sm">
+                <div class="k" id="r-eta-label">Scheduled delivery</div>
+                <div class="v" id="r-eta">—</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="progress-rail" id="r-progress"></div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <h2>Shipment facts</h2>
+              <span class="pill" id="r-service-pill">FedEx Express</span>
+            </div>
+            <div class="facts" id="r-facts"></div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <h2>Travel history</h2>
+              <span class="pill" id="r-scans-count">0 scans</span>
+            </div>
+            <div class="panel-body" id="r-history"></div>
+          </div>
+
+          <div class="panel" id="shipment-images-panel" style="display:none">
+            <div class="panel-head">
+              <h2>Shipment images</h2>
+              <span class="pill" id="r-ship-img-count"></span>
+            </div>
+            <div class="panel-body">
+              <div class="proof-grid" id="r-ship-images"></div>
+            </div>
+          </div>
+
+          <div class="panel" id="proof-panel" style="display:none">
+            <div class="panel-head"><h2>Proof of delivery</h2></div>
+            <div class="panel-body">
+              <div class="proof-grid" id="r-proof"></div>
+              <p id="r-proof-empty" style="display:none;color:#6b7280;font-size:14px;margin:0">
+                No proof-of-delivery image is available for this shipment yet.
+              </p>
+            </div>
+          </div>
+        </div>
+      </main>
     </div>
-  </main>
+  </div>
 
   <!-- Auth modal -->
   <div class="modal-overlay" id="auth-modal">
@@ -1417,6 +1420,7 @@
       if (code){ codeInput.value = code; await track(code); }
       if (params.get('chat') === '1') openSupportChat();
     })();
+  
   </script>
 </body>
 </html>
