@@ -28,69 +28,67 @@
     </div>
   </div>
 
-  <!-- Purple header bar (reference style) -->
-  <header class="track-header" id="track-header">
-    <div class="track-header-inner">
-      <a class="track-logo" href="index.html" aria-label="FedEx home"><span class="fed">Fed</span><span class="ex">Ex</span><sup>®</sup></a>
-      <div class="track-header-right">
+  <!-- Purple header (reference style) -->
+  <header class="fx-header" id="fx-header">
+    <div class="fx-header-inner">
+      <a class="fx-logo" href="index.html" aria-label="FedEx home"><span class="fed">Fed</span><span class="ex">Ex</span><sup>®</sup></a>
+      <div class="fx-header-right">
         <a class="header-account admin-link" id="hdr-admin" href="admin-portal.html" style="display:none">Admin dashboard</a>
         <span class="header-account" id="hdr-user" style="display:none"></span>
         <a class="header-account" id="hdr-logout" href="#" style="display:none">Sign out</a>
         <a class="header-cta" id="hdr-login" href="#" onclick="openAuth(); return false;">Log In / Sign Up</a>
-        <button class="track-icon-btn" id="menu-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="track-menu">☰</button>
+        <button class="fx-icon-btn" id="menu-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="fx-menu">☰</button>
       </div>
     </div>
   </header>
 
-  <!-- Dropdown menu (opens under header) -->
-  <div class="track-menu" id="track-menu" aria-label="Site menu">
-    <button class="track-menu-item" onclick="closeTrackMenu(); window.location.href='index.html#services';">Ship</button>
-    <button class="track-menu-item active" onclick="closeTrackMenu(); window.location.href='tracking-user.html';">Track</button>
-    <button class="track-menu-item" onclick="closeTrackMenu(); window.location.href='index.html#services';">Print</button>
-    <button class="track-menu-item" onclick="closeTrackMenu(); window.location.href='index.html#locations';">Locations</button>
-    <button class="track-menu-item" onclick="closeTrackMenu(); window.location.href='index.html#support';">Support</button>
+  <!-- Dropdown menu -->
+  <div class="fx-menu" id="fx-menu" aria-label="Site menu">
+    <button class="fx-menu-item" onclick="closeFxMenu(); window.location.href='index.html#services';">Ship</button>
+    <button class="fx-menu-item active" onclick="closeFxMenu(); window.location.href='tracking-user.html';">Track</button>
+    <button class="fx-menu-item" onclick="closeFxMenu(); window.location.href='index.html#services';">Print</button>
+    <button class="fx-menu-item" onclick="closeFxMenu(); window.location.href='index.html#locations';">Locations</button>
+    <button class="fx-menu-item" onclick="closeFxMenu(); window.location.href='index.html#support';">Support</button>
     <div style="height:14px"></div>
-    <button class="track-menu-item mobile-nav-cta" id="mobile-account" data-open-auth onclick="closeTrackMenu(); openAuth();">Log In / Sign Up</button>
-    <button class="track-menu-item mobile-nav-cta" id="mobile-admin" href="admin-portal.html" style="display:none" onclick="closeTrackMenu(); window.location.href='admin-portal.html';">Admin dashboard</button>
+    <button class="fx-menu-item" id="mobile-account" data-open-auth onclick="closeFxMenu(); openAuth();">Log In / Sign Up</button>
+    <button class="fx-menu-item" id="mobile-admin" style="display:none" onclick="closeFxMenu(); window.location.href='admin-portal.html';">Admin dashboard</button>
   </div>
 
-  <!-- Get status updates bar (shown when not viewing history) -->
-  <div class="track-updates" id="track-updates">
-    <button class="track-updates-btn" id="track-updates-btn" aria-label="Get status updates">
+  <!-- Get status updates bar -->
+  <div class="fx-updates" id="fx-updates">
+    <button class="fx-updates-btn" id="fx-updates-btn" aria-label="Get status updates">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4h16v16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM22 6l-10 -10L2 6l10 10z" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Get Status Updates
     </button>
   </div>
 
-  <!-- Page shell (reference narrow column) -->
-  <div class="track-page">
-    <div class="track-wrap">
+  <!-- Page shell -->
+  <div class="fx-page">
+    <div class="fx-wrap">
 
-      <!-- Tracking search -->
-      <section class="track-section" id="track-search-section">
-        <div class="track-search-card">
-          <form id="track-form">
-            <div class="track-tabs">
-              <button type="button" class="active" data-mode="number">Tracking number</button>
-              <button type="button" data-mode="reference">Reference</button>
-              <button type="button" data-mode="doortag">Door tag</button>
-            </div>
-            <div class="track-search-row">
-              <input class="input" id="tracking-code" type="text" placeholder="Enter your tracking number" autocomplete="off" aria-label="Tracking number" required>
-              <button class="btn" type="submit" id="track-btn">Track</button>
-            </div>
-          </form>
-          <p class="track-search-note">
-            Demo tracking number: <strong class="mono">123456789012</strong> &nbsp;·&nbsp;
-            <a href="#" onclick="openAuth(); return false;">Log in</a> to claim and manage your shipments.
-          </p>
-        </div>
+      <!-- Track search -->
+      <section class="fx-section" id="fx-search-section">
+        <h1 class="fx-h1">Track your package</h1>
+        <form id="track-form">
+          <div class="track-tabs">
+            <button type="button" class="active" data-mode="number">Tracking number</button>
+            <button type="button" data-mode="reference">Reference</button>
+            <button type="button" data-mode="doortag">Door tag</button>
+          </div>
+          <div class="fx-id-row">
+            <input class="input" id="tracking-code" type="text" placeholder="Enter your tracking number" autocomplete="off" aria-label="Tracking number" required>
+            <button class="btn" type="submit" id="track-btn">Track</button>
+          </div>
+        </form>
+        <p class="track-search-note" style="margin-top:12px;font-size:13px;color:#6b7280">
+          Demo tracking number: <strong class="mono">123456789012</strong> &nbsp;·&nbsp;
+          <a href="#" onclick="openAuth(); return false;">Log in</a> to claim and manage your shipments.
+        </p>
       </section>
 
-      <!-- Results area -->
       <main class="track-area">
 
-        <!-- Account dashboard (shown after signup/login) -->
+        <!-- Account dashboard -->
         <section class="account-panel" id="account-panel" style="display:none">
           <div class="account-head">
             <div class="account-avatar" id="acct-avatar">U</div>
@@ -124,7 +122,7 @@
           <p style="margin-top:10px"><a href="#" onclick="showDemo(); return false;" style="color:#4d148c;font-weight:700">See a sample shipment &rarr;</a></p>
         </div>
 
-        <!-- Result -->
+        <!-- Result (reference PendingTracking style) -->
         <div class="result" id="result">
           <div class="ship-head">
             <div class="tn">Tracking number <b id="r-code">—</b></div>
@@ -136,25 +134,40 @@
             </div>
           </div>
 
-          <div class="status-summary">
-            <div class="status-icon" id="r-icon"></div>
-            <div class="status-main">
-              <h2 class="status-title" id="r-status-title">In transit</h2>
-              <p class="status-sub" id="r-status-sub">Estimated delivery —</p>
-            </div>
-            <div class="status-meta">
-              <div class="sm">
-                <div class="k">Shipped from</div>
-                <div class="v" id="r-origin">—</div>
-              </div>
-              <div class="sm">
-                <div class="k" id="r-eta-label">Scheduled delivery</div>
-                <div class="v" id="r-eta">—</div>
-              </div>
-            </div>
+          <!-- Pending heading + expected date (reference style) -->
+          <h2 class="fx-h1" id="r-status-heading">Pending</h2>
+          <p class="fx-expected" id="r-expected">Initially expected: —</p>
+
+          <!-- Status badge -->
+          <div class="fx-badge" id="r-badge" style="display:none">Delayed</div>
+
+          <!-- Delivery status inline -->
+          <h2 class="fx-h2">Delivery Status</h2>
+          <div class="fx-status-inline">
+            <span id="r-status-inline">In transit</span>
+            <span class="fx-exclaim" id="r-exclaim" style="display:none">!</span>
           </div>
 
-          <div class="progress-rail" id="r-progress"></div>
+          <!-- Action required inline -->
+          <h2 class="fx-h2" id="r-action-heading" style="display:none">Action Required</h2>
+          <div class="fx-action-inline" id="r-action-inline" style="display:none">
+            <span id="r-action-text">Adult Signature Required</span>
+            <button class="fx-help" id="r-help-btn" aria-label="About adult signature">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            </button>
+          </div>
+          <p class="fx-help-text" id="r-help-text" style="display:none">An adult must be present to sign for this delivery.</p>
+
+          <!-- Tracking ID row (NO pen icon) -->
+          <h2 class="fx-h2">Tracking ID</h2>
+          <div class="fx-id-row">
+            <span class="fx-id-value" id="r-tracking-id">—</span>
+            <button class="fx-save-star" id="r-save-star" aria-label="Save shipment">★</button>
+          </div>
+
+          <!-- Vertical timeline -->
+          <div class="fx-vline" id="fx-vline"></div>
+          <div class="fx-timeline" id="fx-timeline"></div>
 
           <div class="panel">
             <div class="panel-head">
@@ -192,6 +205,25 @@
             </div>
           </div>
         </div>
+
+        <!-- Delivery controls (reference style) -->
+        <div class="fx-delivery" id="fx-delivery" style="display:none">
+          <section>
+            <button class="fx-accordion" id="fx-acc-manage" type="button">
+              Manage Delivery
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="fx-accordion-body" id="fx-acc-manage-body" style="display:none"></div>
+          </section>
+          <section>
+            <button class="fx-accordion" id="fx-acc-facts" type="button">
+              Shipment facts
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="fx-accordion-body" id="fx-acc-facts-body" style="display:none"></div>
+          </section>
+        </div>
+
       </main>
     </div>
   </div>
@@ -309,7 +341,6 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    /* ---- Config (anon key is safe in the browser; RLS protects data) ---- */
     const SUPABASE_URL = 'https://fsczaqtqscevllyvarwk.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZzY3phcXRxc2NldmxseXZhcndrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMzNjU3NzQsImV4cCI6MjEwODk0MTc3NH0.Kc8gKnR76F5DsdgeZSXT1ylTwIRqhIby2Z4GSfZSlBg';
     const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -325,1102 +356,516 @@
     let csLoading = false;
     const SUPPORT_PREFIX = 'CS-';
 
-    // Keep this list in sync with ADMIN_EMAILS in admin-portal.html.
     const ADMIN_EMAILS = ['admin@fedex-tracking.local'];
-    function isAdminEmail(email){
-      return ADMIN_EMAILS.map(x => String(x).toLowerCase()).includes(String(email || '').toLowerCase());
-    }
+    function isAdminEmail(email){ return ADMIN_EMAILS.map(x=>String(x).toLowerCase()).includes(String(email||'').toLowerCase()); }
 
-    /* ================= Stage model ================= */
-    const STAGES = [
-      { key:'label_created',     label:'Label created',        short:'Label created',     status:'pending' },
-      { key:'carrier_1',         label:'Carrier 1 · Picked up', short:'Picked up',         status:'in-transit' },
-      { key:'carrier_2',         label:'Carrier 2 · In transit',short:'In transit',        status:'in-transit' },
-      { key:'carrier_3',         label:'Carrier 3 · At hub',    short:'In transit',        status:'in-transit' },
-      { key:'warehouse',         label:'At warehouse',          short:'At warehouse',      status:'in-transit' },
-      { key:'out_for_delivery',  label:'Out for delivery',      short:'Out for delivery',  status:'out-for-delivery' },
-      { key:'delivered',         label:'Delivered',             short:'Delivered',         status:'delivered' },
-      { key:'exception',         label:'Exception',             short:'Exception',         status:'exception' }
-    ];
-    const STAGE_BY_KEY = {};
-    STAGES.forEach(s => { STAGE_BY_KEY[s.key] = s; });
-    function stageMeta(key){ return STAGE_BY_KEY[key] || STAGE_BY_KEY['carrier_2']; }
-    function stageToStatus(key){ return stageMeta(key).status; }
-    function stageLabel(key){ return stageMeta(key).label; }
-    function stageBadgeClass(key){
-      const st = stageToStatus(key);
-      if (st === 'delivered') return 'delivered';
-      if (st === 'exception') return 'exception';
-      if (st === 'out-for-delivery') return 'out';
-      if (st === 'pending') return 'pending';
-      return 'transit';
-    }
-    function stageFromStatus(s){
-      s = String(s || '').toLowerCase().replace(/_/g,'-');
-      if (s.includes('deliver')) return 'delivered';
-      if (s.includes('out')) return 'out_for_delivery';
-      if (s.includes('exception') || s.includes('delay') || s.includes('fail')) return 'exception';
-      if (s.includes('pending') || s.includes('label')) return 'label_created';
-      if (s.includes('transit')) return 'carrier_2';
-      return 'label_created';
-    }
-    function parseMeta(raw){
-      if (raw && typeof raw === 'object') return raw;
-      const s = String(raw == null ? '' : raw).trim();
-      if (s.startsWith('{')) { try { return JSON.parse(s); } catch(e){} }
-      return { status: s };
-    }
-    function isSupportRow(row){
-      if (!row) return false;
-      const meta = parseMeta(row.status);
-      return meta.kind === 'support_chat' || String(row.carrier || '') === 'support_chat';
-    }
-    function modelFromRow(row){
-      const meta = parseMeta(row.status);
-      const stage = meta.stage || (STAGE_BY_KEY[row.carrier] ? row.carrier : '') || stageFromStatus(meta.status || row.status);
-      let claims = Array.isArray(meta.claims)
-        ? meta.claims.filter(c => c && c.user_id).map(c => Object.assign({}, c))
-        : [];
-      const primary = row.user_id || meta.claimed_by || null;
-      if (primary && !claims.some(c => String(c.user_id) === String(primary))){
-        claims.unshift({ user_id: primary, claimed_at: meta.claimed_at || null });
-      }
-      const primaryClaim = claims.find(c => primary && String(c.user_id) === String(primary)) || claims[0] || null;
-      return {
-        id: row.id,
-        tracking_code: row.tracking_code,
-        stage: stage,
-        status: meta.status || stageToStatus(stage),
-        current_location: meta.current_location || meta.location || '',
-        service: meta.service || '',
-        origin: meta.origin || '',
-        destination: meta.destination || '',
-        weight: meta.weight || '',
-        dimensions: meta.dimensions || '',
-        pieces: meta.pieces || 1,
-        packaging: meta.packaging || '',
-        signed_by: meta.signed_by || '',
-        notes: meta.notes || '',
-        ship_date: meta.ship_date || '',
-        estimated_delivery: meta.estimated_delivery || meta.eta || '',
-        delivery_date: row.delivery_date || meta.delivery_date || '',
-        events: Array.isArray(meta.events) ? meta.events.slice() : [],
-        claims: claims,
-        claimed_by: primary || (primaryClaim && primaryClaim.user_id) || null,
-        claimed_at: meta.claimed_at || (primaryClaim && primaryClaim.claimed_at) || null,
-        created_at: row.created_at
-      };
-    }
-    function metaFromModel(model){
-      return {
-        v: 2,
-        stage: model.stage,
-        status: model.status || stageToStatus(model.stage),
-        current_location: model.current_location || '',
-        service: model.service || '',
-        origin: model.origin || '',
-        destination: model.destination || '',
-        weight: model.weight || '',
-        dimensions: model.dimensions || '',
-        pieces: model.pieces || 1,
-        packaging: model.packaging || '',
-        signed_by: model.signed_by || '',
-        notes: model.notes || '',
-        ship_date: model.ship_date || null,
-        estimated_delivery: model.estimated_delivery || null,
-        delivery_date: model.delivery_date || null,
-        events: model.events || [],
-        claims: model.claims || [],
-        claimed_at: model.claimed_at || null
-      };
-    }
-    function defaultEventText(stage){
-      switch (stage) {
-        case 'label_created': return 'Shipment information sent to FedEx';
-        case 'carrier_1': return 'Picked up';
-        case 'carrier_2': return 'In transit';
-        case 'carrier_3': return 'Arrived at FedEx hub';
-        case 'warehouse': return 'At FedEx warehouse';
-        case 'out_for_delivery': return 'On FedEx vehicle for delivery';
-        case 'delivered': return 'Delivered';
-        case 'exception': return 'Delivery exception';
-        default: return 'Shipment update';
-      }
-    }
-    function parseImage(row){
-      const name = row.image_name || '';
-      let kind = 'proof';
-      let label = name;
-      if (/^(shipment|proof)\|/.test(name)){
-        const parts = name.split('|');
-        kind = parts.shift();
-        label = parts.join('|') || 'image';
-      } else if (row.kind){
-        kind = row.kind;
-      }
-      return { id: row.id, tracking_code: row.tracking_code, image_url: row.image_url, kind: kind, label: label };
-    }
-    function escHtml(s){
-      return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    }
-
-    /* ================= Auth ================= */
     const authModal = document.getElementById('auth-modal');
     const authAlert = document.getElementById('auth-alert');
-
-    function openAuth(){ authModal.classList.add('show'); }
-    function closeAuth(){ authModal.classList.remove('show'); }
-    window.openAuth = openAuth;
-    window.closeAuth = closeAuth;
-    authModal.addEventListener('click', e => { if (e.target === authModal) closeAuth(); });
-
-    function showAlert(kind, msg){
-      authAlert.className = 'alert show alert-' + kind;
-      authAlert.textContent = msg;
-    }
-    function showTab(which){
-      const isLogin = which === 'login';
-      document.getElementById('tab-login').classList.toggle('active', isLogin);
-      document.getElementById('tab-signup').classList.toggle('active', !isLogin);
-      document.getElementById('login-form').style.display = isLogin ? 'block' : 'none';
-      document.getElementById('signup-form').style.display = isLogin ? 'none' : 'block';
-      authAlert.className = 'alert';
-    }
-    window.showTab = showTab;
-
-    let toastTimer = null;
-    function toast(msg){
-      const el = document.getElementById('toast');
-      el.textContent = msg;
-      el.classList.add('show');
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => el.classList.remove('show'), 5000);
-    }
-
-    function setUserUI(user, name){
-      const loginBtn = document.getElementById('hdr-login');
-      const userEl = document.getElementById('hdr-user');
-      const logoutEl = document.getElementById('hdr-logout');
-      const adminLink = document.getElementById('hdr-admin');
-      const adminCallout = document.getElementById('acct-admin');
-      const panel = document.getElementById('account-panel');
-      const util = document.getElementById('utility-account');
-      const mobileAccount = document.getElementById('mobile-account');
-      const mobileAdmin = document.getElementById('mobile-admin');
-      const admin = !!(user && isAdminEmail(user.email));
-      if (adminLink) adminLink.style.display = admin ? 'inline-block' : 'none';
-      if (adminCallout) adminCallout.style.display = admin ? 'flex' : 'none';
-      if (mobileAdmin) mobileAdmin.style.display = admin ? 'block' : 'none';
-      if (mobileAccount){
-        if (user){
-          mobileAccount.textContent = 'My account / My shipments';
-          mobileAccount.href = '#account-panel';
-          mobileAccount.removeAttribute('data-open-auth');
-        } else {
-          mobileAccount.textContent = 'Log In / Sign Up';
-          mobileAccount.href = '#';
-          mobileAccount.setAttribute('data-open-auth', '');
-        }
-      }
-      if (user){
-        loginBtn.style.display = 'none';
-        userEl.style.display = 'inline-block';
-        userEl.textContent = 'Hi, ' + (name || (user.email || '').split('@')[0]);
-        logoutEl.style.display = 'inline-block';
-        panel.style.display = 'block';
-        document.getElementById('acct-name').textContent = 'Welcome, ' + (name || (user.email || '').split('@')[0]);
-        document.getElementById('acct-email').textContent = user.email || '';
-        document.getElementById('acct-avatar').textContent = (name || user.email || 'U').trim().charAt(0).toUpperCase();
-        if (util) util.textContent = 'My account';
-        loadMyShipments();
-      } else {
-        loginBtn.style.display = 'inline-block';
-        userEl.style.display = 'none';
-        logoutEl.style.display = 'none';
-        panel.style.display = 'none';
-        if (util) util.textContent = 'Log In / Sign Up';
-      }
-      if (currentEntry) updateClaimUI(currentEntry);
-      initSupportChat();
-    }
-
-    async function refreshUser(){
-      try {
-        const { data } = await db.auth.getSession();
-        const user = data && data.session ? data.session.user : null;
-        currentUser = user;
-        if (!user){ setUserUI(null); return; }
-        // auth metadata is the source of truth; the profile table is optional.
-        let name = (user.user_metadata && user.user_metadata.full_name) || '';
-        try {
-          const p = await db.from('user_profiles').select('full_name').eq('id', user.id).maybeSingle();
-          if (p.data && p.data.full_name) name = p.data.full_name;
-        } catch(e){}
-        setUserUI(user, name);
-      } catch(e){ setUserUI(null); }
-    }
-
-    async function saveProfile(user, name){
-      // Always persist the display name in Supabase Auth metadata.
-      try { await db.auth.updateUser({ data: { full_name: name } }); } catch(e){}
-      // Best-effort profile row. It works when the table has the right columns/RLS.
-      try {
-        const res = await db.from('user_profiles').upsert([{ id: user.id, full_name: name }], { onConflict: 'id' });
-        if (res.error) console.warn('Profile row was not written (account is still saved in Supabase Auth):', res.error.message);
-      } catch(e){}
-    }
-
-    async function loadMyShipments(){
-      const wrap = document.getElementById('my-shipments');
-      if (!currentUser || !wrap) return;
-      const user = currentUser;
-      const requestId = ++myShipmentsRequest;
-      const { data, error } = await db.from('tracking_entries')
-        .select('*')
-        .order('created_at', { ascending: false });
-      // Ignore an older response if sign-out, sign-in, or a newer claim reload finished first.
-      if (requestId !== myShipmentsRequest || !currentUser || currentUser.id !== user.id) return;
-      if (error){
-        wrap.innerHTML = '<p class="empty" style="margin:0">Could not load your shipments: ' + escHtml(error.message) + '</p>';
-        return;
-      }
-      const mine = (data || [])
-        .filter(row => !isSupportRow(row))
-        .map(row => modelFromRow(row))
-        .filter(e =>
-          (e.claims || []).some(c => String(c.user_id) === String(user.id)) ||
-          String(e.claimed_by) === String(user.id)
-        );
-      if (!mine.length){
-        wrap.innerHTML = '<p class="empty" style="margin:0">No claimed shipments yet. Track a package and click “Claim this shipment”.</p>';
-        return;
-      }
-      wrap.innerHTML = mine.map(e => {
-        const myClaim = (e.claims || []).find(c => String(c.user_id) === String(user.id));
-        const claimDate = myClaim && myClaim.claimed_at ? fmtDate(myClaim.claimed_at) : '';
-        const eta = e.estimated_delivery ? fmtDate(e.estimated_delivery) : '';
-        return '<a class="my-ship" href="?code=' + encodeURIComponent(e.tracking_code) + '">' +
-          '<div class="my-ship-top">' +
-            '<span class="mono">' + escHtml(e.tracking_code) + '</span>' +
-            '<span class="stage-badge stage-' + stageBadgeClass(e.stage) + '">' + escHtml(stageLabel(e.stage)) + '</span>' +
-          '</div>' +
-          '<div class="my-ship-route">' + escHtml(e.origin || '—') + ' <span class="arrow">&rarr;</span> ' + escHtml(e.destination || '—') + '</div>' +
-          '<div class="my-ship-loc">' + escHtml(e.current_location || 'Waiting for the first scan') + '</div>' +
-          '<div class="my-ship-date">' + (claimDate ? 'Claimed ' + escHtml(claimDate) : '') + (claimDate && eta ? ' · ' : '') + (eta ? 'ETA ' + escHtml(eta) : '') + '</div>' +
-        '</a>';
-      }).join('');
-    }
-
-    document.getElementById('login-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const btn = document.getElementById('login-btn');
-      btn.disabled = true; btn.textContent = 'Signing in…';
-      const email = document.getElementById('login-email').value.trim();
-      const password = document.getElementById('login-password').value;
-      const { error } = await db.auth.signInWithPassword({ email, password });
-      btn.disabled = false; btn.textContent = 'Log In';
-      if (error){ showAlert('error', error.message); return; }
-      await refreshUser();
-      closeAuth();
-      if (pendingClaimCode){ const c = pendingClaimCode; pendingClaimCode = null; await claimShipment(c); }
-      if (isAdminEmail(email)){
-        toast('Admin account detected. Opening the admin dashboard…');
-        setTimeout(() => { window.location.href = 'admin-portal.html'; }, 800);
-        return;
-      }
-      toast('Welcome back!');
-      document.getElementById('account-panel').scrollIntoView({ behavior:'smooth', block:'start' });
-    });
-
-    document.getElementById('signup-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const btn = document.getElementById('signup-btn');
-      btn.disabled = true; btn.textContent = 'Creating account…';
-      const name = document.getElementById('signup-name').value.trim();
-      const email = document.getElementById('signup-email').value.trim();
-      const password = document.getElementById('signup-password').value;
-
-      const { data, error } = await db.auth.signUp({ email, password, options: { data: { full_name: name } } });
-      if (error){
-        btn.disabled = false; btn.textContent = 'Create Account';
-        showAlert('error', error.message);
-        return;
-      }
-
-      let user = data.user;
-      let session = data.session;
-
-      // If email confirmation is enabled, try a normal sign-in immediately.
-      if (!session && user){
-        const login = await db.auth.signInWithPassword({ email, password });
-        if (!login.error){ session = login.data.session; user = login.data.user; }
-      }
-
-      btn.disabled = false; btn.textContent = 'Create Account';
-
-      if (!user){
-        showAlert('error', 'The account could not be created. Please try again.');
-        return;
-      }
-
-      if (!session){
-        showAlert('success', 'Account created in Supabase Auth. Please confirm your email, then log in. (Tip: disable email confirmation in Supabase for instant login.)');
-        showTab('login');
-        return;
-      }
-
-      await saveProfile(user, name);
-      await refreshUser();
-      closeAuth();
-      toast('Account created. Your details are saved in Supabase.');
-      document.getElementById('account-panel').scrollIntoView({ behavior:'smooth', block:'start' });
-      if (pendingClaimCode){ const c = pendingClaimCode; pendingClaimCode = null; await claimShipment(c); }
-    });
-
-    async function signOut(){
-      await db.auth.signOut();
-      currentUser = null;
-      currentEntry = null;
-      setUserUI(null);
-      toast('Signed out.');
-    }
-    document.getElementById('hdr-logout').addEventListener('click', async (e) => { e.preventDefault(); await signOut(); });
-    document.getElementById('acct-signout').addEventListener('click', async () => { await signOut(); });
-
-    document.getElementById('utility-account').addEventListener('click', (e) => {
-      e.preventDefault();
-      if (currentUser) document.getElementById('account-panel').scrollIntoView({ behavior:'smooth', block:'start' });
-      else openAuth();
-    });
-
-    /* ================= Tracking ================= */
+    const hdrLogin = document.getElementById('hdr-login');
+    const hdrLogout = document.getElementById('hdr-logout');
+    const hdrUser = document.getElementById('hdr-user');
+    const hdrAdmin = document.getElementById('hdr-admin');
+    const mobileAccount = document.getElementById('mobile-account');
+    const mobileAdmin = document.getElementById('mobile-admin');
+    const utilityAccount = document.getElementById('utility-account');
+    const menuToggle = document.getElementById('menu-toggle');
+    const fxMenu = document.getElementById('fx-menu');
+    const resultEl = document.getElementById('result');
+    const notfound = document.getElementById('notfound');
+    const emptyHint = document.getElementById('empty-hint');
     const trackForm = document.getElementById('track-form');
     const codeInput = document.getElementById('tracking-code');
-    const emptyHint = document.getElementById('empty-hint');
-    const notfound = document.getElementById('notfound');
-    const resultEl = document.getElementById('result');
+    const trackBtn = document.getElementById('track-btn');
 
-    const MODES = {
-      number: 'Enter your tracking number',
-      reference: 'Enter a reference number',
-      doortag: 'Enter a door tag number'
-    };
-    document.querySelectorAll('.track-tabs button').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.track-tabs button').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        codeInput.placeholder = MODES[btn.dataset.mode] || MODES.number;
-      });
-    });
+    function escHtml(s){ return String(s===''||s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function fmtDate(iso){ if(!iso) return '—'; try{ return new Date(iso).toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'}); }catch(e){ return iso; } }
+    function fmtTime(iso){ if(!iso) return ''; try{ return new Date(iso).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}); }catch(e){ return iso; } }
+    function fmtChatTime(iso){ if(!iso) return ''; try{ return new Date(iso).toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}); }catch(e){ return iso; } }
 
-    function addDaysISO(n){
-      const d = new Date();
-      d.setDate(d.getDate() + n);
-      return d.toISOString().slice(0,10);
+    function toast(msg){
+      const el=document.getElementById('toast');
+      if(!el) return;
+      el.textContent=msg; el.classList.add('show');
+      clearTimeout(window._toastT);
+      window._toastT=setTimeout(()=>el.classList.remove('show'),4000);
     }
 
+    function stageLabel(st){
+      const map={label_created:'Label created',carrier_1:'Picked up',carrier_2:'In transit',carrier_3:'In transit',warehouse:'At warehouse',out_for_delivery:'Out for delivery',delivered:'Delivered',exception:'Delivery exception'};
+      return map[st]||'In transit';
+    }
+    function stageToStatus(st){
+      const map={label_created:'pending',carrier_1:'in-transit',carrier_2:'in-transit',carrier_3:'in-transit',warehouse:'in-transit',out_for_delivery:'out-for-delivery',delivered:'delivered',exception:'exception'};
+      return map[st]||'in-transit';
+    }
+    function iconForStage(st){ const m={label_created:'label',carrier_1:'pickup',carrier_2:'transit',carrier_3:'transit',warehouse:'warehouse',out_for_delivery:'truck',delivered:'check',exception:'alert'}; return m[st]||'transit'; }
+    const ICONS={
+      label:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-9"/><polyline points="6 9 12 15 18 9"/></svg>',
+      pickup:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 18v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2"/></svg>',
+      transit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 11 12 16 7 11"/><line x1="12" y1="16" x2="12" y2="11"/><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/></svg>',
+      warehouse:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10h18v8H3z"/><path d="M3 10h18"/><path d="M9 14V8L12 12l-3 4"/></svg>',
+      truck:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 18h5l2-3-2-3H1a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3"/></svg>',
+      check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>',
+      alert:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+    };
+
+    function supportCode(user){ return SUPPORT_PREFIX + user.id; }
+    function supportDisplayName(){ return currentUser ? (currentUser.user_metadata && currentUser.user_metadata.full_name) || currentUser.email : 'Customer'; }
+    function supportMeta(t){ return { kind:'support_chat', user_name:t.user_name||supportDisplayName(), user_email:t.user_email||(currentUser?currentUser.email:''), messages:t.messages||[], updated_at:t.updated_at||new Date().toISOString() }; }
+    function supportThreadFromRow(row){
+      const st = typeof row.status === 'string' ? JSON.parse(row.status || '{}') : (row.status||{});
+      return { code: row.tracking_code, messages: st.messages||[], user_name: st.user_name||'Customer', user_email: st.user_email||'Signed-in customer', created_at: row.created_at, updated_at: st.updated_at||row.created_at };
+    }
+    function isSupportRow(row){ return row.carrier === 'support_chat'; }
+    function supportLastMessage(t){ const m=t.messages||[]; return m.length?m[m.length-1]:null; }
+    function supportUnreadForAdmin(t){ return (t.messages||[]).filter(m=>m.role==='user'&&!m.read_by_admin).length; }
+    function supportUnreadForUser(t){ return (t.messages||[]).filter(m=>m.role==='admin'&&!m.read_by_user).length; }
+    function chatId(){ return 'msg_' + Date.now() + '_' + Math.random().toString(36).slice(2,9); }
+
+    function updateSupportBadge(n){ const b=document.getElementById('cs-badge'); if(b){ b.textContent=n>0?String(n):'0'; b.style.display=n>0?'flex':'none'; } }
+
+    function renderSupportChat(){
+      const messagesEl=document.getElementById('cs-messages');
+      const loginEl=document.getElementById('cs-login');
+      const formEl=document.getElementById('cs-form');
+      if(!messagesEl) return;
+      if(!currentUser){ messagesEl.innerHTML='<p class="cs-empty">Log in to message customer service.</p>'; if(loginEl)loginEl.style.display='block'; if(formEl)formEl.style.display='none'; updateSupportBadge(0); return; }
+      if(formEl) formEl.style.display='flex';
+      if(loginEl) loginEl.style.display='none';
+      const messages=(csThread&&csThread.messages)||[];
+      messagesEl.innerHTML= messages.length ? messages.map(m=>{
+        const mine=m.role==='user';
+        return '<div class="cs-msg '+(mine?'cs-msg-user':'cs-msg-admin')+'"><div class="cs-bubble">'+escHtml(m.body)+'</div><div class="cs-time">'+(mine?'You':'FedEx Support')+' · '+escHtml(fmtChatTime(m.at))+'</div></div>';
+      }).join('') : '<p class="cs-empty">Hi! How can we help with your shipment today? Send us a message and a support agent will reply here.</p>';
+      const unread=supportUnreadForUser(csThread);
+      updateSupportBadge(unread);
+      messagesEl.scrollTop=messagesEl.scrollHeight;
+    }
+    async function markSupportReadForUser(){
+      if(!currentUser||!csThread) return;
+      const hasUnread=(csThread.messages||[]).some(m=>m.role==='admin'&&!m.read_by_user);
+      if(!hasUnread) return;
+      csThread.messages=csThread.messages.map(m=>m.role==='admin'?Object.assign({},m,{read_by_user:true}):m);
+      renderSupportChat();
+      try{ await db.from('tracking_entries').update({status:JSON.stringify(supportMeta(csThread))}).eq('tracking_code',csThread.code); }catch(e){}
+    }
+    async function loadSupportThread(silent){
+      if(!currentUser){ csThread=null; renderSupportChat(); return; }
+      if(csLoading) return;
+      csLoading=true;
+      try{
+        const code=supportCode(currentUser);
+        const res=await db.from('tracking_entries').select('*').eq('tracking_code',code).maybeSingle();
+        if(res.error){ if(!silent) toast('Could not load customer service: '+res.error.message); return; }
+        if(res.data && isSupportRow(res.data)){ csThread=supportThreadFromRow(res.data); }
+        else if(!res.data){ csThread={ code:code, messages:[], user_name:supportDisplayName(), user_email:currentUser.email||'', created_at:null, updated_at:null }; }
+        else { csThread={ code:code, messages:[], user_name:supportDisplayName(), user_email:currentUser.email||'', created_at:null, updated_at:null }; }
+        renderSupportChat();
+        if(csOpen) await markSupportReadForUser();
+      }catch(e){ if(!silent) toast('Could not load customer service. Please try again.'); } finally { csLoading=false; }
+    }
+    async function sendSupportMessage(body){
+      if(!currentUser){ openAuth(); return; }
+      body=String(body||'').trim(); if(!body) return;
+      const btn=document.getElementById('cs-send'); const input=document.getElementById('cs-input');
+      if(btn){ btn.disabled=true; btn.textContent='Sending…'; }
+      try{
+        const code=supportCode(currentUser);
+        const res=await db.from('tracking_entries').select('*').eq('tracking_code',code).maybeSingle();
+        if(res.error) throw new Error(res.error.message);
+        let thread;
+        if(res.data){ if(!isSupportRow(res.data)) throw new Error('This support channel is unavailable.'); thread=supportThreadFromRow(res.data); }
+        else { thread={ code:code, messages:[], user_name:supportDisplayName(), user_email:currentUser.email||'', created_at:null, updated_at:null }; }
+        const msg={ id:chatId(), role:'user', body:body, at:new Date().toISOString(), read_by_admin:false, read_by_user:true };
+        thread.messages.push(msg); thread.updated_at=msg.at; thread.user_name=thread.user_name||supportDisplayName(); thread.user_email=thread.user_email||currentUser.email||'';
+        const meta=supportMeta(thread);
+        let write;
+        if(res.data){ write=await db.from('tracking_entries').update({status:JSON.stringify(meta)}).eq('tracking_code',code).select(); }
+        else { write=await db.from('tracking_entries').insert([{ tracking_code:code, user_id:currentUser.id, carrier:'support_chat', status:JSON.stringify(meta) }]).select(); }
+        if(write.error) throw new Error(write.error.message);
+        csThread=thread; if(input) input.value=''; renderSupportChat(); if(csOpen) await markSupportReadForUser();
+      }catch(e){ toast('Could not send your message: '+e.message); } finally { if(btn){ btn.disabled=false; btn.textContent='Send'; } }
+    }
+    function openSupportChat(){ const widget=document.getElementById('cs-widget'); const panel=document.getElementById('cs-panel'); const launcher=document.getElementById('cs-launcher'); if(!widget||!panel) return; csOpen=true; widget.classList.add('open'); panel.classList.add('open'); if(launcher) launcher.setAttribute('aria-expanded','true'); renderSupportChat(); if(currentUser){ loadSupportThread(true); setTimeout(()=>{const input=document.getElementById('cs-input'); if(input) input.focus();},80); } }
+    function closeSupportChat(){ const widget=document.getElementById('cs-widget'); const panel=document.getElementById('cs-panel'); const launcher=document.getElementById('cs-launcher'); csOpen=false; if(widget) widget.classList.remove('open'); if(panel) panel.classList.remove('open'); if(launcher) launcher.setAttribute('aria-expanded','false'); }
+
+    /* ---------- Auth ---------- */
+    async function signIn(email,password){
+      const { data, error } = await db.auth.signInWithPassword({ email, password });
+      if(error) throw new Error(error.message);
+      await initUser(data.user);
+    }
+    async function signUp(name,email,password){
+      const { data, error } = await db.auth.signUp({ email, password, options:{ data:{ full_name:name } } });
+      if(error) throw new Error(error.message);
+      toast('Account created. Please log in.');
+      showTab('login');
+    }
+    async function signOut(){ await db.auth.signOut(); currentUser=null; updateUI(); }
+    async function initUser(user){
+      currentUser=user;
+      if(user){
+        hdrLogout.style.display='inline-block'; hdrUser.textContent=user.email||'';
+        hdrLogin.style.display='none'; utilityAccount.textContent='My account ('+user.email+')';
+        mobileAccount.textContent='My account ('+user.email+')';
+        if(isAdminEmail(user.email)){ hdrAdmin.style.display='inline-block'; mobileAdmin.style.display='block'; document.getElementById('acct-admin').style.display='flex'; }
+        document.getElementById('acct-name').textContent='Welcome back, '+(user.user_metadata&&user.user_metadata.full_name?user.user_metadata.full_name:user.email);
+        document.getElementById('acct-email').textContent=user.email||'';
+        document.getElementById('account-panel').style.display='block';
+        loadMyShipments();
+      } else {
+        hdrLogout.style.display='none'; hdrUser.textContent='';
+        hdrLogin.style.display='inline-block'; utilityAccount.textContent='My account';
+        mobileAccount.textContent='Log In / Sign Up';
+        hdrAdmin.style.display='none'; mobileAdmin.style.display='none';
+        document.getElementById('acct-admin').style.display='none';
+        document.getElementById('account-panel').style.display='none';
+      }
+      csThread=null; renderSupportChat();
+      if(csPollTimer){ clearInterval(csPollTimer); csPollTimer=null; }
+      if(user){
+        loadSupportThread(true);
+        csPollTimer=setInterval(()=>{ if(document.visibilityState==='visible') loadSupportThread(true); },4000);
+      }
+    }
+    function updateUI(){ /* re-evaluate auth state handled by onAuthStateChange */ }
+    function openAuth(){ authModal.classList.add('show'); }
+    function closeAuth(){ authModal.classList.remove('show'); }
+    function showTab(tab){
+      const isLogin=tab==='login';
+      document.getElementById('tab-login').classList.toggle('active',isLogin);
+      document.getElementById('tab-signup').classList.toggle('active',!isLogin);
+      document.getElementById('login-form').style.display=isLogin?'block':'none';
+      document.getElementById('signup-form').style.display=isLogin?'none':'block';
+      authAlert.className='alert';
+    }
+    function showAlert(kind,msg){ authAlert.className='alert show alert-'+kind; authAlert.textContent=msg; }
+
+    db.auth.onAuthStateChange(async (event,user)=>{ if(event==='SIGNED_IN'||event==='TOKEN_REFRESHED'){ await initUser(user); } else if(event==='SIGNED_OUT'){ await initUser(null); } else { await initUser(user); } });
+    (async()=>{ await initUser(db.auth.getUser? null : null); })();
+
+    /* ---------- Tracking ---------- */
+    function generateEvents(entry){
+      const now=new Date(); const loc=entry.current_location||entry.destination||'FedEx facility'; const origin=entry.origin||'Origin facility'; const dest=entry.destination||'Destination facility'; const stage=entry.stage||'carrier_2'; const out=[]; const add=(stageKey,location,hoursAgo,desc)=>{ out.push({ when:new Date(now.getTime()-hoursAgo*3600*1000), desc:desc||defaultEventText(stageKey), loc:location||'', stage:stageKey }); };
+      if(stage==='label_created'){ add('label_created',origin,1); }
+      else if(stage==='carrier_1'){ add('carrier_1',origin,2); add('label_created',origin,4); }
+      else if(stage==='carrier_2'||stage==='carrier_3'){ add(stage,loc,1); add('carrier_1',origin,12); add('label_created',origin,16); }
+      else if(stage==='warehouse'){ add('warehouse',loc,1); add('carrier_2',loc,8); add('carrier_1',origin,20); add('label_created',origin,24); }
+      else if(stage==='out_for_delivery'){ add('out_for_delivery',loc||dest,1); add('warehouse',loc||dest,6); add('carrier_2',loc||dest,18); add('carrier_1',origin,30); add('label_created',origin,34); }
+      else if(stage==='delivered'){ add('delivered',dest,1); add('out_for_delivery',dest,4); add('warehouse',dest,10); add('carrier_3',dest,20); add('carrier_1',origin,40); add('label_created',origin,44); }
+      else if(stage==='exception'){ add('exception',loc||dest,1); add('out_for_delivery',loc||dest,4); add('warehouse',loc||dest,10); add('carrier_2',loc||dest,20); add('carrier_1',origin,30); }
+      else { add(stage,loc,1); add('label_created',origin,4); }
+      return out;
+    }
+    function defaultEventText(st){ const m={label_created:'Label created',carrier_1:'Picked up',carrier_2:'In transit',carrier_3:'In transit',warehouse:'At warehouse',out_for_delivery:'Out for delivery',delivered:'Delivered',exception:'Delivery exception'}; return m[st]||'In transit'; }
+    function addDaysISO(n){ const d=new Date(); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); }
     function demoModel(){
-      const entry = {
-        tracking_code: '123456789012',
-        stage: 'warehouse',
-        status: 'in-transit',
-        current_location: 'Memphis, TN — FedEx hub',
-        service: 'FedEx Express Saver',
-        origin: 'Indianapolis, IN',
-        destination: 'San Jose, CA',
-        weight: '3.4 lbs',
-        dimensions: '12 x 10 x 4 in',
-        pieces: 1,
-        packaging: 'FedEx Box',
-        signed_by: '',
-        ship_date: addDaysISO(-3),
-        estimated_delivery: addDaysISO(2),
-        delivery_date: '',
-        events: [],
-        claims: [],
-        claimed_by: null,
-        claimed_at: null,
-        _demo: true
+      const entry={
+        tracking_code:'123456789012',
+        stage:'warehouse',
+        status:'in-transit',
+        current_location:'Memphis, TN — FedEx hub',
+        service:'FedEx Express Saver',
+        origin:'Indianapolis, IN',
+        destination:'San Jose, CA',
+        weight:'3.4 lbs',
+        dimensions:'12 x 10 x 4 in',
+        pieces:1,
+        packaging:'FedEx Box',
+        signed_by:'',
+        ship_date:addDaysISO(-3),
+        estimated_delivery:addDaysISO(2),
+        delivery_date:'',
+        events:[],
+        claims:[],
+        claimed_by:null,
+        claimed_at:null,
+        _demo:true
       };
-      entry.events = generateEvents(entry);
+      entry.events=generateEvents(entry);
       return entry;
     }
+    function normalizeEvents(entry){ let events=(entry.events||[]).map(e=>({ when:new Date(e.time||e.when||Date.now()), desc:e.description||e.desc||defaultEventText(e.stage||entry.stage), loc:e.location||e.loc||'', stage:e.stage||entry.stage })).filter(e=>!isNaN(e.when)); if(!events.length) events=generateEvents(entry); events.sort((a,b)=>b.when-a.when); return events; }
 
-    trackForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const code = codeInput.value.trim();
-      if (!code) return;
-      const btn = document.getElementById('track-btn');
-      btn.disabled = true; btn.textContent = 'Tracking…';
-      await track(code);
-      btn.disabled = false; btn.textContent = 'Track';
-    });
-
-    async function track(code){
-      emptyHint.style.display = 'none';
-      notfound.classList.remove('show');
-      resultEl.classList.remove('show');
-      currentEntry = null;
-      currentImages = [];
-
-      let row = null, images = [], dbError = null;
-      try {
-        const res = await db.from('tracking_entries').select('*').eq('tracking_code', code).maybeSingle();
-        if (res.error) dbError = res.error;
-        if (res.data) row = res.data;
-        if (res.data){
-          const imgs = await db.from('tracking_images').select('*').eq('tracking_code', code);
-          if (!imgs.error && imgs.data) images = imgs.data.map(parseImage);
-        }
-      } catch(e){ dbError = e; }
-
-      if (!row && code === '123456789012'){
-        currentEntry = demoModel();
-        currentImages = [];
-        renderResult(currentEntry, []);
-        try { history.replaceState(null, '', '?code=' + encodeURIComponent(code)); } catch(e){}
-        return;
-      }
-
-      if (row && isSupportRow(row)) row = null;
-
-      if (!row){
-        notfound.classList.add('show');
-        if (dbError){
-          notfound.querySelector('p').textContent =
-            'Lookup error: ' + dbError.message + '. Make sure the database schema is created in Supabase, or view the sample shipment.';
-        }
-        return;
-      }
-
-      currentEntry = modelFromRow(row);
-      currentImages = images;
-      renderResult(currentEntry, images);
-      try { history.replaceState(null, '', '?code=' + encodeURIComponent(code)); } catch(e){}
-    }
-
-    function fmtDate(d){
-      if (!d) return '—';
-      const dt = new Date(String(d).length === 10 ? d + 'T12:00:00' : d);
-      if (isNaN(dt)) return d;
-      return dt.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
-    }
-    function fmtTime(d){
-      return d.toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' });
-    }
-
-    const ICONS = {
-      check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg>',
-      truck: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 3h13v13H1z"/><path d="M14 8h4l3 3v5h-7"/><circle cx="6" cy="19" r="2"/><circle cx="18" cy="19" r="2"/></svg>',
-      clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
-      alert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>',
-      warehouse: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21V8l9-5 9 5v13"/><path d="M7 21v-7h10v7"/><path d="M7 14h10"/></svg>'
-    };
-    function iconForStage(stage){
-      if (stage === 'delivered') return 'check';
-      if (stage === 'exception') return 'alert';
-      if (stage === 'out_for_delivery') return 'truck';
-      if (stage === 'warehouse') return 'warehouse';
-      if (stage === 'label_created') return 'clock';
-      return 'truck';
-    }
-    function titleForStage(stage){
-      const map = {
-        label_created: 'Label created',
-        carrier_1: 'Picked up',
-        carrier_2: 'In transit',
-        carrier_3: 'In transit',
-        warehouse: 'At warehouse',
-        out_for_delivery: 'Out for delivery',
-        delivered: 'Delivered',
-        exception: 'Delivery exception'
-      };
-      return map[stage] || 'In transit';
+    function renderTimeline(events){
+      const container=document.getElementById('fx-timeline');
+      const vline=document.getElementById('fx-vline');
+      if(!container) return;
+      // latest event first (already sorted desc). Reference shows latest at top as current.
+      const latest=events[0];
+      const isDelivered=latest.stage==='delivered';
+      let html='';
+      events.forEach((ev,i)=>{
+        const current=(i===0);
+        const done=i>0;
+        const upcoming=false;
+        const dotLeft=current?33:40;
+        const dotSize=current?'width:44px;height:44px;left:33px;top:-8px;border:3px solid #695920;box-sizing:border-box':'width:8px;height:8px;left:40px;top:20px';
+        const dotBg=current?'#ffcc42':'#645220';
+        const dotHtml=current ? '<div style="position:absolute;left:33px;top:-8px;width:44px;height:44px;border-radius:50%;background:#ffcc42;border:3px solid #695920;box-sizing:border-box;display:grid;place-items:center;font-size:34px;font-weight:700;line-height:1;color:#292929">!</div>' : '<div class="fx-vdot" style="'+dotSize+';background:'+dotBg+';"></div>';
+        const contentClass='fx-vcontent'+(current?' current':(done?'':' upcoming'));
+        const locCls='fx-loc'; const timeCls='fx-time';
+        html += '<div class="fx-vstep '+(current?'current':(done?'done':'upcoming'))+'" style="padding-left:'+(current?103:103)+'px;padding-top:'+(current?13:0)+'px">'+dotHtml+
+          '<div class="'+contentClass+'">'+
+          '<h3>'+escHtml(ev.stage==='delivered'?'DELIVERED':(ev.desc||defaultEventText(ev.stage)).toUpperCase())+'</h3>'+
+          '<p class="'+locCls+'">'+escHtml(ev.loc||'')+'</p>'+
+          (ev.desc && !current ? '<p class="fx-desc">'+escHtml(ev.desc)+'</p>' : '') +
+          '<p class="'+timeCls+'">'+fmtTime(ev.when)+' · '+fmtDate(ev.when)+'</p>'+
+          '</div></div>';
+      });
+      vline.style.display=events.length?'block':'none';
+      container.innerHTML=html;
     }
 
     function renderResult(entry, images){
-      const stage = entry.stage || 'carrier_2';
-      const status = entry.status || stageToStatus(stage);
-      const code = entry.tracking_code || '—';
-      const etaDate = entry.estimated_delivery || entry.delivery_date || '';
-      const eta = etaDate ? fmtDate(etaDate) : '—';
-      const deliveredDate = entry.delivery_date ? fmtDate(entry.delivery_date) : '';
-      const shippedDate = entry.ship_date ? fmtDate(entry.ship_date) : '—';
-      const origin = entry.origin || 'Origin facility';
-      const dest = entry.destination || 'Destination facility';
-      const loc = entry.current_location || '';
+      const stage=entry.stage||'carrier_2';
+      const status=entry.status||stageToStatus(stage);
+      const code=entry.tracking_code||'—';
+      const etaDate=entry.estimated_delivery||entry.delivery_date||'';
+      const eta=etaDate?fmtDate(etaDate):'—';
+      const deliveredDate=entry.delivery_date?fmtDate(entry.delivery_date):'';
+      const shippedDate=entry.ship_date?fmtDate(entry.ship_date):'—';
+      const origin=entry.origin||'Origin facility';
+      const dest=entry.destination||'Destination facility';
+      const loc=entry.current_location||'';
+      const service=entry.service||'FedEx Express';
 
-      document.getElementById('r-code').textContent = code;
-      document.getElementById('r-origin').textContent = origin;
-      document.getElementById('r-eta-label').textContent = stage === 'delivered' ? 'Delivered on' : 'Scheduled delivery';
-      document.getElementById('r-eta').textContent = stage === 'delivered' && deliveredDate ? deliveredDate : eta;
+      document.getElementById('r-code').textContent=code;
+      document.getElementById('r-tracking-id').textContent=code;
 
-      const titleEl = document.getElementById('r-status-title');
-      titleEl.textContent = titleForStage(stage);
-      titleEl.className = 'status-title' + (status === 'delivered' ? ' delivered' : status === 'exception' ? ' exception' : '');
+      // Pending heading + expected date
+      const headingEl=document.getElementById('r-status-heading');
+      headingEl.textContent=stage==='delivered'?'Delivered':(stage==='exception'?'Exception':stageLabel(stage));
+      const expectedEl=document.getElementById('r-expected');
+      if(stage==='delivered'){ expectedEl.textContent='Delivered on '+(deliveredDate||eta); }
+      else if(stage==='exception'){ expectedEl.textContent='Delivery exception — see details below'; }
+      else { expectedEl.textContent='Initially expected: '+eta; }
 
-      const iconEl = document.getElementById('r-icon');
-      iconEl.className = 'status-icon' + (status === 'delivered' ? ' delivered' : status === 'exception' ? ' exception' : status === 'pending' ? ' pending' : '');
-      iconEl.innerHTML = ICONS[iconForStage(stage)];
+      // Status badge (Delayed) — reference shows DELAYED for in-transit/pending
+      const badgeEl=document.getElementById('r-badge');
+      const isDelayed=stage!=='delivered'&&stage!=='exception'&&stage!=='label_created';
+      badgeEl.style.display=isDelayed?'inline-flex':'none';
 
-      let sub = '';
-      if (stage === 'delivered'){
-        sub = 'Delivered ' + (deliveredDate || eta) + (entry.signed_by ? ' · Signed for by ' + entry.signed_by : '');
-      } else if (stage === 'exception'){
-        sub = 'Delivery exception' + (loc ? ' · ' + loc : '') + '. We are working to resolve it.';
-      } else if (stage === 'out_for_delivery'){
-        sub = 'On FedEx vehicle for delivery' + (loc ? ' · ' + loc : '') + (eta !== '—' ? ' · Estimated delivery ' + eta : '');
-      } else if (stage === 'warehouse'){
-        sub = 'At FedEx warehouse' + (loc ? ' · ' + loc : '') + (eta !== '—' ? ' · Estimated delivery ' + eta : '');
-      } else if (stage === 'label_created'){
-        sub = 'Waiting for the package to be picked up' + (eta !== '—' ? ' · Estimated delivery ' + eta : '');
-      } else if (stage === 'carrier_1'){
-        sub = 'Picked up' + (loc ? ' · ' + loc : '') + (eta !== '—' ? ' · Estimated delivery ' + eta : '');
+      // Delivery status inline
+      const inlineEl=document.getElementById('r-status-inline');
+      const exclaimEl=document.getElementById('r-exclaim');
+      inlineEl.textContent=stage==='delivered'?'Delivered':(stage==='exception'?'Delivery exception':stageLabel(stage));
+      exclaimEl.style.display=(stage==='warehouse'||stage==='carrier_2'||stage==='carrier_3'||stage==='out_for_delivery')?'inline-flex':'none';
+
+      // Action required inline
+      const actionHeadingEl=document.getElementById('r-action-heading');
+      const actionInlineEl=document.getElementById('r-action-inline');
+      const actionTextEl=document.getElementById('r-action-text');
+      const hasAdultSig=entry.adult_signature_required||stage==='out_for_delivery'||stage==='delivered';
+      if(hasAdultSig){
+        actionHeadingEl.style.display='block';
+        actionInlineEl.style.display='flex';
+        actionTextEl.textContent=entry.adult_signature_text||'Adult Signature Required';
       } else {
-        sub = 'In transit' + (loc ? ' · ' + loc : '') + (eta !== '—' ? ' · Estimated delivery ' + eta : '');
+        actionHeadingEl.style.display='none';
+        actionInlineEl.style.display='none';
       }
-      document.getElementById('r-status-sub').textContent = sub;
 
-      // progress rail: label → picked up → in transit → warehouse → out → delivered
-      const phases = ['Label created','Picked up','In transit','At warehouse','Out for delivery','Delivered'];
-      const phaseIndex = { label_created:0, carrier_1:1, carrier_2:2, carrier_3:2, warehouse:3, out_for_delivery:4, delivered:5, exception:2 };
-      const idx = phaseIndex[stage] == null ? 2 : phaseIndex[stage];
-      document.getElementById('r-progress').innerHTML = phases.map((p, i) => {
-        let cls = '';
-        if (status === 'delivered' || i < idx) cls = 'done';
-        else if (i === idx) cls = 'current';
-        if (stage === 'exception' && i === idx) cls = 'current exception';
-        return '<div class="step ' + cls + '"><div class="bar"></div>' + p + '</div>';
-      }).join('');
+      // timeline
+      const events=normalizeEvents(entry);
+      renderTimeline(events);
+      document.getElementById('r-scans-count').textContent=events.length+' scans';
 
-      // shipment facts
-      const facts = [
-        ['Tracking number', code],
-        ['Current stage', stageLabel(stage)],
-        ['Current location', loc || '—'],
-        ['Service', entry.service || 'FedEx Express'],
-        ['Weight', entry.weight || '—'],
-        ['Dimensions', entry.dimensions || '—'],
-        ['Total pieces', entry.pieces || 1],
-        ['Packaging', entry.packaging || '—'],
-        ['Date shipped', shippedDate],
-        ['Estimated delivery', eta],
-        ['Shipped from', origin],
-        ['Destination', dest]
+      // facts
+      const facts=[
+        ['Tracking number',code],
+        ['Current stage',stageLabel(stage)],
+        ['Current location',loc||'—'],
+        ['Service',service],
+        ['Weight',entry.weight||'—'],
+        ['Dimensions',entry.dimensions||'—'],
+        ['Total pieces',entry.pieces||1],
+        ['Packaging',entry.packaging||'—'],
+        ['Date shipped',shippedDate],
+        ['Estimated delivery',eta],
+        ['Shipped from',origin],
+        ['Destination',dest]
       ];
-      if (status === 'delivered' && deliveredDate) facts.push(['Delivered on', deliveredDate]);
-      if (status === 'delivered' && entry.signed_by) facts.push(['Signed for by', entry.signed_by]);
-      document.getElementById('r-facts').innerHTML = facts.map(f =>
-        '<div class="fact"><span class="k">' + escHtml(f[0]) + '</span><span class="v">' + escHtml(f[1]) + '</span></div>'
-      ).join('');
-      document.getElementById('r-service-pill').textContent = entry.service || 'FedEx Express';
-
-      // travel history
-      const events = normalizeEvents(entry);
-      document.getElementById('r-history').innerHTML = renderScans(events);
-      document.getElementById('r-scans-count').textContent = events.length + ' scans';
+      if(status==='delivered'&&deliveredDate) facts.push(['Delivered on',deliveredDate]);
+      if(status==='delivered'&&entry.signed_by) facts.push(['Signed for by',entry.signed_by]);
+      document.getElementById('r-facts').innerHTML=facts.map(f=>'<div class="fact"><span class="k">'+escHtml(f[0])+'</span><span class="v">'+escHtml(f[1])+'</span></div>').join('');
+      document.getElementById('r-service-pill').textContent=service;
 
       // images
-      const shipmentImgs = (images || []).filter(x => x.kind === 'shipment');
-      const proofImgs = (images || []).filter(x => x.kind !== 'shipment');
-      const shipPanel = document.getElementById('shipment-images-panel');
-      const shipGrid = document.getElementById('r-ship-images');
-      if (shipmentImgs.length){
-        shipPanel.style.display = 'block';
-        document.getElementById('r-ship-img-count').textContent = shipmentImgs.length + (shipmentImgs.length === 1 ? ' image' : ' images');
-        shipGrid.innerHTML = shipmentImgs.map(x =>
-          '<a href="' + escHtml(x.image_url) + '" target="_blank" rel="noopener"><img src="' + escHtml(x.image_url) + '" alt="' + escHtml(x.label || 'Shipment image') + '"></a>'
-        ).join('');
-      } else {
-        shipPanel.style.display = 'none';
-        shipGrid.innerHTML = '';
-      }
+      const shipmentImgs=(images||[]).filter(x=>x.kind==='shipment');
+      const proofImgs=(images||[]).filter(x=>x.kind!=='shipment');
+      const shipPanel=document.getElementById('shipment-images-panel'); const shipGrid=document.getElementById('r-ship-images');
+      if(shipmentImgs.length){ shipPanel.style.display='block'; document.getElementById('r-ship-img-count').textContent=shipmentImgs.length+(shipmentImgs.length===1?' image':' images'); shipGrid.innerHTML=shipmentImgs.map(x=>'<a href="'+escHtml(x.image_url)+'" target="_blank" rel="noopener"><img src="'+escHtml(x.image_url)+'" alt="'+escHtml(x.label||'Shipment image')+'"></a>').join(''); }
+      else { shipPanel.style.display='none'; shipGrid.innerHTML=''; }
+      const proofPanel=document.getElementById('proof-panel'); const proofGrid=document.getElementById('r-proof'); const proofEmpty=document.getElementById('r-proof-empty');
+      if(proofImgs.length){ proofPanel.style.display='block'; proofEmpty.style.display='none'; proofGrid.innerHTML=proofImgs.map(x=>'<a href="'+escHtml(x.image_url)+'" target="_blank" rel="noopener"><img src="'+escHtml(x.image_url)+'" alt="'+escHtml(x.label||'Proof of delivery')+'"></a>').join(''); }
+      else { proofGrid.innerHTML=''; proofEmpty.style.display='block'; proofPanel.style.display=status==='delivered'?'block':'none'; }
 
-      const proofPanel = document.getElementById('proof-panel');
-      const proofGrid = document.getElementById('r-proof');
-      const proofEmpty = document.getElementById('r-proof-empty');
-      if (proofImgs.length){
-        proofPanel.style.display = 'block';
-        proofEmpty.style.display = 'none';
-        proofGrid.innerHTML = proofImgs.map(x =>
-          '<a href="' + escHtml(x.image_url) + '" target="_blank" rel="noopener"><img src="' + escHtml(x.image_url) + '" alt="' + escHtml(x.label || 'Proof of delivery') + '"></a>'
-        ).join('');
-      } else {
-        proofGrid.innerHTML = '';
-        proofEmpty.style.display = 'block';
-        proofPanel.style.display = status === 'delivered' ? 'block' : 'none';
-      }
+      // delivery controls content
+      const del=document.getElementById('fx-delivery');
+      const manageBody=document.getElementById('fx-acc-manage-body');
+      const factsBody=document.getElementById('fx-acc-facts-body');
+      if(del){ del.style.display='block'; }
+      if(manageBody){ manageBody.innerHTML = stage==='delivered' ? '<p>Your shipment was delivered on '+(deliveredDate||eta)+'.</p>' : '<p>Your shipment is delayed and in transit. An adult must be present to sign at delivery.</p>'; }
+      if(factsBody){ factsBody.innerHTML = '<p>Tracking ID: '+code+'</p><p>Destination: '+dest+'</p><p>Status: '+(status==='delivered'?'Delivered':'In transit')+'</p>'; }
 
       updateClaimUI(entry);
       resultEl.classList.add('show');
       resultEl.scrollIntoView({ behavior:'smooth', block:'start' });
     }
 
-    function normalizeEvents(entry){
-      let events = (entry.events || []).map(e => ({
-        when: new Date(e.time || e.when || Date.now()),
-        desc: e.description || e.desc || defaultEventText(e.stage || entry.stage),
-        loc: e.location || e.loc || '',
-        stage: e.stage || entry.stage
-      })).filter(e => !isNaN(e.when));
-      if (!events.length) events = generateEvents(entry);
-      events.sort((a, b) => b.when - a.when);
-      return events;
-    }
-
-    function generateEvents(entry){
-      const now = new Date();
-      const loc = entry.current_location || entry.destination || 'FedEx facility';
-      const origin = entry.origin || 'Origin facility';
-      const dest = entry.destination || 'Destination facility';
-      const stage = entry.stage || 'carrier_2';
-      const out = [];
-      const add = (stageKey, location, hoursAgo, desc) => {
-        out.push({
-          when: new Date(now.getTime() - hoursAgo * 3600 * 1000),
-          desc: desc || defaultEventText(stageKey),
-          loc: location || '',
-          stage: stageKey
-        });
-      };
-      if (stage === 'label_created'){
-        add('label_created', origin, 1);
-      } else if (stage === 'carrier_1'){
-        add('carrier_1', origin, 2);
-        add('label_created', origin, 4);
-      } else if (stage === 'carrier_2' || stage === 'carrier_3'){
-        add(stage, loc, 1);
-        add('carrier_1', origin, 12);
-        add('label_created', origin, 16);
-      } else if (stage === 'warehouse'){
-        add('warehouse', loc, 1);
-        add('carrier_2', loc, 8);
-        add('carrier_1', origin, 20);
-        add('label_created', origin, 24);
-      } else if (stage === 'out_for_delivery'){
-        add('out_for_delivery', loc || dest, 1);
-        add('warehouse', loc || dest, 6);
-        add('carrier_2', loc || dest, 18);
-        add('carrier_1', origin, 30);
-        add('label_created', origin, 34);
-      } else if (stage === 'delivered'){
-        add('delivered', dest, 1);
-        add('out_for_delivery', dest, 4);
-        add('warehouse', dest, 10);
-        add('carrier_3', dest, 20);
-        add('carrier_1', origin, 40);
-        add('label_created', origin, 44);
-      } else if (stage === 'exception'){
-        add('exception', loc || dest, 1);
-        add('out_for_delivery', loc || dest, 4);
-        add('warehouse', loc || dest, 10);
-        add('carrier_2', loc || dest, 20);
-        add('carrier_1', origin, 30);
-      } else {
-        add(stage, loc, 1);
-        add('label_created', origin, 4);
-      }
-      return out;
-    }
-
-    function renderScans(scans){
-      const groups = {};
-      scans.forEach(s => {
-        const key = s.when.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
-        (groups[key] = groups[key] || []).push(s);
-      });
-      let html = '';
-      let first = true;
-      Object.keys(groups).forEach(day => {
-        html += '<div class="history-day">' + escHtml(day) + '</div>';
-        groups[day].forEach(s => {
-          const cls = first ? 'scan latest' : 'scan';
-          first = false;
-          html += '<div class="' + cls + '"><span class="dot"></span>' +
-                  '<div class="time">' + fmtTime(s.when) + '</div>' +
-                  '<div><div class="desc">' + escHtml(s.desc) + '</div>' +
-                  (s.loc ? '<div class="loc">' + escHtml(s.loc) + '</div>' : '') + '</div></div>';
-        });
-      });
-      return html;
-    }
-
-    /* ================= Claim shipment ================= */
     function updateClaimUI(entry){
-      const btn = document.getElementById('btn-claim');
-      const pill = document.getElementById('r-claim-pill');
-      if (!entry){
-        btn.style.display = 'none';
-        pill.style.display = 'none';
-        return;
-      }
-      if (entry._demo){
-        btn.style.display = 'none';
-        pill.style.display = 'inline-block';
-        pill.textContent = 'Sample shipment';
-        pill.className = 'pill';
-        return;
-      }
-      const claims = entry.claims || [];
-      const myClaim = currentUser && claims.find(c => String(c.user_id) === String(currentUser.id));
-      if (myClaim){
-        const claimedDate = myClaim.claimed_at ? fmtDate(myClaim.claimed_at) : '';
-        pill.style.display = 'inline-block';
-        pill.textContent = 'Claimed by you' + (claimedDate ? ' · ' + claimedDate : '');
-        pill.className = 'pill claim-pill';
-        btn.style.display = 'none';
-      } else {
-        if (claims.length){
-          pill.style.display = 'inline-block';
-          pill.textContent = claims.length + ' claim' + (claims.length === 1 ? '' : 's');
-          pill.className = 'pill';
-        } else {
-          pill.style.display = 'none';
-        }
-        btn.style.display = 'inline-flex';
-        btn.textContent = currentUser ? 'Claim this shipment' : 'Log in to claim';
-      }
+      const btn=document.getElementById('btn-claim'); const pill=document.getElementById('r-claim-pill');
+      if(!entry){ if(btn)btn.style.display='none'; if(pill)pill.style.display='none'; return; }
+      const claims=(entry.status&&typeof entry.status==='string')? (()=>{try{const s=JSON.parse(entry.status); return s.claims||[];}catch(e){return [];}} )() : ((entry.status&&entry.status.claims)||[]);
+      const already=claims.some(c=>c && c.user_id===currentUser.id);
+      if(btn){ btn.style.display=(currentUser&&!already)?'inline-block':'none'; }
+      if(pill){ pill.textContent=already?'Claimed':'Unclaimed'; pill.className='pill claim-pill'+(already?' claimed':''); pill.style.display='inline-block'; }
     }
-
     async function claimShipment(code){
-      if (!currentUser){
-        pendingClaimCode = code;
-        showAlert('info', 'Log in or create an account to claim this shipment.');
-        openAuth();
-        return;
-      }
-      if (!code) return;
-
-      const res = await db.from('tracking_entries').select('*').eq('tracking_code', code).maybeSingle();
-      if (res.error){ toast('Could not claim shipment: ' + res.error.message); return; }
-      if (!res.data){ toast('This sample shipment cannot be claimed. Create a real shipment in the admin portal.'); return; }
-
-      const fresh = modelFromRow(res.data);
-      const existingClaim = (fresh.claims || []).find(c => String(c.user_id) === String(currentUser.id));
-      if (existingClaim){
-        currentEntry = fresh;
-        updateClaimUI(fresh);
-        await loadMyShipments();
-        const when = existingClaim.claimed_at ? fmtDate(existingClaim.claimed_at) : '';
-        toast('You already claimed this shipment' + (when ? ' on ' + when : '') + '.');
-        return;
-      }
-
-      const claim = {
-        user_id: currentUser.id,
-        claimed_at: new Date().toISOString(),
-        name: (currentUser.user_metadata && currentUser.user_metadata.full_name) || '',
-        email: currentUser.email || ''
-      };
-      fresh.claims = (fresh.claims || []).concat([claim]);
-      if (!fresh.claimed_by) fresh.claimed_by = currentUser.id;
-      if (!fresh.claimed_at) fresh.claimed_at = claim.claimed_at;
-
-      const update = {
-        status: JSON.stringify(metaFromModel(fresh))
-      };
-      if (!res.data.user_id) update.user_id = currentUser.id;
-
-      const upd = await db.from('tracking_entries')
-        .update(update)
-        .eq('tracking_code', code)
-        .select();
-
-      if (upd.error){ toast('Could not claim shipment: ' + upd.error.message); return; }
-      if (!upd.data || !upd.data.length){
-        toast('Could not save your claim. Please try again.');
-        return;
-      }
-
-      const saved = modelFromRow(upd.data[0]);
-      const savedClaim = (saved.claims || []).find(c => String(c.user_id) === String(currentUser.id));
-      if (!savedClaim){
-        toast('Another claim was saved at the same time. Please try again.');
-        return;
-      }
-
-      currentEntry = saved;
-      updateClaimUI(currentEntry);
-      await loadMyShipments();
-      toast('Shipment claimed. It is now saved under My shipments.');
+      if(!currentUser){ pendingClaimCode=code; openAuth(); return; }
+      try{
+        const res=await db.from('tracking_entries').select('*').eq('tracking_code',code).maybeSingle();
+        if(res.error) throw new Error(res.error.message);
+        const entry=res.data;
+        const st=typeof entry.status==='string'?JSON.parse(entry.status||'{}'):(entry.status||{});
+        const claims=st.claims||[];
+        if(claims.some(c=>c&&c.user_id===currentUser.id)){ toast('You already claimed this shipment.'); return; }
+        claims.push({ user_id:currentUser.id, user_email:currentUser.email||'', claimed_at:new Date().toISOString() });
+        st.claims=claims;
+        await db.from('tracking_entries').update({ status:JSON.stringify(st) }).eq('tracking_code',code);
+        toast('Shipment claimed.');
+        currentEntry=await (await db.from('tracking_entries').select('*').eq('tracking_code',code).maybeSingle()).data;
+        renderResult(currentEntry, currentImages);
+        loadMyShipments();
+      }catch(e){ toast('Could not claim shipment: '+e.message); }
     }
 
-    document.getElementById('btn-claim').addEventListener('click', () => {
-      if (!currentEntry) return;
-      if (currentEntry._demo){ toast('This is a sample shipment. Create a real shipment in the admin portal.'); return; }
-      claimShipment(currentEntry.tracking_code);
+    async function track(code){
+      emptyHint.style.display='none'; notfound.classList.remove('show'); resultEl.classList.remove('show'); currentEntry=null; currentImages=[];
+      let row=null, images=[], dbError=null;
+      try{
+        const res=await db.from('tracking_entries').select('*').eq('tracking_code',code).maybeSingle();
+        if(res.error) dbError=res.error;
+        if(res.data) row=res.data;
+        if(res.data){ const imgs=await db.from('tracking_images').select('*').eq('tracking_code',code); if(!imgs.error&&imgs.data) images=imgs.data.map(parseImage); }
+      }catch(e){ dbError=e; }
+      if(dbError){ toast('Tracking error: '+dbError.message); return; }
+      if(!row){
+        // Demo fallback so the sample number always works for demonstration.
+        if(code==='123456789012'){ currentEntry=demoModel(); currentImages=[]; renderResult(currentEntry, currentImages); return; }
+        notfound.classList.add('show'); return;
+      }
+      if(isSupportRow(row)){ notfound.classList.add('show'); notfound.querySelector('p').textContent='This tracking number is not a shipment.'; return; }
+      currentEntry=row; currentImages=images;
+      renderResult(row, images);
+    }
+    function parseImage(img){ return { image_url: img.image_url || img.url, label: img.label || (img.kind==='shipment'?'Shipment image':'Proof of delivery'), kind: img.kind || 'shipment' }; }
+
+    document.querySelectorAll('.track-tabs button').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        document.querySelectorAll('.track-tabs button').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+      });
     });
-
-    /* ================= Live customer service ================= */
-    function supportCode(user){ return SUPPORT_PREFIX + user.id; }
-    function chatId(){
-      if (window.crypto && typeof crypto.randomUUID === 'function') return crypto.randomUUID();
-      return 'm-' + Date.now() + '-' + Math.random().toString(16).slice(2);
-    }
-    function fmtChatTime(at){
-      const d = new Date(at);
-      if (isNaN(d)) return '';
-      const today = new Date();
-      const day = d.toDateString() === today.toDateString()
-        ? 'Today'
-        : d.toLocaleDateString('en-US', { month:'short', day:'numeric' });
-      return day + ' · ' + d.toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' });
-    }
-    function supportThreadFromRow(row){
-      const meta = parseMeta(row.status);
-      const messages = Array.isArray(meta.messages)
-        ? meta.messages.filter(m => m && m.body).map(m => Object.assign({}, m))
-        : [];
-      messages.sort((a, b) => new Date(a.at || 0) - new Date(b.at || 0));
-      return {
-        code: row.tracking_code,
-        user_id: row.user_id,
-        user_name: meta.user_name || '',
-        user_email: meta.user_email || '',
-        messages: messages,
-        created_at: row.created_at,
-        updated_at: meta.updated_at || row.created_at
-      };
-    }
-    function supportMeta(thread){
-      return {
-        kind: 'support_chat',
-        user_name: thread.user_name || '',
-        user_email: thread.user_email || '',
-        messages: thread.messages || [],
-        updated_at: thread.updated_at || new Date().toISOString()
-      };
-    }
-    function supportDisplayName(){
-      if (!currentUser) return 'Customer';
-      return (currentUser.user_metadata && currentUser.user_metadata.full_name) ||
-        currentUser.email || 'Customer';
-    }
-    function supportUnreadForUser(thread){
-      if (!thread) return 0;
-      return (thread.messages || []).filter(m => m.role === 'admin' && !m.read_by_user).length;
-    }
-    function updateSupportBadge(count){
-      const badge = document.getElementById('cs-badge');
-      const launcher = document.getElementById('cs-launcher');
-      if (!badge) return;
-      if (count > 0){
-        badge.textContent = count > 9 ? '9+' : String(count);
-        badge.style.display = 'flex';
-      } else {
-        badge.style.display = 'none';
-      }
-      if (launcher) launcher.setAttribute('aria-label', count > 0 ? 'Chat with customer service (' + count + ' new)' : 'Chat with customer service');
-    }
-    function renderSupportChat(){
-      const messagesEl = document.getElementById('cs-messages');
-      const form = document.getElementById('cs-form');
-      const login = document.getElementById('cs-login');
-      if (!messagesEl) return;
-      if (!currentUser){
-        messagesEl.innerHTML = '<p class="cs-empty">Log in to start a live chat with FedEx customer service.</p>';
-        if (form) form.style.display = 'none';
-        if (login) login.style.display = 'block';
-        updateSupportBadge(0);
-        return;
-      }
-      if (form) form.style.display = 'flex';
-      if (login) login.style.display = 'none';
-      const messages = (csThread && csThread.messages) || [];
-      messagesEl.innerHTML = messages.length
-        ? messages.map(m => {
-            const mine = m.role === 'user';
-            return '<div class="cs-msg ' + (mine ? 'cs-msg-user' : 'cs-msg-admin') + '">' +
-              '<div class="cs-bubble">' + escHtml(m.body) + '</div>' +
-              '<div class="cs-time">' + (mine ? 'You' : 'FedEx Support') + ' · ' + escHtml(fmtChatTime(m.at)) + '</div>' +
-            '</div>';
-          }).join('')
-        : '<p class="cs-empty">Hi! How can we help with your shipment today? Send us a message and a support agent will reply here.</p>';
-      const unread = supportUnreadForUser(csThread);
-      updateSupportBadge(unread);
-      messagesEl.scrollTop = messagesEl.scrollHeight;
-    }
-    async function markSupportReadForUser(){
-      if (!currentUser || !csThread) return;
-      const hasUnread = (csThread.messages || []).some(m => m.role === 'admin' && !m.read_by_user);
-      if (!hasUnread) return;
-      csThread.messages = csThread.messages.map(m => m.role === 'admin' ? Object.assign({}, m, { read_by_user:true }) : m);
-      renderSupportChat();
-      try {
-        await db.from('tracking_entries')
-          .update({ status: JSON.stringify(supportMeta(csThread)) })
-          .eq('tracking_code', csThread.code);
-      } catch(e){}
-    }
-    async function loadSupportThread(silent){
-      if (!currentUser){ csThread = null; renderSupportChat(); return; }
-      if (csLoading) return;
-      csLoading = true;
-      try {
-        const code = supportCode(currentUser);
-        const res = await db.from('tracking_entries').select('*').eq('tracking_code', code).maybeSingle();
-        if (res.error){
-          if (!silent) toast('Could not load customer service: ' + res.error.message);
-          return;
-        }
-        if (res.data && isSupportRow(res.data)){
-          csThread = supportThreadFromRow(res.data);
-        } else if (!res.data){
-          csThread = { code: code, messages: [], user_name: supportDisplayName(), user_email: currentUser.email || '', created_at: null, updated_at: null };
-        } else {
-          csThread = { code: code, messages: [], user_name: supportDisplayName(), user_email: currentUser.email || '', created_at: null, updated_at: null };
-        }
-        renderSupportChat();
-        if (csOpen) await markSupportReadForUser();
-      } catch(e){
-        if (!silent) toast('Could not load customer service. Please try again.');
-      } finally {
-        csLoading = false;
-      }
-    }
-    async function sendSupportMessage(body){
-      if (!currentUser){ openAuth(); return; }
-      body = String(body || '').trim();
-      if (!body) return;
-      const btn = document.getElementById('cs-send');
-      const input = document.getElementById('cs-input');
-      if (btn){ btn.disabled = true; btn.textContent = 'Sending…'; }
-      try {
-        const code = supportCode(currentUser);
-        const res = await db.from('tracking_entries').select('*').eq('tracking_code', code).maybeSingle();
-        if (res.error) throw new Error(res.error.message);
-        let thread;
-        if (res.data){
-          if (!isSupportRow(res.data)) throw new Error('This support channel is unavailable.');
-          thread = supportThreadFromRow(res.data);
-        } else {
-          thread = { code: code, messages: [], user_name: supportDisplayName(), user_email: currentUser.email || '', created_at: null, updated_at: null };
-        }
-        const msg = {
-          id: chatId(),
-          role: 'user',
-          body: body,
-          at: new Date().toISOString(),
-          read_by_admin: false,
-          read_by_user: true
-        };
-        thread.messages.push(msg);
-        thread.updated_at = msg.at;
-        thread.user_name = thread.user_name || supportDisplayName();
-        thread.user_email = thread.user_email || currentUser.email || '';
-        const meta = supportMeta(thread);
-        let write;
-        if (res.data){
-          write = await db.from('tracking_entries')
-            .update({ status: JSON.stringify(meta) })
-            .eq('tracking_code', code)
-            .select();
-        } else {
-          write = await db.from('tracking_entries')
-            .insert([{ tracking_code: code, user_id: currentUser.id, carrier: 'support_chat', status: JSON.stringify(meta) }])
-            .select();
-        }
-        if (write.error) throw new Error(write.error.message);
-        csThread = thread;
-        if (input) input.value = '';
-        renderSupportChat();
-        if (csOpen) await markSupportReadForUser();
-      } catch(e){
-        toast('Could not send your message: ' + e.message);
-      } finally {
-        if (btn){ btn.disabled = false; btn.textContent = 'Send'; }
-      }
-    }
-    function openSupportChat(){
-      const widget = document.getElementById('cs-widget');
-      const panel = document.getElementById('cs-panel');
-      const launcher = document.getElementById('cs-launcher');
-      if (!widget || !panel) return;
-      csOpen = true;
-      widget.classList.add('open');
-      panel.classList.add('open');
-      if (launcher) launcher.setAttribute('aria-expanded', 'true');
-      renderSupportChat();
-      if (currentUser){
-        loadSupportThread(true);
-        setTimeout(() => { const input = document.getElementById('cs-input'); if (input) input.focus(); }, 80);
-      }
-    }
-    function closeSupportChat(){
-      const widget = document.getElementById('cs-widget');
-      const panel = document.getElementById('cs-panel');
-      const launcher = document.getElementById('cs-launcher');
-      csOpen = false;
-      if (widget) widget.classList.remove('open');
-      if (panel) panel.classList.remove('open');
-      if (launcher) launcher.setAttribute('aria-expanded', 'false');
-    }
-    function initSupportChat(){
-      const launcher = document.getElementById('cs-launcher');
-      if (!launcher) return;
-      renderSupportChat();
-      if (currentUser){
-        loadSupportThread(true);
-        if (!csPollTimer){
-          csPollTimer = setInterval(() => {
-            if (document.visibilityState !== 'visible') return;
-            loadSupportThread(true);
-          }, 4000);
-        }
-      } else {
-        if (csPollTimer){ clearInterval(csPollTimer); csPollTimer = null; }
-        csThread = null;
-        renderSupportChat();
-      }
-    }
-    const csLauncher = document.getElementById('cs-launcher');
-    if (csLauncher) csLauncher.addEventListener('click', () => {
-      if (csOpen) closeSupportChat(); else openSupportChat();
-    });
-    const csClose = document.getElementById('cs-close');
-    if (csClose) csClose.addEventListener('click', closeSupportChat);
-    const csForm = document.getElementById('cs-form');
-    if (csForm) csForm.addEventListener('submit', (e) => {
+    trackForm.addEventListener('submit',async(e)=>{
       e.preventDefault();
-      const input = document.getElementById('cs-input');
-      const body = input ? input.value.trim() : '';
-      if (!body) return;
-      sendSupportMessage(body);
+      const code=codeInput.value.trim(); if(!code) return;
+      trackBtn.disabled=true; trackBtn.textContent='Tracking…';
+      await track(code);
+      trackBtn.disabled=false; trackBtn.textContent='Track';
     });
-    window.openSupportChat = openSupportChat;
-    window.closeSupportChat = closeSupportChat;
 
-    window.showDemo = async function(){
-      notfound.classList.remove('show');
-      await track('123456789012');
-    };
+    /* ---------- My shipments ---------- */
+    async function loadMyShipments(){
+      if(!currentUser) return;
+      const grid=document.getElementById('my-shipments'); if(!grid) return;
+      grid.innerHTML='<p class="empty" style="margin:0">Loading…</p>';
+      try{
+        const { data, error }=await db.from('tracking_entries').select('*').eq('user_id',currentUser.id).order('created_at',{ascending:false});
+        if(error) throw new Error(error.message);
+        const shipments=(data||[]).filter(r=>!isSupportRow(r));
+        if(!shipments.length){ grid.innerHTML='<p class="empty" style="margin:0">No claimed shipments yet.</p>'; return; }
+        grid.innerHTML=shipments.map(r=>{
+          const st=typeof r.status==='string'?JSON.parse(r.status||'{}'):(r.status||{});
+          const claims=st.claims||[];
+          const claimed=claims.some(c=>c&&c.user_id===currentUser.id);
+          if(!claimed) return '';
+          const stage=r.stage||'carrier_2';
+          return '<a href="#" class="my-ship" onclick="event.preventDefault(); track(\''+escHtml(r.tracking_code)+'\'); return false;">'+
+            '<div class="my-ship-top"><span class="my-ship-route">'+escHtml((r.origin||'Origin')+' → '+(r.destination||'Dest'))+'</span><span class="my-ship-date">'+fmtDate(r.created_at)+'</span></div>'+
+            '<div class="my-ship-loc">'+escHtml(r.current_location||'')+'</div>'+
+            '<div class="my-ship-date">Stage: '+stageLabel(stage)+'</div>'+
+            '</a>';
+        }).join('');
+      }catch(e){ grid.innerHTML='<p class="empty" style="margin:0">Unable to load shipments.</p>'; }
+    }
 
-    /* Buttons */
-    document.getElementById('btn-share').addEventListener('click', async () => {
-      const url = window.location.href;
-      try { await navigator.clipboard.writeText(url); toast('Tracking link copied to clipboard.'); }
-      catch(e){ prompt('Copy this tracking link:', url); }
-    });
-    document.getElementById('btn-proof').addEventListener('click', () => {
-      const panel = document.getElementById('proof-panel');
-      const hasImages = document.getElementById('r-proof').children.length > 0;
-      if (hasImages){
-        panel.scrollIntoView({ behavior:'smooth', block:'start' });
-      } else {
-        toast('Proof of delivery is available after the package is delivered. No image is on file yet.');
+    /* ---------- UI wiring ---------- */
+    (function(){
+      // menu
+      function openFxMenu(){ if(!fxMenu) return; fxMenu.classList.add('open'); if(menuToggle) menuToggle.setAttribute('aria-expanded','true'); }
+      function closeFxMenu(){ if(!fxMenu) return; fxMenu.classList.remove('open'); if(menuToggle) menuToggle.setAttribute('aria-expanded','false'); }
+      if(menuToggle){ menuToggle.addEventListener('click',(e)=>{ e.preventDefault(); if(fxMenu.classList.contains('open')) closeFxMenu(); else openFxMenu(); }); }
+      document.addEventListener('click',(e)=>{ if(fxMenu&&fxMenu.classList.contains('open')&&!fxMenu.contains(e.target)&&!menuToggle.contains(e.target)) closeFxMenu(); });
+      window.addEventListener('resize',()=>{ if(window.innerWidth>720) closeFxMenu(); });
+
+      // get status updates
+      const updatesBtn=document.getElementById('fx-updates-btn'); const updatesForm=document.createElement('div'); // toggle handled inline
+      let updatesOpen=false;
+      if(updatesBtn){
+        updatesBtn.addEventListener('click',(e)=>{
+          e.preventDefault(); updatesOpen=!updatesOpen;
+          // simple: show a small mailto hint via toast since reference is static
+          toast('Open your email app to receive status updates.');
+        });
       }
-    });
 
-    /* Boot */
-    (async function init(){
-      await refreshUser();
-      db.auth.onAuthStateChange(() => refreshUser());
-      const params = new URLSearchParams(window.location.search);
-      const code = params.get('code');
-      if (code){ codeInput.value = code; await track(code); }
-      if (params.get('chat') === '1') openSupportChat();
+      // auth modal
+      authModal.addEventListener('click',e=>{ if(e.target===authModal) closeAuth(); });
+      document.getElementById('login-form').addEventListener('submit',async(e)=>{
+        e.preventDefault();
+        const email=document.getElementById('login-email').value; const password=document.getElementById('login-password').value;
+        try{ await signIn(email,password); closeAuth(); if(pendingClaimCode){ const c=pendingClaimCode; pendingClaimCode=null; await claimShipment(c); } }
+        catch(e){ showAlert('error',e.message||'Login failed.'); }
+      });
+      document.getElementById('signup-form').addEventListener('submit',async(e)=>{
+        e.preventDefault();
+        const name=document.getElementById('signup-name').value; const email=document.getElementById('signup-email').value; const password=document.getElementById('signup-password').value;
+        try{ await signUp(name,email,password); }
+        catch(e){ showAlert('error',e.message||'Signup failed.'); }
+      });
+      document.getElementById('hdr-logout').addEventListener('click',async(e)=>{ e.preventDefault(); await signOut(); });
+      document.getElementById('acct-signout').addEventListener('click',async()=>{ await signOut(); });
+      utilityAccount.addEventListener('click',(e)=>{ e.preventDefault(); if(currentUser) document.getElementById('account-panel').scrollIntoView({behavior:'smooth',block:'start'}); else openAuth(); });
+
+      // claim / share / proof
+      document.getElementById('btn-claim').addEventListener('click',()=>{ claimShipment(currentEntry.tracking_code); });
+      document.getElementById('btn-share').addEventListener('click',async()=>{
+        const url=window.location.href;
+        try{ await navigator.clipboard.writeText(url); toast('Tracking link copied to clipboard.'); }catch(e){ prompt('Copy this tracking link:', url); }
+      });
+      document.getElementById('btn-proof').addEventListener('click',()=>{
+        const panel=document.getElementById('proof-panel');
+        panel.style.display = panel.style.display==='block'?'none':'block';
+      });
+
+      // chat
+      const csLauncher=document.getElementById('cs-launcher'); const csClose=document.getElementById('cs-close'); const csForm=document.getElementById('cs-form');
+      if(csLauncher) csLauncher.addEventListener('click',()=>{ if(csOpen) closeSupportChat(); else openSupportChat(); });
+      if(csClose) csClose.addEventListener('click',closeSupportChat);
+      if(csForm) csForm.addEventListener('submit',(e)=>{ e.preventDefault(); const input=document.getElementById('cs-input'); const body=input?input.value.trim():''; if(!body) return; sendSupportMessage(body); });
+      window.openSupportChat=openSupportChat; window.closeSupportChat=closeSupportChat;
+      window.showDemo=async function(){ notfound.classList.remove('show'); await track('123456789012'); };
+
+      // url params
+      (async()=>{
+        const params=new URLSearchParams(window.location.search);
+        const code=params.get('code');
+        if(code){ codeInput.value=code; await track(code); }
+        if(params.get('chat')==='1') openSupportChat();
+      })();
     })();
-  
   </script>
 </body>
 </html>
