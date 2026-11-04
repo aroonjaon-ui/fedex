@@ -7,68 +7,52 @@
   <meta name="description" content="Track your FedEx package and view delivery progress, shipment facts, and travel history.">
   <link rel="icon" type="image/png" href="images/fedex-logo.png">
   <link rel="stylesheet" href="assets/site.css?v=5">
-  <link rel="stylesheet" href="assets/tracking-extra.css?v=1">
+  <link rel="stylesheet" href="assets/tracking-extra.css?v=2">
   <script src="assets/site.js?v=1" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-
-  <!-- Utility bar -->
-  <div class="utility-bar">
-    <div class="utility-inner">
-      <div class="utility-left">
-        <a href="index.html">United States</a>
-        <a href="#">English</a>
-      </div>
-      <div class="utility-right">
-        <a href="index.html">Home</a>
-        <span style="color:#d1d1d8">|</span>
-        <a class="strong" href="#" id="utility-account">My account</a>
-      </div>
-    </div>
-  </div>
 
   <!-- Purple header (reference style) -->
   <header class="fx-header" id="fx-header">
     <div class="fx-header-inner">
       <a class="fx-logo" href="index.html" aria-label="FedEx home"><span class="fed">Fed</span><span class="ex">Ex</span><sup>®</sup></a>
       <div class="fx-header-right">
-        <a class="header-account admin-link" id="hdr-admin" href="admin-portal.html" style="display:none">Admin dashboard</a>
-        <span class="header-account" id="hdr-user" style="display:none"></span>
-        <a class="header-account" id="hdr-logout" href="#" style="display:none">Sign out</a>
-        <a class="header-cta" id="hdr-login" href="#" onclick="openAuth(); return false;">Log In / Sign Up</a>
-        <button class="fx-icon-btn" id="menu-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="fx-menu">☰</button>
+        <button class="fx-account-btn" id="fx-account-btn" type="button" aria-label="Account" aria-expanded="false" aria-controls="fx-account-menu">👤</button>
+        <button class="fx-menu-btn" id="fx-menu-btn" type="button" aria-label="Open menu">☰</button>
       </div>
     </div>
   </header>
 
-  <!-- Dropdown menu -->
-  <div class="fx-menu" id="fx-menu" aria-label="Site menu">
-    <button class="fx-menu-item" onclick="closeFxMenu(); window.location.href='index.html#services';">Ship</button>
-    <button class="fx-menu-item active" onclick="closeFxMenu(); window.location.href='tracking-user.html';">Track</button>
-    <button class="fx-menu-item" onclick="closeFxMenu(); window.location.href='index.html#services';">Print</button>
-    <button class="fx-menu-item" onclick="closeFxMenu(); window.location.href='index.html#locations';">Locations</button>
-    <button class="fx-menu-item" onclick="closeFxMenu(); window.location.href='index.html#support';">Support</button>
-    <div style="height:14px"></div>
-    <button class="fx-menu-item" id="mobile-account" data-open-auth onclick="closeFxMenu(); openAuth();">Log In / Sign Up</button>
-    <button class="fx-menu-item" id="mobile-admin" style="display:none" onclick="closeFxMenu(); window.location.href='admin-portal.html';">Admin dashboard</button>
+  <!-- Account dropdown -->
+  <div class="fx-menu" id="fx-account-menu" aria-label="Account menu">
+    <button class="fx-menu-item" onclick="closeFxMenu(); window.location.href='tracking-user.html';">Live Tracking — In Transit</button>
+    <button class="fx-menu-item" onclick="closeFxMenu(); window.location.href='tracking-user.html?view=delivered';">Live Tracking — Delivered</button>
+    <button class="fx-menu-item" onclick="closeFxMenu(); window.location.href='tracking-user.html?view=history';">Shipment History</button>
+    <button class="fx-menu-item" id="fx-get-updates" onclick="closeFxMenu(); toggleUpdates();">Get Status Updates</button>
   </div>
 
-  <!-- Get status updates bar -->
+  <!-- Get Status Updates bar -->
   <div class="fx-updates" id="fx-updates">
-    <button class="fx-updates-btn" id="fx-updates-btn" aria-label="Get status updates">
+    <button class="fx-updates-btn" id="fx-updates-btn" type="button" aria-label="Get status updates">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4h16v16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM22 6l-10 -10L2 6l10 10z" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Get Status Updates
     </button>
   </div>
 
-  <!-- Page shell -->
-  <div class="fx-page">
-    <div class="fx-wrap">
+  <!-- Email signup form (updates) -->
+  <div id="fx-updates-form" style="display:none;margin:0 27px;padding:16px;border:1px solid var(--fx-gray-300);border-radius:10px;background:#fff;display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+    <label for="fx-updates-email" style="font-size:13px;color:#374151;margin:0">Receive tracking updates by email</label>
+    <input id="fx-updates-email" type="email" required placeholder="Email address" style="min-width:0;flex:1;padding:9px 12px;border:1px solid var(--fx-gray-300);border-radius:6px;font-size:15px">
+    <button type="button" id="fx-updates-signup" style="background:var(--fx-purple);color:#fff;padding:0 16px;border-radius:6px;font-weight:700;font-size:14px">Sign up</button>
+  </div>
+
+  <!-- Page shell (max-w-[591px]) -->
+  <div class="track-page">
+    <div class="fx-wrap" style="padding-bottom:110px">
 
       <!-- Track search -->
       <section class="fx-section" id="fx-search-section">
-        <h1 class="fx-h1">Track your package</h1>
         <form id="track-form">
           <div class="track-tabs">
             <button type="button" class="active" data-mode="number">Tracking number</button>
@@ -76,8 +60,8 @@
             <button type="button" data-mode="doortag">Door tag</button>
           </div>
           <div class="fx-id-row">
-            <input class="input" id="tracking-code" type="text" placeholder="Enter your tracking number" autocomplete="off" aria-label="Tracking number" required>
-            <button class="btn" type="submit" id="track-btn">Track</button>
+            <input class="input" id="tracking-code" type="text" placeholder="Enter your tracking number" autocomplete="off" aria-label="Tracking number" required style="width:158px;border-bottom:1px solid var(--fx-input-border);font-size:20px;font-weight:400;line-height:1;padding:0">
+            <button class="btn" type="submit" id="track-btn" style="background:none;border:none;color:#fff;padding:0 22px;font-size:16px;font-weight:700;border-radius:6px;background:var(--fx-purple);height:43px">Track</button>
           </div>
         </form>
         <p class="track-search-note" style="margin-top:12px;font-size:13px;color:#6b7280">
@@ -105,7 +89,7 @@
           <div class="account-body">
             <h3>My shipments</h3>
             <div class="my-ship-grid" id="my-shipments">
-              <p class="empty" style="margin:0">No claimed shipments yet. Track a package and click “Claim this shipment”.</p>
+              <p class="empty" style="margin:0">No claimed shipments yet.</p>
             </div>
           </div>
         </section>
@@ -124,32 +108,22 @@
 
         <!-- Result (reference PendingTracking style) -->
         <div class="result" id="result">
-          <div class="ship-head">
-            <div class="tn">Tracking number <b id="r-code">—</b></div>
-            <div class="actions">
-              <span class="pill claim-pill" id="r-claim-pill" style="display:none"></span>
-              <button class="btn btn-outline btn-sm" id="btn-claim" style="display:none">Claim this shipment</button>
-              <button class="btn btn-outline btn-sm" id="btn-proof">Obtain proof of delivery</button>
-              <button class="btn btn-outline btn-sm" id="btn-share">Share</button>
-            </div>
-          </div>
-
-          <!-- Pending heading + expected date (reference style) -->
-          <h2 class="fx-h1" id="r-status-heading">Pending</h2>
+          <!-- Pending heading + expected date -->
+          <h1 class="fx-h1-pending" id="r-status-heading">Pending</h1>
           <p class="fx-expected" id="r-expected">Initially expected: —</p>
 
           <!-- Status badge -->
           <div class="fx-badge" id="r-badge" style="display:none">Delayed</div>
 
-          <!-- Delivery status inline -->
-          <h2 class="fx-h2">Delivery Status</h2>
+          <!-- Delivery Status inline -->
+          <h2 class="fx-h2" id="r-status-h2">DELIVERY STATUS</h2>
           <div class="fx-status-inline">
             <span id="r-status-inline">In transit</span>
             <span class="fx-exclaim" id="r-exclaim" style="display:none">!</span>
           </div>
 
-          <!-- Action required inline -->
-          <h2 class="fx-h2" id="r-action-heading" style="display:none">Action Required</h2>
+          <!-- Action Required inline -->
+          <h2 class="fx-h2" id="r-action-heading" style="display:none">ACTION REQUIRED</h2>
           <div class="fx-action-inline" id="r-action-inline" style="display:none">
             <span id="r-action-text">Adult Signature Required</span>
             <button class="fx-help" id="r-help-btn" aria-label="About adult signature">
@@ -159,71 +133,56 @@
           <p class="fx-help-text" id="r-help-text" style="display:none">An adult must be present to sign for this delivery.</p>
 
           <!-- Tracking ID row (NO pen icon) -->
-          <h2 class="fx-h2">Tracking ID</h2>
+          <h2 class="fx-h2">TRACKING ID</h2>
           <div class="fx-id-row">
             <span class="fx-id-value" id="r-tracking-id">—</span>
             <button class="fx-save-star" id="r-save-star" aria-label="Save shipment">★</button>
           </div>
 
           <!-- Vertical timeline -->
-          <div class="fx-vline" id="fx-vline"></div>
-          <div class="fx-timeline" id="fx-timeline"></div>
+          <div class="fx-vline-wrap" id="fx-timeline-wrap">
+            <div class="fx-vline" id="fx-vline"></div>
+            <div class="fx-vline-current" id="fx-vline-current" style="display:none"></div>
+            <div id="fx-timeline"></div>
+          </div>
 
           <div class="panel">
             <div class="panel-head">
               <h2>Shipment facts</h2>
-              <span class="pill" id="r-service-pill">FedEx Express</span>
+              <span class="pill" id="r-service-pill">FedEx Express</span>\n            <span class="mono" id="r-scans-count" style="font-size:12px;color:#6b7280;margin-left:8px">0 scans</span>
             </div>
             <div class="facts" id="r-facts"></div>
           </div>
 
-          <div class="panel">
-            <div class="panel-head">
-              <h2>Travel history</h2>
-              <span class="pill" id="r-scans-count">0 scans</span>
+          <!-- Delivery controls (reference style) -->
+          <div class="fx-delivery" id="fx-delivery" style="display:none">
+            <div class="fx-delivery-section">
+              <button class="fx-accordion" id="fx-acc-manage" type="button">
+                Manage Delivery
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="fx-accordion-body" id="fx-acc-manage-body" style="display:none"></div>
             </div>
-            <div class="panel-body" id="r-history"></div>
+            <div class="fx-delivery-section">
+              <button class="fx-accordion" id="fx-acc-facts" type="button">
+                Shipment facts
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="fx-accordion-body" id="fx-acc-facts-body" style="display:none"></div>
+            </div>
           </div>
 
-          <div class="panel" id="shipment-images-panel" style="display:none">
-            <div class="panel-head">
-              <h2>Shipment images</h2>
-              <span class="pill" id="r-ship-img-count"></span>
-            </div>
-            <div class="panel-body">
-              <div class="proof-grid" id="r-ship-images"></div>
-            </div>
-          </div>
-
-          <div class="panel" id="proof-panel" style="display:none">
-            <div class="panel-head"><h2>Proof of delivery</h2></div>
-            <div class="panel-body">
-              <div class="proof-grid" id="r-proof"></div>
-              <p id="r-proof-empty" style="display:none;color:#6b7280;font-size:14px;margin:0">
-                No proof-of-delivery image is available for this shipment yet.
-              </p>
-            </div>
+          <!-- Support widget -->
+          <div class="fx-support" id="fx-support">
+            <button class="fx-support-btn" id="fx-support-btn" type="button" aria-label="Customer support" aria-expanded="false">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2-2z"/><path d="M9 7h1"/><path d="M9 11h1"/><path d="M9 15h1"/></svg>
+            </button>
+            <section class="fx-support-panel" id="fx-support-panel" aria-label="Customer service chat">
+              <h2>FedEx Support</h2>
+              <p id="fx-support-msg">Your shipment is delayed and in transit. For help with this shipment, contact FedEx customer support at 1-800-463-3339.</p>
+            </section>
           </div>
         </div>
-
-        <!-- Delivery controls (reference style) -->
-        <div class="fx-delivery" id="fx-delivery" style="display:none">
-          <section>
-            <button class="fx-accordion" id="fx-acc-manage" type="button">
-              Manage Delivery
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><polyline points="6 9 12 15 18 9"/></svg>
-            </button>
-            <div class="fx-accordion-body" id="fx-acc-manage-body" style="display:none"></div>
-          </section>
-          <section>
-            <button class="fx-accordion" id="fx-acc-facts" type="button">
-              Shipment facts
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><polyline points="6 9 12 15 18 9"/></svg>
-            </button>
-            <div class="fx-accordion-body" id="fx-acc-facts-body" style="display:none"></div>
-          </section>
-        </div>
-
       </main>
     </div>
   </div>
@@ -365,17 +324,29 @@
     const hdrLogout = document.getElementById('hdr-logout');
     const hdrUser = document.getElementById('hdr-user');
     const hdrAdmin = document.getElementById('hdr-admin');
-    const mobileAccount = document.getElementById('mobile-account');
-    const mobileAdmin = document.getElementById('mobile-admin');
     const utilityAccount = document.getElementById('utility-account');
-    const menuToggle = document.getElementById('menu-toggle');
-    const fxMenu = document.getElementById('fx-menu');
     const resultEl = document.getElementById('result');
     const notfound = document.getElementById('notfound');
     const emptyHint = document.getElementById('empty-hint');
     const trackForm = document.getElementById('track-form');
     const codeInput = document.getElementById('tracking-code');
     const trackBtn = document.getElementById('track-btn');
+
+    /* Account menu (reference) */
+    const fxMenuBtn = document.getElementById('fx-menu-btn');
+    const fxMenu = document.getElementById('fx-account-menu');
+    function openFxMenu(){ if(!fxMenu) return; fxMenu.classList.add('open'); }
+    function closeFxMenu(){ if(!fxMenu) return; fxMenu.classList.remove('open'); }
+    if(fxMenuBtn){ fxMenuBtn.addEventListener('click',(e)=>{ e.preventDefault(); if(fxMenu.classList.contains('open')) closeFxMenu(); else openFxMenu(); }); }
+    document.addEventListener('click',(e)=>{ if(fxMenu&&fxMenu.classList.contains('open')&&!fxMenu.contains(e.target)&&!fxMenuBtn.contains(e.target)) closeFxMenu(); });
+
+    /* Get status updates toggle */
+    let updatesOpen = false;
+    const updatesBtn = document.getElementById('fx-updates-btn');
+    const updatesForm = document.getElementById('fx-updates-form');
+    const updatesSignup = document.getElementById('fx-updates-signup');
+    if(updatesBtn){ updatesBtn.addEventListener('click',(e)=>{ e.preventDefault(); updatesOpen=!updatesOpen; if(updatesForm) updatesForm.style.display = updatesOpen ? 'flex' : 'none'; }); }
+    if(updatesSignup){ updatesSignup.addEventListener('click',()=>{ const email=document.getElementById('fx-updates-email').value; if(!email){alert('Please enter an email');return}; toast('Signed up for status updates at '+email); updatesOpen=false; if(updatesForm) updatesForm.style.display='none'; document.getElementById('fx-updates-email').value=''; }); }
 
     function escHtml(s){ return String(s===''||s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
     function fmtDate(iso){ if(!iso) return '—'; try{ return new Date(iso).toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'}); }catch(e){ return iso; } }
@@ -404,7 +375,7 @@
       pickup:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 18v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2"/></svg>',
       transit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 11 12 16 7 11"/><line x1="12" y1="16" x2="12" y2="11"/><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/></svg>',
       warehouse:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10h18v8H3z"/><path d="M3 10h18"/><path d="M9 14V8L12 12l-3 4"/></svg>',
-      truck:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 18h5l2-3-2-3H1a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3"/></svg>',
+      truck:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 18h5l2-3-2-3H1a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h12a1 1 0 0 1 1-1v3"/></svg>',
       check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>',
       alert:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
     };
@@ -505,20 +476,11 @@
     async function initUser(user){
       currentUser=user;
       if(user){
-        hdrLogout.style.display='inline-block'; hdrUser.textContent=user.email||'';
-        hdrLogin.style.display='none'; utilityAccount.textContent='My account ('+user.email+')';
-        mobileAccount.textContent='My account ('+user.email+')';
-        if(isAdminEmail(user.email)){ hdrAdmin.style.display='inline-block'; mobileAdmin.style.display='block'; document.getElementById('acct-admin').style.display='flex'; }
         document.getElementById('acct-name').textContent='Welcome back, '+(user.user_metadata&&user.user_metadata.full_name?user.user_metadata.full_name:user.email);
         document.getElementById('acct-email').textContent=user.email||'';
         document.getElementById('account-panel').style.display='block';
         loadMyShipments();
       } else {
-        hdrLogout.style.display='none'; hdrUser.textContent='';
-        hdrLogin.style.display='inline-block'; utilityAccount.textContent='My account';
-        mobileAccount.textContent='Log In / Sign Up';
-        hdrAdmin.style.display='none'; mobileAdmin.style.display='none';
-        document.getElementById('acct-admin').style.display='none';
         document.getElementById('account-panel').style.display='none';
       }
       csThread=null; renderSupportChat();
@@ -528,7 +490,7 @@
         csPollTimer=setInterval(()=>{ if(document.visibilityState==='visible') loadSupportThread(true); },4000);
       }
     }
-    function updateUI(){ /* re-evaluate auth state handled by onAuthStateChange */ }
+    function updateUI(){ }
     function openAuth(){ authModal.classList.add('show'); }
     function closeAuth(){ authModal.classList.remove('show'); }
     function showTab(tab){
@@ -542,7 +504,7 @@
     function showAlert(kind,msg){ authAlert.className='alert show alert-'+kind; authAlert.textContent=msg; }
 
     db.auth.onAuthStateChange(async (event,user)=>{ try{ if(event==='SIGNED_IN'||event==='TOKEN_REFRESHED'){ await initUser(user); } else if(event==='SIGNED_OUT'){ await initUser(null); } else { await initUser(user); } }catch(e){ console.error('auth state change error',e); } });
-    (async()=>{ try{ await initUser(db.auth.getUser? null : null); }catch(e){ console.error('init user error',e); } })();
+    (async()=>{ try{ const { data } = await db.auth.getUser(); await initUser(data.user); }catch(e){ console.error('init user error',e); await initUser(null); } })();
     window.onerror=function(msg,url,line,col,err){ console.error('GLOBAL ERROR',msg,err&&err.stack?err.stack.split('\n').slice(0,3).join('\n'):''); return false; };
     window.onunhandledrejection=function(e){ console.error('UNHANDLED REJECTION',e.reason&&e.reason.stack?e.reason.stack.split('\n').slice(0,3).join('\n'):e.reason); };
 
@@ -592,30 +554,42 @@
     function renderTimeline(events){
       const container=document.getElementById('fx-timeline');
       const vline=document.getElementById('fx-vline');
+      const vlineCurrent=document.getElementById('fx-vline-current');
       if(!container) return;
-      // latest event first (already sorted desc). Reference shows latest at top as current.
       const latest=events[0];
       const isDelivered=latest.stage==='delivered';
       let html='';
       events.forEach((ev,i)=>{
         const current=(i===0);
         const done=i>0;
-        const upcoming=false;
-        const dotLeft=current?33:40;
-        const dotSize=current?'width:44px;height:44px;left:33px;top:-8px;border:3px solid #695920;box-sizing:border-box':'width:8px;height:8px;left:40px;top:20px';
-        const dotBg=current?'#ffcc42':'#645220';
-        const dotHtml=current ? '<div style="position:absolute;left:33px;top:-8px;width:44px;height:44px;border-radius:50%;background:#ffcc42;border:3px solid #695920;box-sizing:border-box;display:grid;place-items:center;font-size:34px;font-weight:700;line-height:1;color:#292929">!</div>' : '<div class="fx-vdot" style="'+dotSize+';background:'+dotBg+';"></div>';
-        const contentClass='fx-vcontent'+(current?' current':(done?'':' upcoming'));
-        const locCls='fx-loc'; const timeCls='fx-time';
-        html += '<div class="fx-vstep '+(current?'current':(done?'done':'upcoming'))+'" style="padding-left:'+(current?103:103)+'px;padding-top:'+(current?13:0)+'px">'+dotHtml+
-          '<div class="'+contentClass+'">'+
-          '<h3>'+escHtml(ev.stage==='delivered'?'DELIVERED':(ev.desc||defaultEventText(ev.stage)).toUpperCase())+'</h3>'+
-          '<p class="'+locCls+'">'+escHtml(ev.loc||'')+'</p>'+
-          (ev.desc && !current ? '<p class="fx-desc">'+escHtml(ev.desc)+'</p>' : '') +
-          '<p class="'+timeCls+'">'+fmtTime(ev.when)+' · '+fmtDate(ev.when)+'</p>'+
-          '</div></div>';
+        if(current){
+          html += '<div class="fx-vstep current" style="padding-left:103px;padding-top:13px">'+
+            '<div class="fx-vdot-current" style="position:absolute;left:33px;top:-8px;width:44px;height:44px;background:#ffcc42;border:3px solid #695920;box-sizing:border-box;border-radius:50%;display:grid;place-items:center;font-size:34px;font-weight:700;line-height:1;color:var(--fx-ink)">!</div>'+
+            '<div class="fx-vcontent current">'+
+            '<h3>'+escHtml(ev.stage==='delivered'?'DELIVERED':(ev.desc||defaultEventText(ev.stage)).toUpperCase())+'</h3>'+
+            '<p class="fx-loc">'+escHtml(ev.loc||'')+'</p>'+
+            '<p class="fx-time">'+fmtTime(ev.when)+' · '+fmtDate(ev.when)+'</p>'+
+            '</div></div>';
+        } else if(done){
+          html += '<div class="fx-vstep done" style="padding-left:103px">'+
+            '<div class="fx-vdot" style="position:absolute;left:40px;top:20px;width:8px;height:8px;border-radius:50%;background:#645220"></div>'+
+            '<div class="fx-vcontent">'+
+            '<h3>'+escHtml(ev.desc||defaultEventText(ev.stage)).toUpperCase()+'</h3>'+
+            '<p class="fx-loc">'+escHtml(ev.loc||'')+'</p>'+
+            '<p class="fx-time">'+fmtTime(ev.when)+' · '+fmtDate(ev.when)+'</p>'+
+            '</div></div>';
+        } else {
+          html += '<div class="fx-vstep upcoming" style="padding-left:103px">'+
+            '<div class="fx-vdot" style="position:absolute;left:40px;top:20px;width:8px;height:8px;border-radius:50%;background:#f5f7ee"></div>'+
+            '<div class="fx-vcontent upcoming">'+
+            '<h3 style="color:var(--fx-help-text)">'+escHtml(ev.desc||defaultEventText(ev.stage)).toUpperCase()+'</h3>'+
+            '<p class="fx-loc">'+escHtml(ev.loc||'')+'</p>'+
+            '<p class="fx-time">'+fmtTime(ev.when)+' · '+fmtDate(ev.when)+'</p>'+
+            '</div></div>';
+        }
       });
-      vline.style.display=events.length?'block':'none';
+      if(vline) vline.style.display = isDelivered ? 'none' : 'block';
+      if(vlineCurrent) vlineCurrent.style.display = isDelivered ? 'block' : 'none';
       container.innerHTML=html;
     }
 
@@ -632,29 +606,28 @@
       const loc=entry.current_location||'';
       const service=entry.service||'FedEx Express';
 
-      document.getElementById('r-code').textContent=code;
       document.getElementById('r-tracking-id').textContent=code;
 
-      // Pending heading + expected date
       const headingEl=document.getElementById('r-status-heading');
       headingEl.textContent=stage==='delivered'?'Delivered':(stage==='exception'?'Exception':stageLabel(stage));
+
       const expectedEl=document.getElementById('r-expected');
       if(stage==='delivered'){ expectedEl.textContent='Delivered on '+(deliveredDate||eta); }
       else if(stage==='exception'){ expectedEl.textContent='Delivery exception — see details below'; }
       else { expectedEl.textContent='Initially expected: '+eta; }
 
-      // Status badge (Delayed) — reference shows DELAYED for in-transit/pending
       const badgeEl=document.getElementById('r-badge');
       const isDelayed=stage!=='delivered'&&stage!=='exception'&&stage!=='label_created';
       badgeEl.style.display=isDelayed?'inline-flex':'none';
 
-      // Delivery status inline
+      const h2El=document.getElementById('r-status-h2');
+      h2El.textContent=stage==='delivered'?'DELIVERED':(stage==='exception'?'EXCEPTION':'DELIVERY STATUS');
+
       const inlineEl=document.getElementById('r-status-inline');
       const exclaimEl=document.getElementById('r-exclaim');
       inlineEl.textContent=stage==='delivered'?'Delivered':(stage==='exception'?'Delivery exception':stageLabel(stage));
       exclaimEl.style.display=(stage==='warehouse'||stage==='carrier_2'||stage==='carrier_3'||stage==='out_for_delivery')?'inline-flex':'none';
 
-      // Action required inline
       const actionHeadingEl=document.getElementById('r-action-heading');
       const actionInlineEl=document.getElementById('r-action-inline');
       const actionTextEl=document.getElementById('r-action-text');
@@ -671,7 +644,10 @@
       // timeline
       const events=normalizeEvents(entry);
       renderTimeline(events);
-      document.getElementById('r-scans-count').textContent=events.length+' scans';
+
+      // scans count
+      const scansEl=document.getElementById('r-scans-count');
+      if(scansEl) scansEl.textContent=events.length+' scans';
 
       // facts
       const facts=[
@@ -693,23 +669,15 @@
       document.getElementById('r-facts').innerHTML=facts.map(f=>'<div class="fact"><span class="k">'+escHtml(f[0])+'</span><span class="v">'+escHtml(f[1])+'</span></div>').join('');
       document.getElementById('r-service-pill').textContent=service;
 
-      // images
-      const shipmentImgs=(images||[]).filter(x=>x.kind==='shipment');
-      const proofImgs=(images||[]).filter(x=>x.kind!=='shipment');
-      const shipPanel=document.getElementById('shipment-images-panel'); const shipGrid=document.getElementById('r-ship-images');
-      if(shipmentImgs.length){ shipPanel.style.display='block'; document.getElementById('r-ship-img-count').textContent=shipmentImgs.length+(shipmentImgs.length===1?' image':' images'); shipGrid.innerHTML=shipmentImgs.map(x=>'<a href="'+escHtml(x.image_url)+'" target="_blank" rel="noopener"><img src="'+escHtml(x.image_url)+'" alt="'+escHtml(x.label||'Shipment image')+'"></a>').join(''); }
-      else { shipPanel.style.display='none'; shipGrid.innerHTML=''; }
-      const proofPanel=document.getElementById('proof-panel'); const proofGrid=document.getElementById('r-proof'); const proofEmpty=document.getElementById('r-proof-empty');
-      if(proofImgs.length){ proofPanel.style.display='block'; proofEmpty.style.display='none'; proofGrid.innerHTML=proofImgs.map(x=>'<a href="'+escHtml(x.image_url)+'" target="_blank" rel="noopener"><img src="'+escHtml(x.image_url)+'" alt="'+escHtml(x.label||'Proof of delivery')+'"></a>').join(''); }
-      else { proofGrid.innerHTML=''; proofEmpty.style.display='block'; proofPanel.style.display=status==='delivered'?'block':'none'; }
-
       // delivery controls content
       const del=document.getElementById('fx-delivery');
       const manageBody=document.getElementById('fx-acc-manage-body');
       const factsBody=document.getElementById('fx-acc-facts-body');
+      const supportMsg=document.getElementById('fx-support-msg');
       if(del){ del.style.display='block'; }
       if(manageBody){ manageBody.innerHTML = stage==='delivered' ? '<p>Your shipment was delivered on '+(deliveredDate||eta)+'.</p>' : '<p>Your shipment is delayed and in transit. An adult must be present to sign at delivery.</p>'; }
       if(factsBody){ factsBody.innerHTML = '<p>Tracking ID: '+code+'</p><p>Destination: '+dest+'</p><p>Status: '+(status==='delivered'?'Delivered':'In transit')+'</p>'; }
+      if(supportMsg){ supportMsg.textContent = stage==='delivered' ? 'Your package has been delivered. For help with this shipment, contact FedEx customer support at 1-800-463-3339.' : 'Your shipment is delayed and in transit. For help with this shipment, contact FedEx customer support at 1-800-463-3339.'; }
 
       updateClaimUI(entry);
       resultEl.classList.add('show');
@@ -754,7 +722,6 @@
       }catch(e){ dbError=e; }
       if(dbError){ toast('Tracking error: '+dbError.message); return; }
       if(!row){
-        // Demo fallback so the sample number always works for demonstration.
         if(code==='123456789012'){ currentEntry=demoModel(); currentImages=[]; renderResult(currentEntry, currentImages); return; }
         notfound.classList.add('show'); return;
       }
@@ -805,24 +772,6 @@
 
     /* ---------- UI wiring ---------- */
     (function(){
-      // menu
-      function openFxMenu(){ if(!fxMenu) return; fxMenu.classList.add('open'); if(menuToggle) menuToggle.setAttribute('aria-expanded','true'); }
-      function closeFxMenu(){ if(!fxMenu) return; fxMenu.classList.remove('open'); if(menuToggle) menuToggle.setAttribute('aria-expanded','false'); }
-      if(menuToggle){ menuToggle.addEventListener('click',(e)=>{ e.preventDefault(); if(fxMenu.classList.contains('open')) closeFxMenu(); else openFxMenu(); }); }
-      document.addEventListener('click',(e)=>{ if(fxMenu&&fxMenu.classList.contains('open')&&!fxMenu.contains(e.target)&&!menuToggle.contains(e.target)) closeFxMenu(); });
-      window.addEventListener('resize',()=>{ if(window.innerWidth>720) closeFxMenu(); });
-
-      // get status updates
-      const updatesBtn=document.getElementById('fx-updates-btn'); const updatesForm=document.createElement('div'); // toggle handled inline
-      let updatesOpen=false;
-      if(updatesBtn){
-        updatesBtn.addEventListener('click',(e)=>{
-          e.preventDefault(); updatesOpen=!updatesOpen;
-          // simple: show a small mailto hint via toast since reference is static
-          toast('Open your email app to receive status updates.');
-        });
-      }
-
       // auth modal
       authModal.addEventListener('click',e=>{ if(e.target===authModal) closeAuth(); });
       document.getElementById('login-form').addEventListener('submit',async(e)=>{
@@ -837,20 +786,22 @@
         try{ await signUp(name,email,password); }
         catch(e){ showAlert('error',e.message||'Signup failed.'); }
       });
-      document.getElementById('hdr-logout').addEventListener('click',async(e)=>{ e.preventDefault(); await signOut(); });
       document.getElementById('acct-signout').addEventListener('click',async()=>{ await signOut(); });
-      utilityAccount.addEventListener('click',(e)=>{ e.preventDefault(); if(currentUser) document.getElementById('account-panel').scrollIntoView({behavior:'smooth',block:'start'}); else openAuth(); });
+      if(utilityAccount){ utilityAccount.addEventListener('click',(e)=>{ e.preventDefault(); if(currentUser) document.getElementById('account-panel').scrollIntoView({behavior:'smooth',block:'start'}); else openAuth(); }); }
 
       // claim / share / proof
-      document.getElementById('btn-claim').addEventListener('click',()=>{ claimShipment(currentEntry.tracking_code); });
-      document.getElementById('btn-share').addEventListener('click',async()=>{
+      const btnClaim=document.getElementById('btn-claim');
+      if(btnClaim){ btnClaim.addEventListener('click',()=>{ claimShipment(currentEntry.tracking_code); }); }
+      const btnShare=document.getElementById('btn-share');
+      if(btnShare){ btnShare.addEventListener('click',async()=>{
         const url=window.location.href;
         try{ await navigator.clipboard.writeText(url); toast('Tracking link copied to clipboard.'); }catch(e){ prompt('Copy this tracking link:', url); }
-      });
-      document.getElementById('btn-proof').addEventListener('click',()=>{
+      }); }
+      const btnProof=document.getElementById('btn-proof');
+      if(btnProof){ btnProof.addEventListener('click',()=>{
         const panel=document.getElementById('proof-panel');
-        panel.style.display = panel.style.display==='block'?'none':'block';
-      });
+        if(panel) panel.style.display = panel.style.display==='block'?'none':'block';
+      }); }
 
       // chat
       const csLauncher=document.getElementById('cs-launcher'); const csClose=document.getElementById('cs-close'); const csForm=document.getElementById('cs-form');
