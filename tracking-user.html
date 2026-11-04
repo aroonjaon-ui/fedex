@@ -557,7 +557,7 @@
         const done=i>0;
         if(current){
           html += '<div class="fx-vstep current" style="padding-left:103px;padding-top:13px">'+
-            '<div class="fx-vdot-current" style="position:absolute;left:33px;top:-8px;width:44px;height:44px;background:#ffcc42;border:3px solid #695920;box-sizing:border-box;border-radius:50%;display:grid;place-items:center;font-size:34px;font-weight:700;line-height:1;color:var(--fx-ink)">!</div>'+
+            '<div class="fx-vdot-current" style="position:absolute;left:33px;top:8px;width:44px;height:44px;background:#ffcc42;border:3px solid #695920;box-sizing:border-box;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:700;line-height:1;color:var(--fx-ink)">!</div>'+
             '<div class="fx-vcontent current">'+
             '<h3>'+escHtml(ev.stage==='delivered'?'DELIVERED':(ev.desc||defaultEventText(ev.stage)).toUpperCase())+'</h3>'+
             '<p class="fx-loc">'+escHtml(ev.loc||'')+'</p>'+
