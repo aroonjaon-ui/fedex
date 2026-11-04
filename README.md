@@ -9,17 +9,14 @@ accounts and claims, and an admin control center backed by Supabase.
 
 | Page | Purpose |
 | --- | --- |
-| `index.html` | FedEx-style homepage rebuilt from the real FedEx layout, with tracking, services, and promotions |
-| `tracking-user.html` | Public tracking, signup/login, account dashboard, claims, images, live support chat |
-| `admin-portal.html` | Admin portal for shipments, stages, scans, images, claims, and customer service |
+| `index.html` | FedEx-style homepage with hero, tracking box, services, and promotions |
+| `tracking-user.html` | Public tracking, signup/login, account dashboard, claims, images |
+| `admin-portal.html` | Direct-URL admin portal for shipments, stages, scans, and images |
 | `assets/site.css` | Shared FedEx-style design system |
-| `assets/site.js` | Mobile navigation helper used by the tracking page |
-| `assets/home.js` | Homepage tracking forms, navigation, and mobile drawer behavior |
 | `images/` | FedEx-style imagery used across the pages |
 
-Open the admin portal at `/admin-portal.html` and sign in with an authorized
-admin account. The homepage footer also links to it for convenience; access is
-still guarded by Supabase Auth plus the admin allowlist.
+The admin portal is intentionally **not linked from the public pages**. Open it
+directly at `/admin-portal.html`.
 
 ## Features
 
@@ -33,7 +30,6 @@ still guarded by Supabase Auth plus the admin allowlist.
   delivered, and exception
 - Automatic public scan timeline, current location, and stage progress rail
 - Shipment photos and proof-of-delivery images
-- Live customer-service chat between signed-in users and the admin inbox
 - Responsive layout for desktop and mobile
 
 ---
@@ -256,28 +252,6 @@ already included in the HTML.
 
 ---
 
-## Deploy to Vercel
-
-`vercel.json` tells Vercel to serve this repository as a static site from the
-root directory, with no build step.
-
-**Git deploy:** import the repository in Vercel and deploy. The included
-`vercel.json` sets the framework to Other, skips the build command, and uses `.`
-as the output directory.
-
-**CLI deploy:**
-
-```bash
-npx vercel --prod
-```
-
-No Vercel environment variables are required. The site talks directly to the
-same Supabase project, and all internal links use relative `.html` paths, so
-`/`, `/tracking-user.html`, and `/admin-portal.html` work as-is. The
-`netlify.toml` file is ignored by Vercel.
-
----
-
 ## Using the site
 
 ### Track and claim
@@ -290,48 +264,18 @@ same Supabase project, and all internal links use relative `.html` paths, so
 ### Admin portal
 
 - Direct URL: `/admin-portal.html`
-- Sign in with an authorized Supabase Auth account.
-
-Only email addresses listed in `ADMIN_EMAILS` inside `admin-portal.html` can open
-the dashboard. To add another administrator, create the account in Supabase Auth
-and add its email to that list. The same list is mirrored in `tracking-user.html`
-so the admin sees an **Admin dashboard** shortcut after logging in from the public
-site, and is redirected there after an admin login. Keep both lists in sync.
-
-The admin URL is intentionally not linked from the public pages for non-admin
-visitors.
+- Email: `admin@fedex-tracking.local`
+- Password: `Admin123!`
 
 Create a shipment, set its stage/location/route, add images, then use **Move
 shipment** to add new scans. Every change is written to Supabase immediately and
 shows on the public tracking page.
 
-### Customer service chat
-
-Signed-in users open the chat launcher on `tracking-user.html` (or from the
-homepage) and send messages to the admin inbox. The admin sees conversations in
-the **Customer service** panel on the dashboard and can reply in the same thread.
-Both sides poll every four seconds while the tab is visible.
-
-Chat threads reuse `tracking_entries` so no extra table is required:
-
-- `tracking_code` is `CS-<user-id>`.
-- `carrier` is `support_chat`.
-- `status` contains `kind: "support_chat"`, the user name/email, an `updated_at`
-  timestamp, and a `messages` array.
-- Each message has `id`, `role` (`user` or `admin`), `body`, `at`,
-  `read_by_admin`, and `read_by_user`.
-
-Support rows are filtered out of shipment tables, tracking results, stats, and
-**My shipments**. A `CS-…` code cannot be used to look up a shipment publicly.
-
 ---
 
 ## Security note
 
-This is a prototype. Admin access is gated by Supabase Auth and an email
-allowlist, but the allowlist lives in client-side code and the tracking tables
-still use open RLS policies. Chat messages are stored as one JSON array and use
-last-write-wins updates, so simultaneous replies are not transactionally locked.
-Before production, move admin writes behind a real server-side admin role, scope
-RLS to that role, remove public write policies, and store chat messages in a
-dedicated table or use a transactional chat service.
+This is a prototype: admin writes use open RLS policies and a demo credential.
+Before production, move admin actions behind a real authenticated admin role,
+scope RLS to that role, remove public write policies, and replace the hard-coded
+admin login.

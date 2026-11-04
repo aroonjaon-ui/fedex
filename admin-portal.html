@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Shipment Control Center | FedEx</title>
   <link rel="icon" type="image/png" href="images/fedex-logo.png">
-  <link rel="stylesheet" href="assets/site.css?v=5">
+  <link rel="stylesheet" href="assets/site.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -30,22 +30,22 @@
       <div class="auth-card">
         <div class="brandline"><span class="logo" style="font-size:34px"><span class="fed">Fed</span><span class="ex">Ex</span></span></div>
         <h1>Admin sign in</h1>
-        <p class="lead">Sign in with your administrator account to create shipments, move them through carrier and warehouse stages, and upload images.</p>
+        <p class="lead">Sign in to create shipments, move them through carrier and warehouse stages, and upload images.</p>
 
         <div id="login-alert" class="alert"></div>
 
         <form id="admin-login-form">
           <div class="field">
-            <label for="admin-email">Email</label>
-            <input class="input" type="email" id="admin-email" placeholder="you@example.com" autocomplete="username" required>
+            <label for="admin-email">Admin email</label>
+            <input class="input" type="email" id="admin-email" placeholder="admin@fedex-tracking.local" required>
           </div>
           <div class="field">
             <label for="admin-password">Password</label>
-            <input class="input" type="password" id="admin-password" placeholder="Your password" autocomplete="current-password" required>
+            <input class="input" type="password" id="admin-password" placeholder="Admin123!" required>
           </div>
           <button type="submit" class="btn btn-purple btn-block" id="admin-login-btn">Sign in</button>
         </form>
-        <p class="auth-alt" style="font-size:12px">Admin access is restricted to authorized accounts.</p>
+        <p class="auth-alt" style="font-size:12px">Demo credentials: <strong>admin@fedex-tracking.local</strong> / <strong>Admin123!</strong></p>
       </div>
     </div>
   </main>
@@ -80,43 +80,6 @@
       <div class="stat"><div class="num" id="stat-claimed">0</div><div class="lbl">Claimed by users</div></div>
     </div>
 
-    <div class="card support-card" id="support-card">
-      <div class="card-head-row">
-        <div>
-          <h2 style="margin:0">Customer service</h2>
-          <p class="card-sub">Live chats from signed-in customers. Replies sync automatically every few seconds.</p>
-        </div>
-        <span class="pill support-count-pill" id="support-count">0 conversations</span>
-      </div>
-      <div class="support-layout">
-        <div class="support-list-wrap">
-          <div class="support-list" id="support-threads">
-            <p class="support-empty">No customer conversations yet.</p>
-          </div>
-        </div>
-        <div class="support-thread-wrap">
-          <div class="support-placeholder" id="support-placeholder">
-            <strong>Select a conversation</strong>
-            <span>Customer messages appear here. Open a thread to reply.</span>
-          </div>
-          <div class="support-thread" id="support-thread" style="display:none">
-            <div class="support-thread-head">
-              <div class="support-thread-who">
-                <strong id="support-user">Customer</strong>
-                <span id="support-email"></span>
-              </div>
-              <span class="support-unread-pill" id="support-unread" style="display:none"></span>
-            </div>
-            <div class="support-messages" id="support-messages"></div>
-            <form class="support-reply" id="support-reply-form">
-              <input class="input" id="support-reply-input" type="text" placeholder="Reply to the customer…" autocomplete="off" maxlength="2000" aria-label="Reply to customer">
-              <button class="btn btn-purple" id="support-reply-btn" type="submit">Send</button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <div class="admin-grid">
       <div>
         <div class="card">
@@ -135,8 +98,8 @@
                   <th>Stage</th>
                   <th>Current location</th>
                   <th>Route</th>
-                  <th>Dates</th>
-                  <th>Claims</th>
+                  <th>Delivery</th>
+                  <th>Claimed</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -189,18 +152,7 @@
                 </select>
               </div>
               <div class="field">
-                <label for="f-ship-date">Date shipped</label>
-                <input class="input" id="f-ship-date" type="date">
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="field">
-                <label for="f-eta">Estimated delivery</label>
-                <input class="input" id="f-eta" type="date">
-              </div>
-              <div class="field">
-                <label for="f-date">Actual delivery date</label>
+                <label for="f-date">Estimated / delivery date</label>
                 <input class="input" id="f-date" type="date">
               </div>
             </div>
@@ -371,17 +323,10 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZzY3phcXRxc2NldmxseXZhcndrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMzNjU3NzQsImV4cCI6MjEwODk0MTc3NH0.Kc8gKnR76F5DsdgeZSXT1ylTwIRqhIby2Z4GSfZSlBg';
     const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    const ADMIN_EMAIL = 'admin@fedex-tracking.local';
+    const ADMIN_PASS = 'Admin123!';
     const SESSION_KEY = 'fedex_admin_session';
     const BUCKET = 'tracking-proofs';
-
-    // Only these Supabase accounts can open the admin portal.
-    // Add more administrator emails here if needed.
-    const ADMIN_EMAILS = ['admin@fedex-tracking.local'];
-    function isAdminUser(user){
-      if (!user) return false;
-      const email = String(user.email || '').toLowerCase();
-      return ADMIN_EMAILS.map(x => String(x).toLowerCase()).includes(email);
-    }
 
     /* ================= Stage model ================= */
     const STAGES = [
@@ -426,14 +371,6 @@
     function modelFromRow(row){
       const meta = parseMeta(row.status);
       const stage = meta.stage || (STAGE_BY_KEY[row.carrier] ? row.carrier : '') || stageFromStatus(meta.status || row.status);
-      let claims = Array.isArray(meta.claims)
-        ? meta.claims.filter(c => c && c.user_id).map(c => Object.assign({}, c))
-        : [];
-      const primary = row.user_id || meta.claimed_by || null;
-      if (primary && !claims.some(c => String(c.user_id) === String(primary))){
-        claims.unshift({ user_id: primary, claimed_at: meta.claimed_at || null });
-      }
-      const primaryClaim = claims.find(c => primary && String(c.user_id) === String(primary)) || claims[0] || null;
       return {
         id: row.id,
         tracking_code: row.tracking_code,
@@ -449,13 +386,10 @@
         packaging: meta.packaging || '',
         signed_by: meta.signed_by || '',
         notes: meta.notes || '',
-        ship_date: meta.ship_date || '',
-        estimated_delivery: meta.estimated_delivery || meta.eta || '',
         delivery_date: row.delivery_date || meta.delivery_date || '',
         events: Array.isArray(meta.events) ? meta.events.slice() : [],
-        claims: claims,
-        claimed_by: primary || (primaryClaim && primaryClaim.user_id) || null,
-        claimed_at: meta.claimed_at || (primaryClaim && primaryClaim.claimed_at) || null,
+        claimed_by: row.user_id || meta.claimed_by || null,
+        claimed_at: meta.claimed_at || null,
         created_at: row.created_at
       };
     }
@@ -496,11 +430,8 @@
         packaging: model.packaging || '',
         signed_by: model.signed_by || '',
         notes: model.notes || '',
-        ship_date: model.ship_date || null,
-        estimated_delivery: model.estimated_delivery || null,
         delivery_date: model.delivery_date || null,
         events: model.events || [],
-        claims: model.claims || [],
         claimed_at: model.claimed_at || null
       };
     }
@@ -526,61 +457,11 @@
       return dt.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
     }
     function todayISO(){ return new Date().toISOString().slice(0,10); }
-    function addDaysISO(days){
-      const d = new Date();
-      d.setDate(d.getDate() + days);
-      return d.toISOString().slice(0,10);
-    }
-
-    /* ================= Customer service chat ================= */
-    function isSupportRow(row){
-      if (!row) return false;
-      if (String(row.carrier || '') === 'support_chat') return true;
-      const meta = parseMeta(row.status);
-      return meta.kind === 'support_chat';
-    }
-    function supportThreadFromRow(row){
-      const meta = parseMeta(row.status);
-      return {
-        id: row.id,
-        code: row.tracking_code,
-        user_id: row.user_id || null,
-        user_name: meta.user_name || 'Customer',
-        user_email: meta.user_email || '',
-        messages: Array.isArray(meta.messages) ? meta.messages.slice() : [],
-        created_at: row.created_at,
-        updated_at: meta.updated_at || row.created_at
-      };
-    }
-    function supportUnreadForAdmin(thread){
-      return (thread && thread.messages ? thread.messages : []).filter(m => m.role === 'user' && !m.read_by_admin).length;
-    }
-    function supportLastMessage(thread){
-      const list = (thread && thread.messages) || [];
-      return list.length ? list[list.length - 1] : null;
-    }
-    function fmtChatTime(value){
-      const d = new Date(value);
-      if (isNaN(d)) return '';
-      const now = new Date();
-      const sameDay = d.toDateString() === now.toDateString();
-      return sameDay
-        ? d.toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' })
-        : d.toLocaleDateString('en-US', { month:'short', day:'numeric' }) + ' · ' + d.toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' });
-    }
-    function chatMessageId(){
-      if (window.crypto && typeof crypto.randomUUID === 'function') return crypto.randomUUID();
-      return 'm-' + Date.now() + '-' + Math.random().toString(16).slice(2);
-    }
 
     /* ================= Boot / login ================= */
     const loginView = document.getElementById('login-view');
     const dashView = document.getElementById('dash-view');
     let entries = [];
-    let supportThreads = [];
-    let activeSupportCode = null;
-    let supportPollTimer = null;
-    let supportLoading = false;
     let editingCode = null;
     let currentFilter = '';
 
@@ -592,50 +473,24 @@
       loginView.style.display = 'none';
       dashView.style.display = 'block';
       loadAll();
-      startSupportPolling();
     }
-    document.getElementById('admin-login-form').addEventListener('submit', async (e) => {
+    document.getElementById('admin-login-form').addEventListener('submit', (e) => {
       e.preventDefault();
       const email = document.getElementById('admin-email').value.trim();
       const pass = document.getElementById('admin-password').value;
-      const btn = document.getElementById('admin-login-btn');
-      btn.disabled = true;
-      btn.textContent = 'Signing in…';
-      document.getElementById('login-alert').className = 'alert';
-      try {
-        // Admin access uses a real Supabase Auth account.
-        const { data, error } = await db.auth.signInWithPassword({ email, password: pass });
-        if (error){
-          loginAlert('error', 'Email or password is incorrect.');
-          return;
-        }
-        if (!isAdminUser(data.user)){
-          await db.auth.signOut();
-          loginAlert('error', 'This account is not authorized for the admin portal.');
-          return;
-        }
+      if (email === ADMIN_EMAIL && pass === ADMIN_PASS){
+        localStorage.setItem(SESSION_KEY, '1');
         showDash();
-      } catch (err) {
-        loginAlert('error', 'Sign in failed: ' + err.message);
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Sign in';
+      } else {
+        adminAlert('error', 'Invalid credentials. Use ' + ADMIN_EMAIL + ' / ' + ADMIN_PASS);
       }
     });
-    document.getElementById('admin-signout').addEventListener('click', async () => {
+    document.getElementById('admin-signout').addEventListener('click', () => {
       localStorage.removeItem(SESSION_KEY);
-      if (supportPollTimer){ clearInterval(supportPollTimer); supportPollTimer = null; }
-      try { await db.auth.signOut(); } catch(e){}
       showLogin();
     });
     document.getElementById('refresh-btn').addEventListener('click', loadAll);
     document.getElementById('reload-images').addEventListener('click', loadImages);
-
-    function loginAlert(kind, msg){
-      const el = document.getElementById('login-alert');
-      el.className = 'alert show alert-' + kind;
-      el.textContent = msg;
-    }
 
     function adminAlert(kind, msg){
       const el = document.getElementById('admin-alert');
@@ -659,188 +514,10 @@
         adminAlert('error', 'Could not load shipments: ' + error.message);
         return;
       }
-      const rows = data || [];
-      supportThreads = rows.filter(isSupportRow).map(supportThreadFromRow);
-      entries = rows.filter(row => !isSupportRow(row)).map(modelFromRow);
+      entries = (data || []).map(modelFromRow);
       renderStats();
       renderTable();
       populateMoveCodes();
-      renderSupportList();
-      renderSupportThread();
-    }
-
-    async function loadSupportThreads(silent){
-      if (supportLoading) return;
-      supportLoading = true;
-      try {
-        const { data, error } = await db.from('tracking_entries').select('*').order('created_at', { ascending: false });
-        if (error){
-          if (!silent) adminAlert('error', 'Could not load customer service chats: ' + error.message);
-          return;
-        }
-        supportThreads = (data || []).filter(isSupportRow).map(supportThreadFromRow);
-        renderSupportList();
-        renderSupportThread();
-      } catch (err) {
-        if (!silent) adminAlert('error', 'Could not load customer service chats: ' + err.message);
-      } finally {
-        supportLoading = false;
-      }
-    }
-
-    function startSupportPolling(){
-      if (supportPollTimer) return;
-      supportPollTimer = setInterval(() => {
-        if (document.visibilityState === 'visible') loadSupportThreads(true);
-      }, 4000);
-    }
-
-    function renderSupportList(){
-      const list = document.getElementById('support-threads');
-      const count = document.getElementById('support-count');
-      if (!list) return;
-      const totalUnread = supportThreads.reduce((sum, t) => sum + supportUnreadForAdmin(t), 0);
-      if (count){
-        count.textContent = supportThreads.length
-          ? supportThreads.length + ' conversation' + (supportThreads.length === 1 ? '' : 's') + (totalUnread ? ' · ' + totalUnread + ' new' : '')
-          : 'No conversations';
-      }
-      if (!supportThreads.length){
-        list.innerHTML = '<p class="support-empty">No customer conversations yet. Messages sent from the tracking page will appear here.</p>';
-        return;
-      }
-      list.innerHTML = supportThreads.map(thread => {
-        const last = supportLastMessage(thread);
-        const unread = supportUnreadForAdmin(thread);
-        return '<button type="button" class="support-thread-item' + (thread.code === activeSupportCode ? ' active' : '') + '" onclick="openSupportThread(\'' + esc(thread.code) + '\')">' +
-          '<span class="support-thread-top"><strong>' + esc(thread.user_name || 'Customer') + '</strong>' +
-          (unread ? '<span class="support-unread-pill">' + unread + '</span>' : '') + '</span>' +
-          '<span class="support-thread-email">' + esc(thread.user_email || 'Signed-in customer') + '</span>' +
-          '<span class="support-thread-preview">' + esc(last ? last.body : 'No messages yet') + '</span>' +
-          '<span class="support-thread-time">' + esc(last ? fmtChatTime(last.at) : (thread.updated_at ? fmtChatTime(thread.updated_at) : '')) + '</span>' +
-        '</button>';
-      }).join('');
-    }
-
-    function renderSupportThread(){
-      const thread = supportThreads.find(t => t.code === activeSupportCode);
-      const placeholder = document.getElementById('support-placeholder');
-      const panel = document.getElementById('support-thread');
-      if (!placeholder || !panel) return;
-      if (!thread){
-        placeholder.style.display = 'flex';
-        panel.style.display = 'none';
-        return;
-      }
-      placeholder.style.display = 'none';
-      panel.style.display = 'flex';
-      document.getElementById('support-user').textContent = thread.user_name || 'Customer';
-      document.getElementById('support-email').textContent = thread.user_email || 'Signed-in customer';
-      const unread = supportUnreadForAdmin(thread);
-      const unreadPill = document.getElementById('support-unread');
-      if (unreadPill){
-        unreadPill.style.display = unread ? 'inline-flex' : 'none';
-        unreadPill.textContent = unread + ' new';
-      }
-      const messagesEl = document.getElementById('support-messages');
-      const messages = thread.messages || [];
-      messagesEl.innerHTML = messages.length
-        ? messages.map(message => {
-            const mine = message.role === 'admin';
-            return '<div class="support-msg ' + (mine ? 'support-msg-admin' : 'support-msg-user') + '">' +
-              '<div class="support-bubble">' + esc(message.body) + '</div>' +
-              '<div class="support-msg-time">' + (mine ? 'You' : esc(thread.user_name || 'Customer')) + ' · ' + esc(fmtChatTime(message.at)) + '</div>' +
-            '</div>';
-          }).join('')
-        : '<p class="support-empty">No messages yet.</p>';
-      messagesEl.scrollTop = messagesEl.scrollHeight;
-    }
-
-    async function markSupportReadForAdmin(thread){
-      if (!thread) return;
-      const hasUnread = (thread.messages || []).some(m => m.role === 'user' && !m.read_by_admin);
-      if (!hasUnread) return;
-      thread.messages = thread.messages.map(m => m.role === 'user' ? Object.assign({}, m, { read_by_admin:true }) : m);
-      const status = {
-        kind: 'support_chat',
-        user_name: thread.user_name || '',
-        user_email: thread.user_email || '',
-        messages: thread.messages,
-        updated_at: thread.updated_at || new Date().toISOString()
-      };
-      try {
-        await db.from('tracking_entries').update({ status: JSON.stringify(status) }).eq('tracking_code', thread.code);
-      } catch (e) {}
-      renderSupportList();
-      renderSupportThread();
-    }
-
-    window.openSupportThread = function(code){
-      activeSupportCode = code;
-      renderSupportList();
-      renderSupportThread();
-      const thread = supportThreads.find(t => t.code === code);
-      if (thread) markSupportReadForAdmin(thread);
-      const input = document.getElementById('support-reply-input');
-      if (input) setTimeout(() => input.focus(), 60);
-    };
-
-    async function sendSupportReply(body){
-      const thread = supportThreads.find(t => t.code === activeSupportCode);
-      if (!thread) return;
-      body = String(body || '').trim();
-      if (!body) return;
-      const btn = document.getElementById('support-reply-btn');
-      const input = document.getElementById('support-reply-input');
-      if (btn){ btn.disabled = true; btn.textContent = 'Sending…'; }
-      try {
-        const res = await db.from('tracking_entries').select('*').eq('tracking_code', thread.code).maybeSingle();
-        if (res.error) throw new Error(res.error.message);
-        if (!res.data) throw new Error('This conversation no longer exists.');
-        const latest = supportThreadFromRow(res.data);
-        const message = {
-          id: chatMessageId(),
-          role: 'admin',
-          body: body,
-          at: new Date().toISOString(),
-          read_by_admin: true,
-          read_by_user: false
-        };
-        latest.messages = (latest.messages || []).concat(message);
-        latest.updated_at = message.at;
-        const status = {
-          kind: 'support_chat',
-          user_name: latest.user_name || thread.user_name || '',
-          user_email: latest.user_email || thread.user_email || '',
-          messages: latest.messages,
-          updated_at: latest.updated_at
-        };
-        const write = await db.from('tracking_entries')
-          .update({ status: JSON.stringify(status) })
-          .eq('tracking_code', thread.code)
-          .select();
-        if (write.error) throw new Error(write.error.message);
-        thread.messages = latest.messages;
-        thread.updated_at = latest.updated_at;
-        thread.user_name = latest.user_name || thread.user_name;
-        thread.user_email = latest.user_email || thread.user_email;
-        if (input) input.value = '';
-        renderSupportList();
-        renderSupportThread();
-      } catch (err) {
-        adminAlert('error', 'Could not send reply: ' + err.message);
-      } finally {
-        if (btn){ btn.disabled = false; btn.textContent = 'Send'; }
-      }
-    }
-
-    const supportReplyForm = document.getElementById('support-reply-form');
-    if (supportReplyForm) {
-      supportReplyForm.addEventListener('submit', (event) => {
-        event.preventDefault();
-        const input = document.getElementById('support-reply-input');
-        sendSupportReply(input ? input.value : '');
-      });
     }
 
     function renderStats(){
@@ -868,20 +545,13 @@
       }
       tbody.innerHTML = list.map(e => {
         const route = (e.origin || '—') + ' <span class="arrow">&rarr;</span> ' + (e.destination || '—');
-        const claims = e.claims || [];
-        const claimTitle = claims.map(c => c.claimed_at ? fmtDate(c.claimed_at) : 'date unknown').join(', ');
-        const dates = '<div class="date-stack">' +
-          '<span><b>Shipped:</b> ' + esc(fmtDate(e.ship_date)) + '</span>' +
-          '<span><b>ETA:</b> ' + esc(fmtDate(e.estimated_delivery)) + '</span>' +
-          (e.delivery_date ? '<span><b>Delivered:</b> ' + esc(fmtDate(e.delivery_date)) + '</span>' : '') +
-        '</div>';
         return '<tr>' +
           '<td class="mono">' + esc(e.tracking_code) + '</td>' +
           '<td><span class="stage-badge stage-' + stageBadgeClass(e.stage) + '">' + esc(stageLabel(e.stage)) + '</span></td>' +
           '<td class="loc-cell">' + esc(e.current_location || '—') + '</td>' +
           '<td class="route-cell">' + route + '</td>' +
-          '<td>' + dates + '</td>' +
-          '<td>' + (claims.length ? '<span class="stage-badge stage-delivered" title="' + esc(claimTitle) + '">' + claims.length + ' claim' + (claims.length === 1 ? '' : 's') + '</span>' : '<span class="muted">—</span>') + '</td>' +
+          '<td>' + esc(fmtDate(e.delivery_date)) + '</td>' +
+          '<td>' + (e.claimed_by ? '<span class="stage-badge stage-delivered">Claimed</span>' : '<span class="muted">—</span>') + '</td>' +
           '<td><div class="row-actions">' +
             '<button class="btn btn-outline btn-sm" type="button" onclick="editEntry(\'' + esc(e.id) + '\')">Edit</button>' +
             '<button class="btn btn-outline btn-sm" type="button" onclick="moveEntry(\'' + esc(e.tracking_code) + '\')">Move</button>' +
@@ -932,8 +602,6 @@
       form.reset();
       document.getElementById('f-stage').value = 'carrier_2';
       document.getElementById('f-pieces').value = 1;
-      document.getElementById('f-ship-date').value = todayISO();
-      document.getElementById('f-eta').value = addDaysISO(3);
       document.getElementById('f-add-event').checked = true;
       document.getElementById('event-note-wrap').style.display = 'block';
       document.getElementById('f-images-preview').innerHTML = '';
@@ -941,9 +609,6 @@
       setFormMode(null);
     }
     document.getElementById('reset-btn').addEventListener('click', resetForm);
-    // Sensible defaults for a brand-new shipment.
-    document.getElementById('f-ship-date').value = todayISO();
-    document.getElementById('f-eta').value = addDaysISO(3);
     document.getElementById('f-add-event').addEventListener('change', (e) => {
       document.getElementById('event-note-wrap').style.display = e.target.checked ? 'block' : 'none';
     });
@@ -979,8 +644,6 @@
           stage: stage,
           status: stageToStatus(stage),
           current_location: location,
-          ship_date: document.getElementById('f-ship-date').value || null,
-          estimated_delivery: document.getElementById('f-eta').value || null,
           delivery_date: document.getElementById('f-date').value || null,
           service: document.getElementById('f-service').value.trim(),
           origin: document.getElementById('f-origin').value.trim(),
@@ -992,7 +655,6 @@
           signed_by: document.getElementById('f-signed').value.trim(),
           notes: document.getElementById('f-notes').value.trim(),
           events: existing ? existing.events.slice() : [],
-          claims: existing ? existing.claims.slice() : [],
           claimed_by: existing ? existing.claimed_by : null,
           claimed_at: existing ? existing.claimed_at : null
         };
@@ -1038,8 +700,6 @@
       const set = (fid, val) => { document.getElementById(fid).value = val || ''; };
       set('f-code', e.tracking_code);
       set('f-stage', e.stage);
-      set('f-ship-date', e.ship_date);
-      set('f-eta', e.estimated_delivery);
       set('f-date', e.delivery_date);
       set('f-location', e.current_location);
       set('f-service', e.service);
@@ -1305,18 +965,8 @@
     });
 
     /* ================= Boot ================= */
-    (async () => {
-      // Remove the old demo-session flag; admin access now requires Supabase Auth.
-      localStorage.removeItem(SESSION_KEY);
-      try {
-        const { data } = await db.auth.getSession();
-        if (data && data.session && isAdminUser(data.session.user)) {
-          showDash();
-          return;
-        }
-      } catch(e){}
-      showLogin();
-    })();
+    if (localStorage.getItem(SESSION_KEY) === '1') showDash();
+    else showLogin();
   </script>
 </body>
 </html>
