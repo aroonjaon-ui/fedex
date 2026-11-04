@@ -417,9 +417,9 @@
       return { code: row.tracking_code, messages: st.messages||[], user_name: st.user_name||'Customer', user_email: st.user_email||'Signed-in customer', created_at: row.created_at, updated_at: st.updated_at||row.created_at };
     }
     function isSupportRow(row){ return row.carrier === 'support_chat'; }
-    function supportLastMessage(t){ const m=t.messages||[]; return m.length?m[m.length-1]:null; }
-    function supportUnreadForAdmin(t){ return (t.messages||[]).filter(m=>m.role==='user'&&!m.read_by_admin).length; }
-    function supportUnreadForUser(t){ return (t.messages||[]).filter(m=>m.role==='admin'&&!m.read_by_user).length; }
+    function supportLastMessage(t){ if(!t) return null; const m=t.messages||[]; return m.length?m[m.length-1]:null; }
+    function supportUnreadForAdmin(t){ if(!t) return 0; return (t.messages||[]).filter(m=>m.role==='user'&&!m.read_by_admin).length; }
+    function supportUnreadForUser(t){ if(!t) return 0; return (t.messages||[]).filter(m=>m.role==='admin'&&!m.read_by_user).length; }
     function chatId(){ return 'msg_' + Date.now() + '_' + Math.random().toString(36).slice(2,9); }
 
     function updateSupportBadge(n){ const b=document.getElementById('cs-badge'); if(b){ b.textContent=n>0?String(n):'0'; b.style.display=n>0?'flex':'none'; } }
@@ -437,7 +437,7 @@
         const mine=m.role==='user';
         return '<div class="cs-msg '+(mine?'cs-msg-user':'cs-msg-admin')+'"><div class="cs-bubble">'+escHtml(m.body)+'</div><div class="cs-time">'+(mine?'You':'FedEx Support')+' · '+escHtml(fmtChatTime(m.at))+'</div></div>';
       }).join('') : '<p class="cs-empty">Hi! How can we help with your shipment today? Send us a message and a support agent will reply here.</p>';
-      const unread=supportUnreadForUser(csThread);
+      const unread=csThread?supportUnreadForUser(csThread):0;
       updateSupportBadge(unread);
       messagesEl.scrollTop=messagesEl.scrollHeight;
     }
@@ -541,8 +541,10 @@
     }
     function showAlert(kind,msg){ authAlert.className='alert show alert-'+kind; authAlert.textContent=msg; }
 
-    db.auth.onAuthStateChange(async (event,user)=>{ if(event==='SIGNED_IN'||event==='TOKEN_REFRESHED'){ await initUser(user); } else if(event==='SIGNED_OUT'){ await initUser(null); } else { await initUser(user); } });
-    (async()=>{ await initUser(db.auth.getUser? null : null); })();
+    db.auth.onAuthStateChange(async (event,user)=>{ try{ if(event==='SIGNED_IN'||event==='TOKEN_REFRESHED'){ await initUser(user); } else if(event==='SIGNED_OUT'){ await initUser(null); } else { await initUser(user); } }catch(e){ console.error('auth state change error',e); } });
+    (async()=>{ try{ await initUser(db.auth.getUser? null : null); }catch(e){ console.error('init user error',e); } })();
+    window.onerror=function(msg,url,line,col,err){ console.error('GLOBAL ERROR',msg,err&&err.stack?err.stack.split('\n').slice(0,3).join('\n'):''); return false; };
+    window.onunhandledrejection=function(e){ console.error('UNHANDLED REJECTION',e.reason&&e.reason.stack?e.reason.stack.split('\n').slice(0,3).join('\n'):e.reason); };
 
     /* ---------- Tracking ---------- */
     function generateEvents(entry){
