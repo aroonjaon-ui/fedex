@@ -492,12 +492,12 @@
     }
     function updateUI(){ }
     function openAuth(){ 
-  if(authModal) authModal.classList.add('show'); 
-  else { const m=document.getElementById('auth-modal'); if(m) m.classList.add('show'); }
+  const m = document.getElementById('auth-modal'); 
+  if(m) m.classList.add('show'); 
 }
     function closeAuth(){ 
-  if(authModal) authModal.classList.remove('show'); 
-  else { const m=document.getElementById('auth-modal'); if(m) m.classList.remove('show'); }
+  const m = document.getElementById('auth-modal'); 
+  if(m) m.classList.remove('show'); 
 }
     function showTab(tab){
       const isLogin=tab==='login';
