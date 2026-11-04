@@ -7,6 +7,7 @@
   <meta name="description" content="Ship, manage, track, and return your packages with FedEx. Track a package, get rates, find locations, and more.">
   <link rel="icon" type="image/png" href="images/fedex-logo.png">
   <link rel="stylesheet" href="assets/site.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -18,7 +19,7 @@
         <a href="#">English</a>
       </div>
       <div class="utility-right">
-        <a href="tracking-user.html">Sign Up</a>
+        <a href="#" onclick="openAuth(); return false;">Sign Up</a>
         <span style="color:#d1d1d8">|</span>
         <a class="strong" href="tracking-user.html">Log In</a>
       </div>
