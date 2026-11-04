@@ -6,8 +6,9 @@
   <title>FedEx | Shipping, Tracking, and Delivery Services</title>
   <meta name="description" content="Ship, manage, track, and return your packages with FedEx. Track a package, get rates, find locations, and more.">
   <link rel="icon" type="image/png" href="images/fedex-logo.png">
-  <link rel="stylesheet" href="assets/site.css">
+  <link rel="stylesheet" href="assets/site.css?v=3">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/site.js?v=3" defer></script>
 </head>
 <body>
 
@@ -21,7 +22,7 @@
       <div class="utility-right">
         <a href="#" onclick="openAuth(); return false;">Sign Up</a>
         <span style="color:#d1d1d8">|</span>
-        <a class="strong" href="tracking-user.html">Log In</a>
+        <a class="strong" href="#" onclick="openAuth(); return false;">Log In</a>
       </div>
     </div>
   </div>
@@ -252,7 +253,7 @@
       </div>
       <div class="footer-col">
         <h4>Resources</h4>
-        <a href="tracking-user.html">My account</a>
+        <a href="#" onclick="openAuth(); return false;">My account</a>
         <a href="#">Developer APIs</a>
         <a href="#">Site map</a>
         <a href="#">Accessibility</a>
@@ -280,6 +281,82 @@
       }
       window.location.href = 'tracking-user.html?code=' + encodeURIComponent(code);
     });
+  </script>
+  <!-- Auth Modal -->
+  <div class="modal-overlay" id="auth-modal">
+    <div class="modal">
+      <button class="close" type="button" onclick="closeAuth()" aria-label="Close">&times;</button>
+      <div class="brandline"><span class="logo" style="font-size:32px"><span class="fed">Fed</span><span class="ex">Ex</span></span></div>
+      <h2 id="auth-title">Welcome to FedEx</h2>
+      <p class="mlead">Log in or create an account to claim shipments and manage deliveries.</p>
+      <div class="tabs">
+        <button type="button" id="tab-login" class="active" onclick="showTab('login')">Log In</button>
+        <button type="button" id="tab-signup" onclick="showTab('signup')">Sign Up</button>
+      </div>
+      <div id="auth-alert" class="alert"></div>
+      <form id="login-form">
+        <div class="field">
+          <label for="login-email">Email address</label>
+          <input class="input" type="email" id="login-email" placeholder="you@example.com" required>
+        </div>
+        <div class="field">
+          <label for="login-password">Password</label>
+          <input class="input" type="password" id="login-password" placeholder="Your password" required>
+        </div>
+        <button type="submit" class="btn btn-orange btn-block" id="login-btn">Log In</button>
+      </form>
+      <form id="signup-form" style="display:none">
+        <div class="field">
+          <label for="signup-name">Full name</label>
+          <input class="input" type="text" id="signup-name" placeholder="Jane Doe" required>
+        </div>
+        <div class="field">
+          <label for="signup-email">Email address</label>
+          <input class="input" type="email" id="signup-email" placeholder="you@example.com" required>
+        </div>
+        <div class="field">
+          <label for="signup-password">Password</label>
+          <input class="input" type="password" id="signup-password" placeholder="At least 6 characters" minlength="6" required>
+        </div>
+        <button type="submit" class="btn btn-purple btn-block" id="signup-btn">Create Account</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://fsczaqtqscevllyvarwk.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZzY3phcXRxc2NldmxseXZhcndrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMzNjU3NzQsImV4cCI6MjEwODk0MTc3NH0.Kc8gKnR76F5DsdgeZSXT1ylTwIRqhIby2Z4GSfZSlBg';
+    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const authModal = document.getElementById('auth-modal');
+    const authAlert = document.getElementById('auth-alert');
+
+    function openAuth(){ if(authModal) authModal.classList.add('show'); }
+    function closeAuth(){ if(authModal) authModal.classList.remove('show'); }
+    function showTab(tab){
+      const isLogin=tab==='login';
+      document.getElementById('tab-login').classList.toggle('active',isLogin);
+      document.getElementById('tab-signup').classList.toggle('active',!isLogin);
+      document.getElementById('login-form').style.display=isLogin?'block':'none';
+      document.getElementById('signup-form').style.display=isLogin?'none':'block';
+      authAlert.className='alert';
+    }
+    function showAlert(kind,msg){ authAlert.className='alert show alert-'+kind; authAlert.textContent=msg; }
+
+    db.auth.onAuthStateChange(async (event,user)=>{ try{ if(event==='SIGNED_IN'||event==='TOKEN_REFRESHED'){ const ADMIN_EMAILS=['admin@fedex-tracking.local']; if(ADMIN_EMAILS.includes(user.email)){ window.location.href='admin-portal.html'; } else { window.location.href='tracking-user.html'; } closeAuth(); } }catch(e){ console.error(e); } });
+
+    document.getElementById('login-form').addEventListener('submit',async(e)=>{
+      e.preventDefault();
+      const email=document.getElementById('login-email').value; const password=document.getElementById('login-password').value;
+      try{ await db.auth.signInWithPassword({ email, password }); }
+      catch(e){ showAlert('error',e.message||'Login failed.'); }
+    });
+    document.getElementById('signup-form').addEventListener('submit',async(e)=>{
+      e.preventDefault();
+      const name=document.getElementById('signup-name').value; const email=document.getElementById('signup-email').value; const password=document.getElementById('signup-password').value;
+      try{ await db.auth.signUp({ email, password, options:{ data:{ full_name:name } } }); alert('Account created. Please log in.'); showTab('login'); }
+      catch(e){ showAlert('error',e.message||'Signup failed.'); }
+    });
+    (async()=>{ try{ const { data } = await db.auth.getUser(); if(data.user){ const ADMIN_EMAILS=['admin@fedex-tracking.local']; if(ADMIN_EMAILS.includes(data.user.email)){ window.location.href='admin-portal.html'; } else { window.location.href='tracking-user.html'; } } }catch(e){ console.error(e); } })();
   </script>
 </body>
 </html>
