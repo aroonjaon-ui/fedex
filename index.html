@@ -356,6 +356,113 @@
       try{ await db.auth.signUp({ email, password, options:{ data:{ full_name:name } } }); alert('Account created. Please log in.'); showTab('login'); }
       catch(e){ showAlert('error',e.message||'Signup failed.'); }
     });
+
+    // Live Customer Service Chat Widget
+    let csThread=null, csOpen=false, csLoading=false, csPollTimer=null;
+    const CS_BTN=document.getElementById('cs-launcher');
+    const CS_PANEL=document.getElementById('cs-panel');
+    const CS_CLOSE=document.getElementById('cs-close');
+    const CS_MESSAGES=document.getElementById('cs-messages');
+    const CS_INPUT=document.getElementById('cs-input');
+    const CS_SEND=document.getElementById('cs-send');
+    const CS_LOGIN=document.getElementById('cs-login');
+    const CS_BADGE=document.getElementById('cs-badge');
+
+    function supportCode(user){ return SUPPORT_PREFIX + user.id; }
+    function supportDisplayName(){ return currentUser ? (currentUser.user_metadata && currentUser.user_metadata.full_name) || currentUser.email : 'Customer'; }
+    function supportMeta(t){ return { kind:'support_chat', user_name:t.user_name||supportDisplayName(), user_email:t.user_email||(currentUser?currentUser.email:''), messages:t.messages||[], updated_at:t.updated_at||new Date().toISOString() }; }
+    function supportThreadFromRow(row){ const st = typeof row.status === 'string' ? JSON.parse(row.status || '{}') : (row.status||{}); return { code: row.tracking_code, messages: st.messages||[], user_name: st.user_name||'Customer', user_email: st.user_email||'Signed-in customer', created_at: row.created_at, updated_at: st.updated_at||row.created_at }; }
+    function supportUnreadForUser(t){ if(!t) return 0; return (t.messages||[]).filter(m=>m.role==='admin'&&!m.read_by_user).length; }
+    function chatId(){ return 'msg_' + Date.now() + '_' + Math.random().toString(36).slice(2,9); }
+    function fmtChatTime(iso){ if(!iso) return ''; try{ return new Date(iso).toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}); }catch(e){ return iso; } }
+    function escHtml(s){ return String(s===''||s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    function updateSupportBadge(n){ if(CS_BADGE){ CS_BADGE.textContent=n>0?String(n):'0'; CS_BADGE.style.display=n>0?'flex':'none'; } }
+    function renderSupportChat(){
+      if(!CS_MESSAGES) return;
+      if(!currentUser){ CS_MESSAGES.innerHTML='<p class="cs-empty">Log in to message customer service.</p>'; if(CS_LOGIN) CS_LOGIN.style.display='block'; if(CS_SEND) CS_SEND.style.display='none'; updateSupportBadge(0); return; }
+      if(CS_LOGIN) CS_LOGIN.style.display='none';
+      if(CS_SEND) CS_SEND.style.display='inline-block';
+      const messages=(csThread&&csThread.messages)||[];
+      CS_MESSAGES.innerHTML= messages.length ? messages.map(m=>{ const mine=m.role==='user'; return '<div class="cs-msg '+(mine?'cs-msg-user':'cs-msg-admin')+'"><div class="cs-bubble">'+escHtml(m.body)+'</div><div class="cs-time">'+(mine?'You':'FedEx Support')+' · '+escHtml(fmtChatTime(m.at))+'</div></div>'; }).join('') : '<p class="cs-empty">Hi! How can we help with your shipment today?</p>';
+      updateSupportBadge(csThread?supportUnreadForUser(csThread):0);
+      CS_MESSAGES.scrollTop=CS_MESSAGES.scrollHeight;
+    }
+    async function loadSupportThread(silent){
+      if(!currentUser){ csThread=null; renderSupportChat(); return; }
+      if(csLoading) return;
+      csLoading=true;
+      try{
+        const code=supportCode(currentUser);
+        const res=await db.from('tracking_entries').select('*').eq('tracking_code',code).maybeSingle();
+        if(res.error){ if(!silent) console.log(res.error.message); return; }
+        if(res.data && res.data.carrier==='support_chat'){ csThread=supportThreadFromRow(res.data); }
+        else if(!res.data){ csThread={ code:code, messages:[], user_name:supportDisplayName(), user_email:currentUser.email||'', created_at:null, updated_at:null }; }
+        else { csThread={ code:code, messages:[], user_name:supportDisplayName(), user_email:currentUser.email||'', created_at:null, updated_at:null }; }
+        renderSupportChat();
+        if(csOpen) await markSupportReadForUser();
+      }catch(e){ if(!silent) console.log('support load error',e.message); } finally { csLoading=false; }
+    }
+    async function markSupportReadForUser(){
+      if(!currentUser||!csThread) return;
+      const hasUnread=(csThread.messages||[]).some(m=>m.role==='admin'&&!m.read_by_user);
+      if(!hasUnread) return;
+      csThread.messages=csThread.messages.map(m=>m.role==='admin'?Object.assign({},m,{read_by_user:true}):m);
+      renderSupportChat();
+      try{ await db.from('tracking_entries').update({status:JSON.stringify(supportMeta(csThread))}).eq('tracking_code',csThread.code); }catch(e){}
+    }
+    async function sendSupportMessage(body){
+      if(!currentUser){ openAuth(); return; }
+      body=String(body||'').trim(); if(!body) return;
+      CS_SEND.disabled=true; CS_SEND.textContent='Sending…';
+      try{
+        const code=supportCode(currentUser);
+        const res=await db.from('tracking_entries').select('*').eq('tracking_code',code).maybeSingle();
+        if(res.error) throw new Error(res.error.message);
+        let thread;
+        if(res.data){ if(res.data.carrier!=='support_chat') throw new Error('This support channel is unavailable.'); thread=supportThreadFromRow(res.data); }
+        else { thread={ code:code, messages:[], user_name:supportDisplayName(), user_email:currentUser.email||'', created_at:null, updated_at:null }; }
+        const msg={ id:chatId(), role:'user', body:body, at:new Date().toISOString(), read_by_admin:false, read_by_user:true };
+        thread.messages.push(msg); thread.updated_at=msg.at; thread.user_name=thread.user_name||supportDisplayName(); thread.user_email=thread.user_email||currentUser.email||'';
+        const meta=supportMeta(thread);
+        let write;
+        if(res.data){ write=await db.from('tracking_entries').update({status:JSON.stringify(meta)}).eq('tracking_code',code).select(); }
+        else { write=await db.from('tracking_entries').insert([{ tracking_code:code, user_id:currentUser.id, carrier:'support_chat', status:JSON.stringify(meta)}]).select(); }
+        if(write.error) throw new Error(write.error.message);
+        csThread=thread; CS_INPUT.value=''; renderSupportChat(); if(csOpen) await markSupportReadForUser();
+      }catch(e){ alert('Could not send message: '+e.message); } finally { CS_SEND.disabled=false; CS_SEND.textContent='Send'; }
+    }
+    function openSupportChat(){ csOpen=true; CS_PANEL.classList.add('open'); renderSupportChat(); if(currentUser){ loadSupportThread(true); CS_INPUT.focus(); } }
+    function closeSupportChat(){ csOpen=false; CS_PANEL.classList.remove('open'); }
+    CS_SEND.addEventListener('click',(e)=>{ e.preventDefault(); sendSupportMessage(CS_INPUT.value); });
+    CS_INPUT.addEventListener('keypress',(e)=>{ if(e.key==='Enter'){ e.preventDefault(); sendSupportMessage(CS_INPUT.value); } });
+    csPollTimer=setInterval(()=>{ if(csOpen){ loadSupportThread(true); } },4000);
   </script>
+
+  <!-- Live Customer Service Chat Widget -->
+  <div class="cs-widget" id="cs-widget">
+    <button class="cs-launcher" id="cs-launcher" type="button" aria-label="Chat with customer service" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/></svg>
+      <span class="cs-badge" id="cs-badge" style="display:none">0</span>
+    </button>
+    <section class="cs-panel" id="cs-panel" aria-label="Customer service chat">
+      <div class="cs-head">
+        <div class="cs-head-title">
+          <span class="cs-live-dot"></span>
+          <div><strong>FedEx Customer Service</strong><span>Live support · replies sync automatically</span></div>
+        </div>
+        <button class="cs-close" id="cs-close" type="button" aria-label="Close chat">&times;</button>
+      </div>
+      <div class="cs-messages" id="cs-messages">
+        <p class="cs-empty">Hi! How can we help with your shipment today?</p>
+      </div>
+      <form class="cs-form" id="cs-form" style="display:none">
+        <input class="input" id="cs-input" type="text" placeholder="Type your message…" autocomplete="off" maxlength="2000" required aria-label="Message customer service">
+        <button class="btn btn-purple" id="cs-send" type="submit">Send</button>
+      </form>
+      <p class="cs-login" id="cs-login">Log in to message customer service. <a href="#" onclick="openAuth(); return false;">Log in</a></p>
+    </section>
+  </div>
+
 </body>
 </html>

@@ -968,5 +968,117 @@
     if (localStorage.getItem(SESSION_KEY) === '1') showDash();
     else showLogin();
   </script>
+  <!-- Admin Customer Service Chat Inbox -->
+  <div class="support-card">
+    <div class="card-head-row">
+      <h2>Customer Service Chat</h2>
+      <span class="support-count-pill" id="cs-unread-count">0 unread</span>
+    </div>
+    <div class="support-layout">
+      <div class="support-list-wrap">
+        <div class="support-list" id="support-list">
+          <div class="support-placeholder">
+            <strong>No conversations</strong>
+            <p>Customer messages will appear here.</p>
+          </div>
+        </div>
+      </div>
+      <div class="support-thread-wrap">
+        <div class="support-placeholder">
+          <strong>Select a conversation</strong>
+          <p>Click a thread on the left to view and reply.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Admin chat inbox - fetch and display support chat messages
+    const SUPPORT_PREFIX='CS-';
+    const supportList=document.getElementById('support-list');
+    const supportListWrap=document.querySelector('.support-list-wrap');
+    const supportThreadWrap=document.querySelector('.support-thread-wrap');
+    const unreadCountPill=document.getElementById('cs-unread-count');
+
+    async function loadSupportThreads(){
+      try{
+        const { data } = await db.from('tracking_entries').select('*').eq('carrier','support_chat').order('updated_at',{ascending:false}).limit(50);
+        const supportList=document.getElementById('support-list');
+        if(!data || data.length===0){
+          supportList.innerHTML='<div class="support-placeholder"><strong>No conversations</strong><p>Customer messages will appear here.</p></div>';
+          return;
+        }
+        supportList.innerHTML=data.map(r=>{
+          const st = typeof row.status === 'string' ? JSON.parse(row.status || '{}') : (row.status||{});
+          const messages = st.messages||[];
+          const lastMsg = messages.length ? messages[messages.length-1] : {body:'',at:''};
+          const unread = messages.filter(m=>m.role==='user'&&!m.read_by_admin).length;
+          return '<div class="support-thread-item'+(st.unread?' active':'')+'" onclick="openSupportThread(\''+r.tracking_code.replace(/'/g,"\\'")+'\')">'+
+            '<div class="support-thread-top">'+
+              '<strong>'+escHtml((st.user_name||'Customer'))+'</strong>'+
+              '<span class="support-unread-pill">'+unread+'</span>'+
+            '</div>'+
+            '<div class="support-thread-email">'+escHtml(st.user_email||'')+'</div>'+
+            '<div class="support-thread-preview">'+escHtml(lastMsg.body||'No messages')+'</div>'+
+            '<div class="support-thread-time">'+escHtml(lastMsg.at||'')+'</div>'+
+          '</div>';
+        }).join('');
+      }catch(e){ console.error('load support threads error',e); }
+    }
+
+    async function openSupportThread(code){
+      try{
+        const { data } = await db.from('tracking_entries').select('*').eq('tracking_code',code).maybeSingle();
+        if(!data) return;
+        const st = typeof data.status === 'string' ? JSON.parse(data.status || '{}') : (data.status||{});
+        const messages = st.messages||[];
+        const wrap=document.querySelector('.support-thread-wrap');
+        wrap.innerHTML='<div class="support-thread-head">'+
+          '<div class="support-thread-who">'+
+            '<strong>'+escHtml(st.user_name||'Customer')+'</strong>'+
+            '<span>'+escHtml(st.user_email||'')+'</span>'+
+          '</div>'+
+          '<button class="cs-close" style="position:absolute;right:16px;top:13px;">Close</button>'+
+        '</div>'+
+        '<div class="support-messages" id="support-messages">'+
+          (messages.map(m=>{
+            const mine=m.role==='admin';
+            return '<div class="support-msg '+(mine?'support-msg-admin':'support-msg-user')+'">'+
+              '<div class="support-bubble">'+escHtml(m.body||'')+'</div>'+
+              '<div class="support-msg-time">'+escHtml(m.at||'')+'</div>'+
+            '</div>';
+          }).join(''))+
+        '</div>'+
+        '<div class="support-reply">'+
+          '<input class="input" id="admin-reply-input" type="text" placeholder="Type your reply…" maxlength="2000">'+
+          '<button class="btn btn-purple" id="admin-reply-btn" type="button">Reply</button>'+
+        '</div>';
+        document.getElementById('admin-reply-btn').addEventListener('click',async()=>{
+          const input=document.getElementById('admin-reply-input');
+          const body=input.value.trim();
+          if(!body) return;
+          input.disabled=true;
+          try{
+            messages.push({ id:chatId(), role:'admin', body:body, at:new Date().toISOString(), read_by_admin:true, read_by_user:false });
+            const meta=supportMeta({kind:'support_chat',messages:messages,user_name:'Admin',user_email:'admin@fedex-tracking.local'});
+            await db.from('tracking_entries').update({status:JSON.stringify(meta)}).eq('tracking_code',code);
+            input.value='';
+            openSupportThread(code);
+          }catch(e){ alert('Could not send reply: '+e.message); input.disabled=false; }
+        });
+        document.querySelector('.cs-close').addEventListener('click',()=>{
+          wrap.innerHTML='<div class="support-placeholder"><strong>Select a conversation</strong><p>Click a thread on the left to view and reply.</p></div>';
+          loadSupportThreads();
+        });
+      }catch(e){ console.error('open thread error',e); alert('Could not open thread: '+e.message); }
+    }
+
+    function escHtml(s){ return String(s===''||s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function chatId(){ return 'msg_' + Date.now() + '_' + Math.random().toString(36).slice(2,9); }
+    function supportMeta(t){ return { kind:'support_chat', user_name:t.user_name||'Customer', user_email:t.user_email||'', messages:t.messages||[], updated_at:t.updated_at||new Date().toISOString() }; }
+
+    loadSupportThreads();
+    setInterval(loadSupportThreads, 4000);
+  </script>
 </body>
 </html>
