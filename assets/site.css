@@ -510,3 +510,23 @@ img{
   visibility:visible !important;
   display:block !important;
 }
+.hero-media,
+.why-img,
+.promo-card img,
+.banner-inner img{
+  min-height:100px !important;
+  width:auto !important;
+  max-width:100% !important;
+}
+@media(max-width:767px){
+  .hero-media img,
+  .why-img,
+  .promo-card img,
+  .banner-inner img{
+    display:block !important;
+    opacity:1 !important;
+    visibility:visible !important;
+    width:100% !important;
+    height:auto !important;
+  }
+}
