@@ -1,6 +1,6 @@
-# FedEx Tracking Clone
+# AeroExpress Tracking Clone
 
-A FedEx-style shipping and tracking site with a public tracking page, user
+A AeroExpress-style shipping and tracking site with a public tracking page, user
 accounts and claims, and an admin control center backed by Supabase.
 
 > This is a **demo / educational clone**. It is not affiliated with or endorsed by FedEx.

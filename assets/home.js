@@ -1,4 +1,4 @@
-/* Functional layer for the FedEx-style homepage. */
+/* Functional layer for the AeroExpress-style homepage. */
 (function () {
   'use strict';
 
@@ -136,7 +136,7 @@
     });
   });
 
-  /* Make the main FedEx navigation point at the working clone pages */
+  /* Make the main AeroExpress navigation point at the working clone pages */
   setHref('.fxg-header__logo_wrapper', 'index.html');
   setHref('#fxg-dropdown-signIn', TRACK_URL);
   setHref('a[data-analytics="hdr|tab|2|Tracking"]', TRACK_URL);

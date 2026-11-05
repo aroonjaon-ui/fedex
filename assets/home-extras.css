@@ -1,4 +1,4 @@
-/* Enhancements layered on top of the FedEx homepage markup. */
+/* Enhancements layered on top of the AeroExpress homepage markup. */
 .clone-chat {
   position: fixed !important;
   right: 22px;
@@ -12,7 +12,7 @@
   border-radius: 999px;
   background: #4d148c;
   color: #fff !important;
-  font: 700 15px/1 "FedEx Sans", Arial, Helvetica, sans-serif;
+  font: 700 15px/1 "AeroExpress Sans", Arial, Helvetica, sans-serif;
   text-decoration: none !important;
   box-shadow: 0 10px 28px rgba(0, 0, 0, .28);
   transition: transform .2s ease, background .2s ease, box-shadow .2s ease;
@@ -156,7 +156,7 @@
   padding: 0 24px;
   border-bottom: 1px solid #ececec;
   color: #2f2f2f !important;
-  font: 700 16px/1.25 "FedEx Sans", Arial, Helvetica, sans-serif;
+  font: 700 16px/1.25 "AeroExpress Sans", Arial, Helvetica, sans-serif;
   text-decoration: none !important;
 }
 .clone-mobile-menu__links a:hover,
@@ -205,7 +205,7 @@ body.clone-menu-open {
   opacity: 1;
 }
 @media (max-width: 767px) {
-  /* Keep the mobile footer identical to the real FedEx footer. */
+  /* Keep the mobile footer identical to the real AeroExpress footer. */
   .clone-footer-admin {
     display: none;
   }
@@ -240,7 +240,7 @@ body.clone-menu-open {
   }
 }
 
-/* Keep custom interactive bits above the real FedEx layout */
+/* Keep custom interactive bits above the real AeroExpress layout */
 .clone-js-focus {
   outline: 3px solid #ffb400 !important;
   outline-offset: 2px;

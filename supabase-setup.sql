@@ -1,4 +1,4 @@
--- FedEx Tracking prototype - Supabase setup
+-- AeroExpress Tracking prototype - Supabase setup
 -- Run this in Supabase Dashboard -> SQL Editor.
 -- Safe to run more than once.
 
