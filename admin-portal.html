@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Shipment Control Center | FedEx</title>
-  <link rel="icon" type="image/png" href="images/fedex-logo.png">
+  <title>Shipment Control Center | AeroExpress</title>
+  <link rel="icon" type="image/png" href="images/aeroexpress-logo.png">
   <link rel="stylesheet" href="assets/site.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -13,7 +13,7 @@
   <!-- Header -->
   <header class="site-header">
     <div class="header-inner">
-      <a class="logo" href="index.html" aria-label="FedEx home"><span class="fed">Fed</span><span class="ex">Ex</span></a>
+      <a class="logo" href="index.html" aria-label="AeroExpress home"><span class="fed">Fed</span><span class="ex">Ex</span></a>
       <div class="admin-header-title">
         <span class="admin-eyebrow">Shipment control center</span>
       </div>
@@ -159,7 +159,7 @@
 
             <div class="field">
               <label for="f-location">Current location / state</label>
-              <input class="input" id="f-location" type="text" placeholder="e.g. Memphis, TN — FedEx hub">
+              <input class="input" id="f-location" type="text" placeholder="e.g. Memphis, TN — AeroExpress hub">
             </div>
 
             <div class="form-row">
@@ -175,7 +175,7 @@
 
             <div class="field">
               <label for="f-service">Service</label>
-              <input class="input" id="f-service" type="text" placeholder="FedEx Express Saver">
+              <input class="input" id="f-service" type="text" placeholder="AeroExpress Express Saver">
             </div>
 
             <div class="form-row">
@@ -196,7 +196,7 @@
               </div>
               <div class="field">
                 <label for="f-packaging">Packaging</label>
-                <input class="input" id="f-packaging" type="text" placeholder="FedEx Box">
+                <input class="input" id="f-packaging" type="text" placeholder="AeroExpress Box">
               </div>
             </div>
 
@@ -267,7 +267,7 @@
             </div>
             <div class="field">
               <label for="m-note">Scan description (optional)</label>
-              <input class="input" id="m-note" type="text" placeholder="e.g. On FedEx vehicle for delivery">
+              <input class="input" id="m-note" type="text" placeholder="e.g. On AeroExpress vehicle for delivery">
             </div>
             <button type="submit" class="btn btn-purple btn-block" id="move-btn">Add tracking update</button>
           </form>
@@ -312,7 +312,7 @@
     </div>
     <div class="footer-bottom">
       <div class="footer-bottom-inner">
-        <span>&copy; 2026 FedEx. All rights reserved. Demo clone for educational use.</span>
+        <span>&copy; 2026 AeroExpress. All rights reserved. Demo clone for educational use.</span>
         <span><a href="#">Privacy</a><a href="#">Terms</a></span>
       </div>
     </div>
@@ -395,12 +395,12 @@
     }
     function defaultEventText(stage){
       switch (stage) {
-        case 'label_created': return 'Shipment information sent to FedEx';
+        case 'label_created': return 'Shipment information sent to AeroExpress';
         case 'carrier_1': return 'Picked up';
         case 'carrier_2': return 'In transit';
-        case 'carrier_3': return 'Arrived at FedEx hub';
-        case 'warehouse': return 'At FedEx warehouse';
-        case 'out_for_delivery': return 'On FedEx vehicle for delivery';
+        case 'carrier_3': return 'Arrived at AeroExpress hub';
+        case 'warehouse': return 'At AeroExpress warehouse';
+        case 'out_for_delivery': return 'On AeroExpress vehicle for delivery';
         case 'delivered': return 'Delivered';
         case 'exception': return 'Delivery exception';
         default: return 'Shipment update';

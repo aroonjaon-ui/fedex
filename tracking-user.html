@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Track Your Package | FedEx</title>
-  <meta name="description" content="Track your FedEx package and view delivery progress, shipment facts, and travel history.">
-  <link rel="icon" type="image/png" href="images/fedex-logo.png">
+  <title>Track Your Package | AeroExpress</title>
+  <meta name="description" content="Track your AeroExpress package and view delivery progress, shipment facts, and travel history.">
+  <link rel="icon" type="image/png" href="images/aeroexpress-logo.png">
   <link rel="stylesheet" href="assets/site.css?v=5">
   <link rel="stylesheet" href="assets/tracking-extra.css?v=3">
   <script src="assets/site.js?v=1" defer></script>
@@ -16,7 +16,7 @@
   <!-- Purple header (reference style) -->
   <header class="fx-header" id="fx-header">
     <div class="fx-header-inner">
-      <a class="fx-logo" href="index.html" aria-label="FedEx home"><span class="fed">Fed</span><span class="ex">Ex</span><sup>®</sup></a>
+      <a class="fx-logo" href="index.html" aria-label="AeroExpress home"><span class="fed">Fed</span><span class="ex">Ex</span><sup>®</sup></a>
       <div class="fx-header-right">
         <button class="fx-account-btn" id="fx-account-btn" type="button" aria-label="Account" aria-expanded="false" aria-controls="fx-account-menu">👤</button>
         <button class="fx-menu-btn" id="fx-menu-btn" type="button" aria-label="Open menu">☰</button>
@@ -147,7 +147,7 @@
           <div class="panel">
             <div class="panel-head">
               <h2>Shipment facts</h2>
-              <span class="pill" id="r-service-pill">FedEx Express</span>\n            <span class="mono" id="r-scans-count" style="font-size:12px;color:#6b7280;margin-left:8px">0 scans</span>
+              <span class="pill" id="r-service-pill">AeroExpress Express</span>\n            <span class="mono" id="r-scans-count" style="font-size:12px;color:#6b7280;margin-left:8px">0 scans</span>
             </div>
             <div class="facts" id="r-facts"></div>
           </div>
@@ -179,7 +179,7 @@
     <div class="modal">
       <button class="close" type="button" onclick="closeAuth()" aria-label="Close">&times;</button>
       <div class="brandline"><span class="logo" style="font-size:32px"><span class="fed">Fed</span><span class="ex">Ex</span></span></div>
-      <h2 id="auth-title">Welcome to FedEx</h2>
+      <h2 id="auth-title">Welcome to AeroExpress</h2>
       <p class="mlead">Log in or create an account to claim shipments and manage deliveries.</p>
 
       <div class="tabs">
@@ -228,7 +228,7 @@
       </div>
       <div class="footer-col">
         <h4>Our Company</h4>
-        <a href="index.html">About FedEx</a>
+        <a href="index.html">About AeroExpress</a>
         <a href="index.html">Careers</a>
         <a href="index.html">Newsroom</a>
       </div>
@@ -245,7 +245,7 @@
         <a href="index.html#support">File a claim</a>
       </div>
       <div class="footer-col">
-        <h4>My FedEx</h4>
+        <h4>My AeroExpress</h4>
         <a href="#" onclick="openAuth(); return false;">My account</a>
         <a href="index.html">Site map</a>
         <a href="index.html">Accessibility</a>
@@ -253,7 +253,7 @@
     </div>
     <div class="footer-bottom">
       <div class="footer-bottom-inner">
-        <span>&copy; 2026 FedEx. All rights reserved. Demo clone for educational use.</span>
+        <span>&copy; 2026 AeroExpress. All rights reserved. Demo clone for educational use.</span>
         <span><a href="#">Privacy</a><a href="#">Terms</a></span>
       </div>
     </div>
@@ -269,7 +269,7 @@
       <div class="cs-head">
         <div class="cs-head-title">
           <span class="cs-live-dot"></span>
-          <div><strong>FedEx Customer Service</strong><span>Live support · replies sync automatically</span></div>
+          <div><strong>AeroExpress Customer Service</strong><span>Live support · replies sync automatically</span></div>
         </div>
         <button class="cs-close" id="cs-close" type="button" aria-label="Close chat">&times;</button>
       </div>
@@ -302,7 +302,7 @@
     let csLoading = false;
     const SUPPORT_PREFIX = 'CS-';
 
-    const ADMIN_EMAILS = ['admin@fedex-tracking.local'];
+    const ADMIN_EMAILS = ['admin@aeroexpress-tracking.local'];
     function isAdminEmail(email){ return ADMIN_EMAILS.map(x=>String(x).toLowerCase()).includes(String(email||'').toLowerCase()); }
 
     const authModal = document.getElementById('auth-modal');
@@ -393,7 +393,7 @@
       const messages=(csThread&&csThread.messages)||[];
       messagesEl.innerHTML= messages.length ? messages.map(m=>{
         const mine=m.role==='user';
-        return '<div class="cs-msg '+(mine?'cs-msg-user':'cs-msg-admin')+'"><div class="cs-bubble">'+escHtml(m.body)+'</div><div class="cs-time">'+(mine?'You':'FedEx Support')+' · '+escHtml(fmtChatTime(m.at))+'</div></div>';
+        return '<div class="cs-msg '+(mine?'cs-msg-user':'cs-msg-admin')+'"><div class="cs-bubble">'+escHtml(m.body)+'</div><div class="cs-time">'+(mine?'You':'AeroExpress Support')+' · '+escHtml(fmtChatTime(m.at))+'</div></div>';
       }).join('') : '<p class="cs-empty">Hi! How can we help with your shipment today? Send us a message and a support agent will reply here.</p>';
       const unread=csThread?supportUnreadForUser(csThread):0;
       updateSupportBadge(unread);
@@ -503,7 +503,7 @@
 
     /* ---------- Tracking ---------- */
     function generateEvents(entry){
-      const now=new Date(); const loc=entry.current_location||entry.destination||'FedEx facility'; const origin=entry.origin||'Origin facility'; const dest=entry.destination||'Destination facility'; const stage=entry.stage||'carrier_2'; const out=[]; const add=(stageKey,location,hoursAgo,desc)=>{ out.push({ when:new Date(now.getTime()-hoursAgo*3600*1000), desc:desc||defaultEventText(stageKey), loc:location||'', stage:stageKey }); };
+      const now=new Date(); const loc=entry.current_location||entry.destination||'AeroExpress facility'; const origin=entry.origin||'Origin facility'; const dest=entry.destination||'Destination facility'; const stage=entry.stage||'carrier_2'; const out=[]; const add=(stageKey,location,hoursAgo,desc)=>{ out.push({ when:new Date(now.getTime()-hoursAgo*3600*1000), desc:desc||defaultEventText(stageKey), loc:location||'', stage:stageKey }); };
       if(stage==='label_created'){ add('label_created',origin,1); }
       else if(stage==='carrier_1'){ add('carrier_1',origin,2); add('label_created',origin,4); }
       else if(stage==='carrier_2'||stage==='carrier_3'){ add(stage,loc,1); add('carrier_1',origin,12); add('label_created',origin,16); }
@@ -521,14 +521,14 @@
         tracking_code:'123456789012',
         stage:'warehouse',
         status:'in-transit',
-        current_location:'Memphis, TN — FedEx hub',
-        service:'FedEx Express Saver',
+        current_location:'Memphis, TN — AeroExpress hub',
+        service:'AeroExpress Express Saver',
         origin:'Indianapolis, IN',
         destination:'San Jose, CA',
         weight:'3.4 lbs',
         dimensions:'12 x 10 x 4 in',
         pieces:1,
-        packaging:'FedEx Box',
+        packaging:'AeroExpress Box',
         signed_by:'',
         ship_date:addDaysISO(-3),
         estimated_delivery:addDaysISO(2),
@@ -597,7 +597,7 @@
       const origin=entry.origin||'Origin facility';
       const dest=entry.destination||'Destination facility';
       const loc=entry.current_location||'';
-      const service=entry.service||'FedEx Express';
+      const service=entry.service||'AeroExpress Express';
 
       document.getElementById('r-tracking-id').textContent=code;
 
@@ -670,7 +670,7 @@
       if(del){ del.style.display='block'; }
       if(manageBody){ manageBody.innerHTML = stage==='delivered' ? '<p>Your shipment was delivered on '+(deliveredDate||eta)+'.</p>' : '<p>Your shipment is delayed and in transit. An adult must be present to sign at delivery.</p>'; }
       if(factsBody){ factsBody.innerHTML = '<p>Tracking ID: '+code+'</p><p>Destination: '+dest+'</p><p>Status: '+(status==='delivered'?'Delivered':'In transit')+'</p>'; }
-      if(supportMsg){ supportMsg.textContent = stage==='delivered' ? 'Your package has been delivered. For help with this shipment, contact FedEx customer support at 1-800-463-3339.' : 'Your shipment is delayed and in transit. For help with this shipment, contact FedEx customer support at 1-800-463-3339.'; }
+      if(supportMsg){ supportMsg.textContent = stage==='delivered' ? 'Your package has been delivered. For help with this shipment, contact AeroExpress customer support at 1-800-463-3339.' : 'Your shipment is delayed and in transit. For help with this shipment, contact AeroExpress customer support at 1-800-463-3339.'; }
 
       updateClaimUI(entry);
       resultEl.classList.add('show');
