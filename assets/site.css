@@ -300,8 +300,8 @@ table.data tr:hover td{background:#faf7fe}
 .ship-head .actions{display:flex;gap:10px;flex-wrap:wrap}
 
 .status-summary{background:#fff;border:1px solid var(--gray-200);border-radius:14px;box-shadow:var(--shadow);padding:26px;display:grid;grid-template-columns:auto 1fr auto;gap:22px;align-items:center}
-.status-icon{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--aeroexpress-lavender);color:var(--aeroexpress-purple);flex-shrink:0}
-.status-icon svg{width:32px;height:32px}
+.status-icon{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--aeroexpress-lavender);color:var(--aeroexpress-purple);flex-shrink:0;transform:none!important}
+.status-icon svg{width:32px;height:32px;transform:none!important}
 .status-icon.delivered{background:#e7f6ed;color:var(--green)}
 .status-icon.exception{background:#fdecef;color:var(--red)}
 .status-icon.pending{background:#fef3c7;color:var(--amber)}

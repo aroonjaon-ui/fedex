@@ -346,7 +346,7 @@
     document.getElementById('login-form').addEventListener('submit',async(e)=>{
       e.preventDefault();
       const email=document.getElementById('login-email').value; const password=document.getElementById('login-password').value;
-      try{ await db.auth.signInWithPassword({ email, password }); closeAuth(); const ADMIN_EMAILS=['admin@aeroexpress-tracking.local']; if(ADMIN_EMAILS.includes(email)){ window.location.href='admin-portal.html'; } else { window.location.href='tracking-user.html'; } }
+      try{ await db.auth.signInWithPassword({ email, password }); closeAuth(); const ADMIN_EMAILS=['admin@aeroexpress-tracking.local','admin@fedex-tracking.local']; if(ADMIN_EMAILS.includes(email)){ window.location.href='admin-portal.html'; } else { window.location.href='tracking-user.html'; } }
       catch(e){ showAlert('error',e.message||'Login failed.'); }
     });
     document.getElementById('signup-form').addEventListener('submit',async(e)=>{
