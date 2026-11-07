@@ -495,38 +495,14 @@ table.data tr:hover td{background:#faf7fe}
   .banner .img-placeholder{height:200px}
 }
 
-/* ===== Force All Images Visible ===== */
-img{
-  opacity:1 !important;
-  visibility:visible !important;
-  display:block !important;
-}
-.img-placeholder{display:none !important}
+/* ===== Images ===== */
+/* Keep photos rendering with their intrinsic aspect ratio if a source fails,
+   without overriding the explicit dimensions set above. */
 .hero-media img,
 .why-img,
 .promo-card img,
 .banner-inner img{
-  opacity:1 !important;
-  visibility:visible !important;
-  display:block !important;
+  opacity:1;
+  visibility:visible;
 }
-.hero-media,
-.why-img,
-.promo-card img,
-.banner-inner img{
-  min-height:100px !important;
-  width:auto !important;
-  max-width:100% !important;
-}
-@media(max-width:767px){
-  .hero-media img,
-  .why-img,
-  .promo-card img,
-  .banner-inner img{
-    display:block !important;
-    opacity:1 !important;
-    visibility:visible !important;
-    width:100% !important;
-    height:auto !important;
-  }
-}
+.img-placeholder{display:none}
