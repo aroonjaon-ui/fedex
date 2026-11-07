@@ -366,6 +366,9 @@
     const CS_SEND=document.getElementById('cs-send');
     const CS_LOGIN=document.getElementById('cs-login');
     const CS_BADGE=document.getElementById('cs-badge');
+    const CS_FORM=document.getElementById('cs-form');
+    const SUPPORT_PREFIX='CS-';
+    let currentUser=null;
 
     function supportCode(user){ return SUPPORT_PREFIX + user.id; }
     function supportDisplayName(){ return currentUser ? (currentUser.user_metadata && currentUser.user_metadata.full_name) || currentUser.email : 'Customer'; }
@@ -379,8 +382,9 @@
     function updateSupportBadge(n){ if(CS_BADGE){ CS_BADGE.textContent=n>0?String(n):'0'; CS_BADGE.style.display=n>0?'flex':'none'; } }
     function renderSupportChat(){
       if(!CS_MESSAGES) return;
-      if(!currentUser){ CS_MESSAGES.innerHTML='<p class="cs-empty">Log in to message customer service.</p>'; if(CS_LOGIN) CS_LOGIN.style.display='block'; if(CS_SEND) CS_SEND.style.display='none'; updateSupportBadge(0); return; }
+      if(!currentUser){ CS_MESSAGES.innerHTML='<p class="cs-empty">Log in to message customer service.</p>'; if(CS_LOGIN) CS_LOGIN.style.display='block'; if(CS_FORM) CS_FORM.style.display='none'; updateSupportBadge(0); return; }
       if(CS_LOGIN) CS_LOGIN.style.display='none';
+      if(CS_FORM) CS_FORM.style.display='flex';
       if(CS_SEND) CS_SEND.style.display='inline-block';
       const messages=(csThread&&csThread.messages)||[];
       CS_MESSAGES.innerHTML= messages.length ? messages.map(m=>{ const mine=m.role==='user'; return '<div class="cs-msg '+(mine?'cs-msg-user':'cs-msg-admin')+'"><div class="cs-bubble">'+escHtml(m.body)+'</div><div class="cs-time">'+(mine?'You':'AeroExpress Support')+' · '+escHtml(fmtChatTime(m.at))+'</div></div>'; }).join('') : '<p class="cs-empty">Hi! How can we help with your shipment today?</p>';
@@ -431,11 +435,14 @@
         csThread=thread; CS_INPUT.value=''; renderSupportChat(); if(csOpen) await markSupportReadForUser();
       }catch(e){ alert('Could not send message: '+e.message); } finally { CS_SEND.disabled=false; CS_SEND.textContent='Send'; }
     }
-    function openSupportChat(){ csOpen=true; CS_PANEL.classList.add('open'); renderSupportChat(); if(currentUser){ loadSupportThread(true); CS_INPUT.focus(); } }
-    function closeSupportChat(){ csOpen=false; CS_PANEL.classList.remove('open'); }
-    CS_SEND.addEventListener('click',(e)=>{ e.preventDefault(); sendSupportMessage(CS_INPUT.value); });
-    CS_INPUT.addEventListener('keypress',(e)=>{ if(e.key==='Enter'){ e.preventDefault(); sendSupportMessage(CS_INPUT.value); } });
-    csPollTimer=setInterval(()=>{ if(csOpen){ loadSupportThread(true); } },4000);
+    function openSupportChat(){ if(!CS_PANEL) return; csOpen=true; CS_PANEL.classList.add('open'); if(CS_BTN) CS_BTN.setAttribute('aria-expanded','true'); renderSupportChat(); if(currentUser){ loadSupportThread(true); if(CS_INPUT) CS_INPUT.focus(); } }
+    function closeSupportChat(){ csOpen=false; if(CS_PANEL) CS_PANEL.classList.remove('open'); if(CS_BTN) CS_BTN.setAttribute('aria-expanded','false'); }
+    if(CS_BTN) CS_BTN.addEventListener('click',()=>{ if(csOpen) closeSupportChat(); else openSupportChat(); });
+    if(CS_CLOSE) CS_CLOSE.addEventListener('click',closeSupportChat);
+    if(CS_FORM) CS_FORM.addEventListener('submit',(e)=>{ e.preventDefault(); sendSupportMessage(CS_INPUT?CS_INPUT.value:''); });
+    (async()=>{ try{ const {data}=await db.auth.getSession(); currentUser=(data&&data.session&&data.session.user)||null; }catch(e){ currentUser=null; } renderSupportChat(); })();
+    db.auth.onAuthStateChange((_event,session)=>{ currentUser=(session&&session.user)||null; renderSupportChat(); if(currentUser&&csOpen) loadSupportThread(true); });
+    csPollTimer=setInterval(()=>{ if(csOpen&&currentUser){ loadSupportThread(true); } },4000);
   </script>
 
   <!-- Live Customer Service Chat Widget -->

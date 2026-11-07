@@ -996,6 +996,17 @@
   <script>
     // Admin chat inbox - fetch and display support chat messages
     const SUPPORT_PREFIX='CS-';
+    let openThreadCode=null;
+    let openThreadSig='';
+    function parseStatus(row){
+      try{ return typeof row.status==='string' ? JSON.parse(row.status||'{}') : (row.status||{}); }
+      catch(e){ return {}; }
+    }
+    function fmtAdminTime(iso){
+      if(!iso) return '';
+      try{ return new Date(iso).toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}); }
+      catch(e){ return String(iso); }
+    }
     const supportList=document.getElementById('support-list');
     const supportListWrap=document.querySelector('.support-list-wrap');
     const supportThreadWrap=document.querySelector('.support-thread-wrap');
@@ -1003,75 +1014,128 @@
 
     async function loadSupportThreads(){
       try{
-        const { data } = await db.from('tracking_entries').select('*').eq('carrier','support_chat').order('updated_at',{ascending:false}).limit(50);
+        const { data, error } = await db.from('tracking_entries').select('*').eq('carrier','support_chat').limit(100);
+        if(error) throw error;
         const supportList=document.getElementById('support-list');
         if(!data || data.length===0){
           supportList.innerHTML='<div class="support-placeholder"><strong>No conversations</strong><p>Customer messages will appear here.</p></div>';
+          if(unreadCountPill) unreadCountPill.textContent='0 unread';
           return;
         }
-        supportList.innerHTML=data.map(r=>{
-          const st = typeof row.status === 'string' ? JSON.parse(row.status || '{}') : (row.status||{});
+        const rows=data.slice().sort((a,b)=>{
+          const sa=parseStatus(a), sb=parseStatus(b);
+          return String(sb.updated_at||b.created_at||'').localeCompare(String(sa.updated_at||a.created_at||''));
+        });
+        let totalUnread=0;
+        supportList.innerHTML=rows.map(r=>{
+          const st = parseStatus(r);
           const messages = st.messages||[];
           const lastMsg = messages.length ? messages[messages.length-1] : {body:'',at:''};
           const unread = messages.filter(m=>m.role==='user'&&!m.read_by_admin).length;
-          return '<div class="support-thread-item'+(st.unread?' active':'')+'" onclick="openSupportThread(\''+r.tracking_code.replace(/'/g,"\\'")+'\')">'+
+          totalUnread += unread;
+          return '<div class="support-thread-item'+(r.tracking_code===openThreadCode?' active':'')+'" onclick="openSupportThread(\''+r.tracking_code.replace(/'/g,"\\'")+'\')">'+
             '<div class="support-thread-top">'+
               '<strong>'+escHtml((st.user_name||'Customer'))+'</strong>'+
-              '<span class="support-unread-pill">'+unread+'</span>'+
+              (unread?'<span class="support-unread-pill">'+unread+'</span>':'')+
             '</div>'+
             '<div class="support-thread-email">'+escHtml(st.user_email||'')+'</div>'+
             '<div class="support-thread-preview">'+escHtml(lastMsg.body||'No messages')+'</div>'+
-            '<div class="support-thread-time">'+escHtml(lastMsg.at||'')+'</div>'+
+            '<div class="support-thread-time">'+escHtml(fmtAdminTime(lastMsg.at))+'</div>'+
           '</div>';
         }).join('');
-      }catch(e){ console.error('load support threads error',e); }
+        if(unreadCountPill) unreadCountPill.textContent=totalUnread+' unread';
+      }catch(e){
+        console.error('load support threads error',e);
+        supportList.innerHTML='<div class="support-placeholder"><strong>Could not load conversations</strong><p>'+escHtml(e.message||String(e))+'</p></div>';
+      }
     }
 
     async function openSupportThread(code){
       try{
-        const { data } = await db.from('tracking_entries').select('*').eq('tracking_code',code).maybeSingle();
+        const prevInput=document.getElementById('admin-reply-input');
+        const typed=prevInput?prevInput.value:'';
+        const { data, error } = await db.from('tracking_entries').select('*').eq('tracking_code',code).maybeSingle();
+        if(error) throw error;
         if(!data) return;
-        const st = typeof data.status === 'string' ? JSON.parse(data.status || '{}') : (data.status||{});
+        openThreadCode=code;
+        const st = parseStatus(data);
         const messages = st.messages||[];
+        let dirty=false;
+        messages.forEach(m=>{ if(m.role==='user'&&!m.read_by_admin){ m.read_by_admin=true; dirty=true; } });
+        if(dirty){
+          await db.from('tracking_entries').update({status:JSON.stringify(supportMeta({kind:'support_chat',messages:messages,user_name:st.user_name||'Customer',user_email:st.user_email||''}))}).eq('tracking_code',code);
+        }
+        openThreadSig=messages.map(m=>m.id||m.at).join('|');
         const wrap=document.querySelector('.support-thread-wrap');
         wrap.innerHTML='<div class="support-thread-head">'+
           '<div class="support-thread-who">'+
             '<strong>'+escHtml(st.user_name||'Customer')+'</strong>'+
             '<span>'+escHtml(st.user_email||'')+'</span>'+
           '</div>'+
-          '<button class="cs-close" style="position:absolute;right:16px;top:13px;">Close</button>'+
+          '<button class="cs-close" style="position:absolute;right:16px;top:13px;" aria-label="Close conversation">&times;</button>'+
         '</div>'+
         '<div class="support-messages" id="support-messages">'+
-          (messages.map(m=>{
+          (messages.length ? messages.map(m=>{
             const mine=m.role==='admin';
             return '<div class="support-msg '+(mine?'support-msg-admin':'support-msg-user')+'">'+
               '<div class="support-bubble">'+escHtml(m.body||'')+'</div>'+
-              '<div class="support-msg-time">'+escHtml(m.at||'')+'</div>'+
+              '<div class="support-msg-time">'+escHtml(fmtAdminTime(m.at))+'</div>'+
             '</div>';
-          }).join(''))+
+          }).join('') : '<div class="support-placeholder"><strong>No messages yet</strong><p>This customer has not written anything.</p></div>')+
         '</div>'+
         '<div class="support-reply">'+
           '<input class="input" id="admin-reply-input" type="text" placeholder="Type your reply…" maxlength="2000">'+
           '<button class="btn btn-purple" id="admin-reply-btn" type="button">Reply</button>'+
         '</div>';
-        document.getElementById('admin-reply-btn').addEventListener('click',async()=>{
-          const input=document.getElementById('admin-reply-input');
-          const body=input.value.trim();
-          if(!body) return;
-          input.disabled=true;
-          try{
-            messages.push({ id:chatId(), role:'admin', body:body, at:new Date().toISOString(), read_by_admin:true, read_by_user:false });
-            const meta=supportMeta({kind:'support_chat',messages:messages,user_name:'Admin',user_email:'admin@fedex-tracking.local'});
-            await db.from('tracking_entries').update({status:JSON.stringify(meta)}).eq('tracking_code',code);
-            input.value='';
-            openSupportThread(code);
-          }catch(e){ alert('Could not send reply: '+e.message); input.disabled=false; }
-        });
-        document.querySelector('.cs-close').addEventListener('click',()=>{
+        const input=document.getElementById('admin-reply-input');
+        if(input){
+          if(typed) input.value=typed;
+          input.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); sendAdminReply(); } });
+        }
+        document.getElementById('admin-reply-btn').addEventListener('click',sendAdminReply);
+        wrap.querySelector('.cs-close').addEventListener('click',()=>{
+          openThreadCode=null; openThreadSig='';
           wrap.innerHTML='<div class="support-placeholder"><strong>Select a conversation</strong><p>Click a thread on the left to view and reply.</p></div>';
           loadSupportThreads();
         });
-      }catch(e){ console.error('open thread error',e); alert('Could not open thread: '+e.message); }
+        const msgsEl=document.getElementById('support-messages');
+        if(msgsEl) msgsEl.scrollTop=msgsEl.scrollHeight;
+      }catch(e){ console.error('open thread error',e); alert('Could not open thread: '+(e.message||e)); }
+    }
+
+    async function sendAdminReply(){
+      if(!openThreadCode) return;
+      const input=document.getElementById('admin-reply-input');
+      const body=(input?input.value:'').trim();
+      if(!body) return;
+      const btn=document.getElementById('admin-reply-btn');
+      if(btn){ btn.disabled=true; btn.textContent='Sending…'; }
+      try{
+        const { data, error } = await db.from('tracking_entries').select('*').eq('tracking_code',openThreadCode).maybeSingle();
+        if(error) throw error;
+        if(!data) throw new Error('Conversation not found.');
+        const st=parseStatus(data);
+        const messages=st.messages||[];
+        messages.push({ id:chatId(), role:'admin', body:body, at:new Date().toISOString(), read_by_admin:true, read_by_user:false });
+        const meta=supportMeta({kind:'support_chat',messages:messages,user_name:st.user_name||'Customer',user_email:st.user_email||''});
+        const upd=await db.from('tracking_entries').update({status:JSON.stringify(meta)}).eq('tracking_code',openThreadCode);
+        if(upd.error) throw upd.error;
+        if(input) input.value='';
+        await openSupportThread(openThreadCode);
+        loadSupportThreads();
+      }catch(e){ alert('Could not send reply: '+(e.message||e)); }
+      finally{ const b=document.getElementById('admin-reply-btn'); if(b){ b.disabled=false; b.textContent='Reply'; } }
+    }
+
+    async function refreshOpenThread(){
+      if(!openThreadCode) return;
+      try{
+        const { data, error } = await db.from('tracking_entries').select('*').eq('tracking_code',openThreadCode).maybeSingle();
+        if(error||!data) return;
+        const st=parseStatus(data);
+        const sig=(st.messages||[]).map(m=>m.id||m.at).join('|');
+        if(sig!==openThreadSig) await openSupportThread(openThreadCode);
+      }catch(e){}
     }
 
     function escHtml(s){ return String(s===''||s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -1079,7 +1143,7 @@
     function supportMeta(t){ return { kind:'support_chat', user_name:t.user_name||'Customer', user_email:t.user_email||'', messages:t.messages||[], updated_at:t.updated_at||new Date().toISOString() }; }
 
     loadSupportThreads();
-    setInterval(loadSupportThreads, 4000);
+    setInterval(()=>{ loadSupportThreads(); refreshOpenThread(); }, 4000);
   </script>
 </body>
 </html>
