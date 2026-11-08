@@ -509,3 +509,47 @@ table.data tr:hover td{background:#faf7fe}
   visibility:visible;
 }
 .img-placeholder{display:none}
+
+/* ===== Admin customer service inbox ===== */
+.support-card{margin-top:24px;background:#fff;border:1px solid var(--gray-200);border-radius:14px;box-shadow:var(--shadow);padding:22px}
+.card-head-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.card-head-row h2{margin:0;font-size:20px}
+.support-count-pill{background:var(--aeroexpress-orange);color:#fff;font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;white-space:nowrap}
+.support-layout{display:grid;grid-template-columns:320px minmax(0,1fr);gap:18px;min-height:420px}
+.support-list-wrap,.support-thread-wrap{background:#faf9fc;border:1px solid var(--gray-200);border-radius:12px;overflow:hidden}
+.support-list{max-height:500px;overflow-y:auto}
+.support-thread-wrap{position:relative;display:flex;flex-direction:column;background:#fff}
+.support-thread-item{padding:12px 14px;border-bottom:1px solid var(--gray-200);background:#fff;cursor:pointer;transition:background .15s ease}
+.support-thread-item:hover{background:#f6f1fc}
+.support-thread-item.active{background:#ede2fb;border-left:3px solid var(--aeroexpress-purple)}
+.support-thread-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.support-thread-top strong{font-size:14px;color:var(--ink)}
+.support-thread-email{font-size:12px;color:var(--gray-500);margin-top:1px;word-break:break-all}
+.support-thread-preview{font-size:13px;color:#444;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.support-thread-time{font-size:11px;color:var(--gray-500);margin-top:4px}
+.support-unread-pill{background:var(--aeroexpress-orange);color:#fff;font-size:11px;font-weight:700;min-width:20px;height:20px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;padding:0 6px}
+.support-placeholder{padding:28px 20px;text-align:center;color:var(--gray-500);font-size:13px}
+.support-placeholder strong{display:block;color:var(--ink);font-size:14px;margin-bottom:4px}
+.support-placeholder p{margin:0}
+.support-thread-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 16px;border-bottom:1px solid var(--gray-200);background:#faf9fc;flex-shrink:0}
+.support-thread-who{display:flex;flex-direction:column;min-width:0}
+.support-thread-who strong{font-size:14px;color:var(--ink)}
+.support-thread-who span{font-size:12px;color:var(--gray-500);word-break:break-all}
+.support-thread-head .cs-close{border:none;background:transparent;font-size:24px;line-height:1;color:var(--gray-500);cursor:pointer;padding:0 4px}
+.support-thread-head .cs-close:hover{color:var(--ink)}
+.support-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;min-height:260px;max-height:420px}
+.support-msg{display:flex;flex-direction:column;max-width:82%}
+.support-msg-user{align-self:flex-start;align-items:flex-start}
+.support-msg-admin{align-self:flex-end;align-items:flex-end}
+.support-bubble{padding:10px 14px;border-radius:14px;font-size:14px;line-height:1.45;word-break:break-word}
+.support-msg-user .support-bubble{background:#f1eafb;color:var(--ink);border-bottom-left-radius:4px}
+.support-msg-admin .support-bubble{background:var(--aeroexpress-purple);color:#fff;border-bottom-right-radius:4px}
+.support-msg-time{font-size:11px;color:var(--gray-500);margin-top:3px}
+.support-reply{display:flex;gap:8px;padding:12px;border-top:1px solid var(--gray-200);background:#fff;flex-shrink:0}
+.support-reply .input{flex:1;min-width:0;margin:0}
+.support-reply .btn{white-space:nowrap}
+@media(max-width:900px){
+  .support-layout{grid-template-columns:1fr}
+  .support-list{max-height:240px}
+  .support-messages{max-height:none}
+}

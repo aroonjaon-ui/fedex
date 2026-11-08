@@ -7,8 +7,9 @@
   <meta name="description" content="Ship, manage, track, and return your packages with AeroExpress. Track a package, get rates, find locations, and more.">
   <link rel="icon" type="image/svg+xml" href="images/aeroexpress-mark.svg">
   <link rel="icon" type="image/png" href="images/aeroexpress-logo.png">
-  <link rel="stylesheet" href="assets/site.css?v=7">
+  <link rel="stylesheet" href="assets/site.css?v=9">
   <link rel="stylesheet" href="assets/home-extras.css?v=7">
+  <link rel="stylesheet" href="assets/chat-widget.css?v=1">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/site.js?v=7" defer></script>
 </head>
@@ -346,17 +347,32 @@
     document.getElementById('login-form').addEventListener('submit',async(e)=>{
       e.preventDefault();
       const email=document.getElementById('login-email').value; const password=document.getElementById('login-password').value;
-      try{ await db.auth.signInWithPassword({ email, password }); closeAuth(); const ADMIN_EMAILS=['admin@aeroexpress-tracking.local','admin@fedex-tracking.local']; if(ADMIN_EMAILS.includes(email)){ window.location.href='admin-portal.html'; } else { window.location.href='tracking-user.html'; } }
+      try{
+        const { error } = await db.auth.signInWithPassword({ email, password });
+        if(error) throw new Error(error.message);
+        closeAuth();
+        const ADMIN_EMAILS=['admin@aeroexpress-tracking.local','admin@fedex-tracking.local'];
+        const isAdmin=ADMIN_EMAILS.includes(String(email||'').trim().toLowerCase());
+        window.location.href = isAdmin ? 'admin-portal.html' : 'tracking-user.html?dashboard=1';
+      }
       catch(e){ showAlert('error',e.message||'Login failed.'); }
     });
     document.getElementById('signup-form').addEventListener('submit',async(e)=>{
       e.preventDefault();
       const name=document.getElementById('signup-name').value; const email=document.getElementById('signup-email').value; const password=document.getElementById('signup-password').value;
-      try{ await db.auth.signUp({ email, password, options:{ data:{ full_name:name } } }); alert('Account created. Please log in.'); showTab('login'); }
+      try{
+        const { data, error } = await db.auth.signUp({ email, password, options:{ data:{ full_name:name } } });
+        if(error) throw new Error(error.message);
+        closeAuth();
+        if(data && data.session){ window.location.href='tracking-user.html?dashboard=1'; return; }
+        showAlert('success','Account created. Check your email to confirm, then log in.');
+        showTab('login');
+      }
       catch(e){ showAlert('error',e.message||'Signup failed.'); }
     });
 
     // Live Customer Service Chat Widget
+    document.addEventListener('DOMContentLoaded', function(){
     let csThread=null, csOpen=false, csLoading=false, csPollTimer=null;
     const CS_BTN=document.getElementById('cs-launcher');
     const CS_PANEL=document.getElementById('cs-panel');
@@ -443,6 +459,7 @@
     (async()=>{ try{ const {data}=await db.auth.getSession(); currentUser=(data&&data.session&&data.session.user)||null; }catch(e){ currentUser=null; } renderSupportChat(); })();
     db.auth.onAuthStateChange((_event,session)=>{ currentUser=(session&&session.user)||null; renderSupportChat(); if(currentUser&&csOpen) loadSupportThread(true); });
     csPollTimer=setInterval(()=>{ if(csOpen&&currentUser){ loadSupportThread(true); } },4000);
+    });
   </script>
 
   <!-- Live Customer Service Chat Widget -->

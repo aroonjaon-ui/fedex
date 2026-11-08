@@ -6,7 +6,7 @@
   <title>Shipment Control Center | AeroExpress</title>
   <link rel="icon" type="image/svg+xml" href="images/aeroexpress-mark.svg">
   <link rel="icon" type="image/png" href="images/aeroexpress-logo.png">
-  <link rel="stylesheet" href="assets/site.css?v=7">
+  <link rel="stylesheet" href="assets/site.css?v=9">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -42,11 +42,11 @@
           </div>
           <div class="field">
             <label for="admin-password">Password</label>
-            <input class="input" type="password" id="admin-password" placeholder="Admin123!" required>
+            <input class="input" type="password" id="admin-password" placeholder="Enter admin password" required>
           </div>
           <button type="submit" class="btn btn-purple btn-block" id="admin-login-btn">Sign in</button>
         </form>
-        <p class="auth-alt" style="font-size:12px">Demo credentials: <strong>admin@fedex-tracking.local</strong> / <strong>Admin123!</strong></p>
+        <p class="auth-alt" style="font-size:12px">Demo credentials: <strong>admin@fedex-tracking.local</strong> / <strong>FedExAdmin!2026#7Q</strong></p>
       </div>
     </div>
   </main>
@@ -298,6 +298,30 @@
         </div>
       </div>
     </div>
+
+    <!-- Admin Customer Service Chat Inbox -->
+    <div class="support-card">
+      <div class="card-head-row">
+        <h2>Customer Service Chat</h2>
+        <span class="support-count-pill" id="cs-unread-count">0 unread</span>
+      </div>
+      <div class="support-layout">
+        <div class="support-list-wrap">
+          <div class="support-list" id="support-list">
+            <div class="support-placeholder">
+              <strong>No conversations</strong>
+              <p>Customer messages will appear here.</p>
+            </div>
+          </div>
+        </div>
+        <div class="support-thread-wrap">
+          <div class="support-placeholder">
+            <strong>Select a conversation</strong>
+            <p>Click a thread on the left to view and reply.</p>
+          </div>
+        </div>
+      </div>
+    </div>
   </main>
 
   <!-- Footer -->
@@ -324,8 +348,7 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZzY3phcXRxc2NldmxseXZhcndrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMzNjU3NzQsImV4cCI6MjEwODk0MTc3NH0.Kc8gKnR76F5DsdgeZSXT1ylTwIRqhIby2Z4GSfZSlBg';
     const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const ADMIN_EMAIL = 'admin@fedex-tracking.local';
-    const ADMIN_PASS = 'Admin123!';
+    const ADMIN_EMAILS = ['admin@fedex-tracking.local','admin@aeroexpress-tracking.local'];
     const SESSION_KEY = 'fedex_admin_session';
     const BUCKET = 'tracking-proofs';
 
@@ -475,19 +498,32 @@
       dashView.style.display = 'block';
       loadAll();
     }
-    document.getElementById('admin-login-form').addEventListener('submit', (e) => {
+    document.getElementById('admin-login-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const email = document.getElementById('admin-email').value.trim();
       const pass = document.getElementById('admin-password').value;
-      if (email === ADMIN_EMAIL && pass === ADMIN_PASS){
+      const btn = document.getElementById('admin-login-btn');
+      if(btn){ btn.disabled = true; btn.textContent = 'Signing in…'; }
+      try{
+        const { data, error } = await db.auth.signInWithPassword({ email, password: pass });
+        if(error) throw new Error(error.message || 'Invalid credentials.');
+        const who = String((data && data.user && data.user.email) || email).trim().toLowerCase();
+        if(!ADMIN_EMAILS.includes(who)){
+          await db.auth.signOut();
+          throw new Error('This account is not an administrator.');
+        }
         localStorage.setItem(SESSION_KEY, '1');
         showDash();
-      } else {
-        adminAlert('error', 'Invalid credentials. Use ' + ADMIN_EMAIL + ' / ' + ADMIN_PASS);
+      }catch(err){
+        localStorage.removeItem(SESSION_KEY);
+        adminAlert('error', err.message || 'Invalid credentials.');
+      }finally{
+        if(btn){ btn.disabled = false; btn.textContent = 'Sign in'; }
       }
     });
-    document.getElementById('admin-signout').addEventListener('click', () => {
+    document.getElementById('admin-signout').addEventListener('click', async () => {
       localStorage.removeItem(SESSION_KEY);
+      try{ await db.auth.signOut(); }catch(e){}
       showLogin();
     });
     document.getElementById('refresh-btn').addEventListener('click', loadAll);
@@ -966,32 +1002,20 @@
     });
 
     /* ================= Boot ================= */
-    if (localStorage.getItem(SESSION_KEY) === '1') showDash();
-    else showLogin();
+    (async function boot(){
+      try{
+        const { data } = await db.auth.getSession();
+        const email = data && data.session && data.session.user && data.session.user.email;
+        if(email && ADMIN_EMAILS.includes(String(email).trim().toLowerCase())){
+          localStorage.setItem(SESSION_KEY, '1');
+          showDash();
+          return;
+        }
+      }catch(e){}
+      localStorage.removeItem(SESSION_KEY);
+      showLogin();
+    })();
   </script>
-  <!-- Admin Customer Service Chat Inbox -->
-  <div class="support-card">
-    <div class="card-head-row">
-      <h2>Customer Service Chat</h2>
-      <span class="support-count-pill" id="cs-unread-count">0 unread</span>
-    </div>
-    <div class="support-layout">
-      <div class="support-list-wrap">
-        <div class="support-list" id="support-list">
-          <div class="support-placeholder">
-            <strong>No conversations</strong>
-            <p>Customer messages will appear here.</p>
-          </div>
-        </div>
-      </div>
-      <div class="support-thread-wrap">
-        <div class="support-placeholder">
-          <strong>Select a conversation</strong>
-          <p>Click a thread on the left to view and reply.</p>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <script>
     // Admin chat inbox - fetch and display support chat messages

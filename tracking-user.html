@@ -7,8 +7,9 @@
   <meta name="description" content="Track your AeroExpress package and view delivery progress, shipment facts, and travel history.">
   <link rel="icon" type="image/svg+xml" href="images/aeroexpress-mark.svg">
   <link rel="icon" type="image/png" href="images/aeroexpress-logo.png">
-  <link rel="stylesheet" href="assets/site.css?v=7">
-  <link rel="stylesheet" href="assets/tracking-extra.css?v=4">
+  <link rel="stylesheet" href="assets/site.css?v=9">
+  <link rel="stylesheet" href="assets/tracking-extra.css?v=6">
+  <link rel="stylesheet" href="assets/chat-widget.css?v=1">
   <script src="assets/site.js?v=7" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -19,7 +20,6 @@
     <div class="fx-header-inner">
       <a class="fx-logo" href="index.html" aria-label="AeroExpress home"><img class="logo-mark" src="images/aeroexpress-mark.svg" alt=""><span class="fed">Aero</span><span class="ex">Express</span><sup>®</sup></a>
       <div class="fx-header-right">
-        <button class="fx-account-btn" id="fx-account-btn" type="button" aria-label="Account" aria-expanded="false" aria-controls="fx-account-menu">👤</button>
         <button class="fx-menu-btn" id="fx-menu-btn" type="button" aria-label="Open menu">☰</button>
       </div>
     </div>
@@ -27,8 +27,10 @@
 
   <!-- Account dropdown -->
   <div class="fx-menu" id="fx-account-menu" aria-label="Account menu">
-    <button class="fx-menu-item" onclick="closeFxMenu(); window.location.href='tracking-user.html?view=history';">Shipment History</button>
+    <button class="fx-menu-item" onclick="closeFxMenu(); goDashboard();">My Dashboard</button>
+    <button class="fx-menu-item" onclick="closeFxMenu(); showHistory();">Shipment History</button>
     <button class="fx-menu-item" id="fx-get-updates" onclick="closeFxMenu(); toggleUpdates();">Get Status Updates</button>
+    <button class="fx-menu-item" onclick="closeFxMenu(); window.location.href='index.html';">Back to Home</button>
   </div>
 
   <!-- Get Status Updates bar -->
@@ -40,7 +42,7 @@
   </div>
 
   <!-- Email signup form (updates) -->
-  <div id="fx-updates-form" style="display:none;margin:0 27px;padding:16px;border:1px solid var(--fx-gray-300);border-radius:10px;background:#fff;display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+  <div id="fx-updates-form" style="display:none;margin:0 27px;padding:16px;border:1px solid var(--fx-gray-300);border-radius:10px;background:#fff;flex-wrap:wrap;gap:10px;align-items:center">
     <label for="fx-updates-email" style="font-size:13px;color:#374151;margin:0">Receive tracking updates by email</label>
     <input id="fx-updates-email" type="email" required placeholder="Email address" style="min-width:0;flex:1;padding:9px 12px;border:1px solid var(--fx-gray-300);border-radius:6px;font-size:15px">
     <button type="button" id="fx-updates-signup" style="background:var(--fx-purple);color:#fff;padding:0 16px;border-radius:6px;font-weight:700;font-size:14px">Sign up</button>
@@ -85,10 +87,21 @@
             <span><strong>Administrator account.</strong> Create shipments, update stages, and upload images in the admin portal.</span>
             <a class="btn btn-purple btn-sm" href="admin-portal.html">Open admin dashboard</a>
           </div>
+          <div class="account-stats" id="acct-stats">
+            <div class="acct-stat"><span class="num" id="acct-total">0</span><span class="lbl">Total shipments</span></div>
+            <div class="acct-stat"><span class="num" id="acct-transit">0</span><span class="lbl">In transit</span></div>
+            <div class="acct-stat"><span class="num" id="acct-delivered">0</span><span class="lbl">Delivered</span></div>
+          </div>
+          <div class="account-actions">
+            <button class="btn btn-purple btn-sm" type="button" onclick="focusTrack()">Track a package</button>
+            <button class="btn btn-outline btn-sm" type="button" onclick="openSupportChat()">Contact support</button>
+            <button class="btn btn-outline btn-sm" type="button" onclick="toggleUpdates()">Get status updates</button>
+            <button class="btn btn-outline btn-sm" type="button" onclick="showHistory()">Shipment history</button>
+          </div>
           <div class="account-body">
             <h3>My shipments</h3>
             <div class="my-ship-grid" id="my-shipments">
-              <p class="empty" style="margin:0">No claimed shipments yet.</p>
+              <p class="empty" style="margin:0">No claimed shipments yet. Track a package and claim it to see it here.</p>
             </div>
           </div>
         </section>
@@ -137,6 +150,11 @@
             <span class="fx-id-value" id="r-tracking-id">—</span>
             <button class="fx-save-star" id="r-save-star" aria-label="Save shipment">★</button>
           </div>
+          <div class="fx-result-actions">
+            <button class="btn btn-purple btn-sm" id="btn-claim" type="button" style="display:none">Claim shipment</button>
+            <span class="pill claim-pill" id="r-claim-pill" style="display:none">Unclaimed</span>
+            <button class="btn btn-outline btn-sm" id="btn-share" type="button">Share tracking</button>
+          </div>
 
           <!-- Vertical timeline -->
           <div class="fx-vline-wrap" id="fx-timeline-wrap">
@@ -148,9 +166,19 @@
           <div class="panel">
             <div class="panel-head">
               <h2>Shipment facts</h2>
-              <span class="pill" id="r-service-pill">AeroExpress Express</span>\n            <span class="mono" id="r-scans-count" style="font-size:12px;color:#6b7280;margin-left:8px">0 scans</span>
+              <span class="pill" id="r-service-pill">AeroExpress Express</span>
+              <span class="mono" id="r-scans-count" style="font-size:12px;color:#6b7280;margin-left:8px">0 scans</span>
             </div>
             <div class="facts" id="r-facts"></div>
+          </div>
+
+          <!-- Delivery photos / proof of delivery -->
+          <div class="panel proof-panel" id="proof-panel" style="display:none">
+            <div class="panel-head">
+              <h2>Shipment photos &amp; proof of delivery</h2>
+              <span class="pill" id="proof-count">0 photos</span>
+            </div>
+            <div class="proof-gallery" id="proof-gallery"></div>
           </div>
 
           <!-- Delivery controls (reference style) -->
@@ -171,6 +199,17 @@
             </div>
           </div>
         </div>
+
+        <!-- Shipment history -->
+        <section class="panel history-panel" id="history-panel" style="display:none">
+          <div class="panel-head">
+            <h2>Shipment history</h2>
+            <span class="pill" id="history-count">0 shipments</span>
+          </div>
+          <div class="history-list" id="history-list">
+            <p class="empty" style="margin:0;padding:16px">No shipments yet. Track a package and claim it to see it here.</p>
+          </div>
+        </section>
       </main>
     </div>
   </div>
@@ -303,7 +342,7 @@
     let csLoading = false;
     const SUPPORT_PREFIX = 'CS-';
 
-    const ADMIN_EMAILS = ['admin@aeroexpress-tracking.local'];
+    const ADMIN_EMAILS = ['admin@aeroexpress-tracking.local','admin@fedex-tracking.local'];
     function isAdminEmail(email){ return ADMIN_EMAILS.map(x=>String(x).toLowerCase()).includes(String(email||'').toLowerCase()); }
 
     const authModal = document.getElementById('auth-modal');
@@ -337,6 +376,7 @@
     if(updatesSignup){ updatesSignup.addEventListener('click',()=>{ const email=document.getElementById('fx-updates-email').value; if(!email){alert('Please enter an email');return}; toast('Signed up for status updates at '+email); updatesOpen=false; if(updatesForm) updatesForm.style.display='none'; document.getElementById('fx-updates-email').value=''; }); }
 
     function escHtml(s){ return String(s===''||s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function escAttr(s){ return String(s===''||s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
     function fmtDate(iso){ if(!iso) return '—'; try{ return new Date(iso).toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'}); }catch(e){ return iso; } }
     function fmtTime(iso){ if(!iso) return ''; try{ return new Date(iso).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}); }catch(e){ return iso; } }
     function fmtChatTime(iso){ if(!iso) return ''; try{ return new Date(iso).toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}); }catch(e){ return iso; } }
@@ -457,10 +497,21 @@
     async function signUp(name,email,password){
       const { data, error } = await db.auth.signUp({ email, password, options:{ data:{ full_name:name } } });
       if(error) throw new Error(error.message);
+      if(data && data.session){
+        await initUser(data.session.user);
+        closeAuth();
+        toast('Welcome'+(name?', '+name:'')+'! Your dashboard is ready.');
+        setTimeout(scrollToDashboard,250);
+        return;
+      }
       toast('Account created. Please log in.');
       showTab('login');
     }
     async function signOut(){ await db.auth.signOut(); currentUser=null; updateUI(); }
+    function scrollToDashboard(){
+      const panel=document.getElementById('account-panel');
+      if(panel && panel.style.display!=='none') panel.scrollIntoView({behavior:'smooth',block:'start'});
+    }
     async function initUser(user){
       currentUser=user;
       if(user){
@@ -468,8 +519,14 @@
         document.getElementById('acct-email').textContent=user.email||'';
         document.getElementById('account-panel').style.display='block';
         loadMyShipments();
+        if(new URLSearchParams(location.search).get('dashboard')==='1') setTimeout(scrollToDashboard,250);
+        if(new URLSearchParams(location.search).get('view')==='history') setTimeout(showHistory,300);
       } else {
         document.getElementById('account-panel').style.display='none';
+        const hp=document.getElementById('history-panel'); if(hp) hp.style.display='none';
+        myShipmentsCache=[]; myImagesByCode={};
+        const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
+        set('acct-total',0); set('acct-transit',0); set('acct-delivered',0);
       }
       csThread=null; renderSupportChat();
       if(csPollTimer){ clearInterval(csPollTimer); csPollTimer=null; }
@@ -558,7 +615,7 @@
         const done=i>0;
         if(current){
           html += '<div class="fx-vstep current" style="padding-left:103px;padding-top:13px">'+
-            '<div class="fx-vdot-current" style="position:absolute;left:33px;top:8px;width:44px;height:44px;background:#ffcc42;border:3px solid #695920;box-sizing:border-box;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:700;line-height:1;color:var(--fx-ink)">!</div>'+
+            '<div class="fx-vdot-current" style="position:absolute;left:23px;top:8px;width:44px;height:44px;background:#ffcc42;border:3px solid #695920;box-sizing:border-box;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:700;line-height:1;color:var(--fx-ink)">!</div>'+
             '<div class="fx-vcontent current">'+
             '<h3>'+escHtml(ev.stage==='delivered'?'DELIVERED':(ev.desc||defaultEventText(ev.stage)).toUpperCase())+'</h3>'+
             '<p class="fx-loc">'+escHtml(ev.loc||'')+'</p>'+
@@ -566,7 +623,7 @@
             '</div></div>';
         } else if(done){
           html += '<div class="fx-vstep done" style="padding-left:103px">'+
-            '<div class="fx-vdot" style="position:absolute;left:40px;top:20px;width:8px;height:8px;border-radius:50%;background:#645220"></div>'+
+            '<div class="fx-vdot" style="position:absolute;left:41px;top:20px;width:8px;height:8px;border-radius:50%;background:#645220"></div>'+
             '<div class="fx-vcontent">'+
             '<h3>'+escHtml(ev.desc||defaultEventText(ev.stage)).toUpperCase()+'</h3>'+
             '<p class="fx-loc">'+escHtml(ev.loc||'')+'</p>'+
@@ -574,7 +631,7 @@
             '</div></div>';
         } else {
           html += '<div class="fx-vstep upcoming" style="padding-left:103px">'+
-            '<div class="fx-vdot" style="position:absolute;left:40px;top:20px;width:8px;height:8px;border-radius:50%;background:#f5f7ee"></div>'+
+            '<div class="fx-vdot" style="position:absolute;left:41px;top:20px;width:8px;height:8px;border-radius:50%;background:#f5f7ee"></div>'+
             '<div class="fx-vcontent upcoming">'+
             '<h3 style="color:var(--fx-help-text)">'+escHtml(ev.desc||defaultEventText(ev.stage)).toUpperCase()+'</h3>'+
             '<p class="fx-loc">'+escHtml(ev.loc||'')+'</p>'+
@@ -663,6 +720,23 @@
       document.getElementById('r-facts').innerHTML=facts.map(f=>'<div class="fact"><span class="k">'+escHtml(f[0])+'</span><span class="v">'+escHtml(f[1])+'</span></div>').join('');
       document.getElementById('r-service-pill').textContent=service;
 
+      // delivery photos / proof of delivery
+      const proofPanel=document.getElementById('proof-panel');
+      const proofGallery=document.getElementById('proof-gallery');
+      const proofCount=document.getElementById('proof-count');
+      if(proofPanel && proofGallery){
+        const imgs=(images||[]).filter(im=>im&&im.image_url);
+        proofGallery.innerHTML=imgs.map(im=>{
+          const url=escAttr(im.image_url);
+          const label=im.label||'Delivery photo';
+          return '<a class="proof-item" href="'+url+'" target="_blank" rel="noopener">'+
+            '<img src="'+url+'" alt="'+escAttr(label)+'" loading="lazy">'+
+            '<span>'+escHtml(label)+'</span></a>';
+        }).join('');
+        proofPanel.style.display=imgs.length?'block':'none';
+        if(proofCount) proofCount.textContent=imgs.length+' photo'+(imgs.length===1?'':'s');
+      }
+
       // delivery controls content
       const del=document.getElementById('fx-delivery');
       const manageBody=document.getElementById('fx-acc-manage-body');
@@ -681,8 +755,8 @@
     function updateClaimUI(entry){
       const btn=document.getElementById('btn-claim'); const pill=document.getElementById('r-claim-pill');
       if(!entry){ if(btn)btn.style.display='none'; if(pill)pill.style.display='none'; return; }
-      const claims=(entry.status&&typeof entry.status==='string')? (()=>{try{const s=JSON.parse(entry.status); return s.claims||[];}catch(e){return [];}} )() : ((entry.status&&entry.status.claims)||[]);
-      const already=claims.some(c=>c && c.user_id===currentUser.id);
+      const claims=Array.isArray(entry.claims)?entry.claims:((entry.status&&typeof entry.status==='string')? (()=>{try{const s=JSON.parse(entry.status); return s.claims||[];}catch(e){return [];}} )() : ((entry.status&&entry.status.claims)||[]));
+      const already=claims.some(c=>c && currentUser && c.user_id===currentUser.id);
       if(btn){ btn.style.display=(currentUser&&!already)?'inline-block':'none'; }
       if(pill){ pill.textContent=already?'Claimed':'Unclaimed'; pill.className='pill claim-pill'+(already?' claimed':''); pill.style.display='inline-block'; }
     }
@@ -691,20 +765,36 @@
       try{
         const res=await db.from('tracking_entries').select('*').eq('tracking_code',code).maybeSingle();
         if(res.error) throw new Error(res.error.message);
-        const entry=res.data;
-        const st=typeof entry.status==='string'?JSON.parse(entry.status||'{}'):(entry.status||{});
-        const claims=st.claims||[];
+        if(!res.data) throw new Error('Shipment not found.');
+        const raw=res.data;
+        const st=parseStatusRow(raw);
+        const claims=Array.isArray(st.claims)?st.claims:[];
         if(claims.some(c=>c&&c.user_id===currentUser.id)){ toast('You already claimed this shipment.'); return; }
         claims.push({ user_id:currentUser.id, user_email:currentUser.email||'', claimed_at:new Date().toISOString() });
         st.claims=claims;
-        await db.from('tracking_entries').update({ status:JSON.stringify(st) }).eq('tracking_code',code);
-        toast('Shipment claimed.');
-        currentEntry=await (await db.from('tracking_entries').select('*').eq('tracking_code',code).maybeSingle()).data;
-        renderResult(currentEntry, currentImages);
+        const patch={ status:JSON.stringify(st) };
+        if(!raw.user_id) patch.user_id=currentUser.id;
+        const upd=await db.from('tracking_entries').update(patch).eq('tracking_code',code);
+        if(upd.error) throw new Error(upd.error.message);
+        toast('Shipment claimed. It is now on your dashboard.');
+        const fresh=await db.from('tracking_entries').select('*').eq('tracking_code',code).maybeSingle();
+        if(fresh.data){ currentEntry=hydrateEntry(fresh.data); renderResult(currentEntry, currentImages); }
         loadMyShipments();
       }catch(e){ toast('Could not claim shipment: '+e.message); }
     }
 
+    function parseStatusRow(row){
+      try{ return typeof row.status==='string' ? (JSON.parse(row.status||'{}')||{}) : (row.status||{}); }
+      catch(e){ return {}; }
+    }
+    function hydrateEntry(row){
+      const st=parseStatusRow(row);
+      return Object.assign({}, row, st, {
+        status_json: typeof row.status==='string' ? row.status : JSON.stringify(st||{}),
+        claims: Array.isArray(st.claims) ? st.claims : [],
+        events: Array.isArray(st.events) ? st.events : []
+      });
+    }
     async function track(code){
       emptyHint.style.display='none'; notfound.classList.remove('show'); resultEl.classList.remove('show'); currentEntry=null; currentImages=[];
       let row=null, images=[], dbError=null;
@@ -720,10 +810,18 @@
         notfound.classList.add('show'); return;
       }
       if(isSupportRow(row)){ notfound.classList.add('show'); notfound.querySelector('p').textContent='This tracking number is not a shipment.'; return; }
+      row=hydrateEntry(row);
       currentEntry=row; currentImages=images;
       renderResult(row, images);
     }
-    function parseImage(img){ return { image_url: img.image_url || img.url, label: img.label || (img.kind==='shipment'?'Shipment image':'Proof of delivery'), kind: img.kind || 'shipment' }; }
+    function parseImage(img){
+      let kind=img.kind||'shipment';
+      let label=img.label||'';
+      const name=img.image_name||'';
+      if(/^(shipment|proof)\|/.test(name)){ const parts=name.split('|'); kind=parts.shift()||kind; label=parts.join('|')||label; }
+      if(!label) label=kind==='proof'?'Proof of delivery':'Shipment image';
+      return { image_url: img.image_url || img.url, label, kind };
+    }
 
     document.querySelectorAll('.track-tabs button').forEach(btn=>{
       btn.addEventListener('click',()=>{
@@ -739,29 +837,140 @@
       trackBtn.disabled=false; trackBtn.textContent='Track';
     });
 
-    /* ---------- My shipments ---------- */
-    async function loadMyShipments(){
-      if(!currentUser) return;
-      const grid=document.getElementById('my-shipments'); if(!grid) return;
-      grid.innerHTML='<p class="empty" style="margin:0">Loading…</p>';
+    /* ---------- My shipments / dashboard / history ---------- */
+    let myShipmentsCache=[];
+    let myImagesByCode={};
+
+    function claimsFor(row){
+      const st=parseStatusRow(row);
+      return Array.isArray(st.claims)?st.claims:[];
+    }
+    function rowBelongsToMe(row){
+      if(!currentUser) return false;
+      if(row.user_id===currentUser.id) return true;
+      return claimsFor(row).some(c=>c&&c.user_id===currentUser.id);
+    }
+    async function loadImagesForCodes(codes){
+      const map={};
+      if(!codes||!codes.length) return map;
       try{
-        const { data, error }=await db.from('tracking_entries').select('*').eq('user_id',currentUser.id).order('created_at',{ascending:false});
-        if(error) throw new Error(error.message);
-        const shipments=(data||[]).filter(r=>!isSupportRow(r));
-        if(!shipments.length){ grid.innerHTML='<p class="empty" style="margin:0">No claimed shipments yet.</p>'; return; }
-        grid.innerHTML=shipments.map(r=>{
-          const st=typeof r.status==='string'?JSON.parse(r.status||'{}'):(r.status||{});
-          const claims=st.claims||[];
-          const claimed=claims.some(c=>c&&c.user_id===currentUser.id);
-          if(!claimed) return '';
-          const stage=r.stage||'carrier_2';
-          return '<a href="#" class="my-ship" onclick="event.preventDefault(); track(\''+escHtml(r.tracking_code)+'\'); return false;">'+
-            '<div class="my-ship-top"><span class="my-ship-route">'+escHtml((r.origin||'Origin')+' → '+(r.destination||'Dest'))+'</span><span class="my-ship-date">'+fmtDate(r.created_at)+'</span></div>'+
-            '<div class="my-ship-loc">'+escHtml(r.current_location||'')+'</div>'+
-            '<div class="my-ship-date">Stage: '+stageLabel(stage)+'</div>'+
-            '</a>';
-        }).join('');
-      }catch(e){ grid.innerHTML='<p class="empty" style="margin:0">Unable to load shipments.</p>'; }
+        const { data, error }=await db.from('tracking_images').select('*').in('tracking_code',codes);
+        if(error) throw error;
+        (data||[]).forEach(img=>{
+          const im=parseImage(img);
+          if(!im.image_url) return;
+          (map[img.tracking_code]=map[img.tracking_code]||[]).push(im);
+        });
+      }catch(e){}
+      return map;
+    }
+    function shipmentCard(r, images){
+      const stage=(r.stage||'carrier_2');
+      const list=images||[];
+      const thumb=list.length
+        ? '<img class="my-ship-thumb" src="'+escAttr(list[0].image_url)+'" alt="'+escAttr(list[0].label||'Shipment photo')+'" loading="lazy">'
+        : '<div class="my-ship-thumb my-ship-thumb-empty" aria-hidden="true">📦</div>';
+      return '<a href="#" class="my-ship" onclick="event.preventDefault(); track(\''+escHtml(r.tracking_code)+'\'); return false;">'+
+        thumb+
+        '<div class="my-ship-body">'+
+          '<div class="my-ship-top"><span class="my-ship-route">'+escHtml((r.origin||'Origin')+' → '+(r.destination||'Dest'))+'</span><span class="my-ship-date">'+fmtDate(r.created_at)+'</span></div>'+
+          '<div class="my-ship-code">'+escHtml(r.tracking_code)+'</div>'+
+          '<div class="my-ship-loc">'+escHtml(r.current_location||'')+'</div>'+
+          '<div class="my-ship-stage"><span class="pill">'+stageLabel(stage)+'</span>'+(list.length?'<span class="my-ship-photos">'+list.length+' photo'+(list.length===1?'':'s')+'</span>':'')+'</div>'+
+        '</div>'+
+      '</a>';
+    }
+    function renderDashboardStats(rows){
+      const total=rows.length;
+      const delivered=rows.filter(r=>(r.stage||'')==='delivered').length;
+      const transit=rows.filter(r=>{ const s=r.stage||''; return s!=='delivered'&&s!=='exception'&&s!=='label_created'; }).length;
+      const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
+      set('acct-total',total); set('acct-transit',transit); set('acct-delivered',delivered);
+    }
+    function renderHistory(){
+      const panel=document.getElementById('history-panel');
+      const list=document.getElementById('history-list');
+      const count=document.getElementById('history-count');
+      if(!panel||!list) return;
+      if(!currentUser){ panel.style.display='none'; return; }
+      const rows=myShipmentsCache||[];
+      if(count) count.textContent=rows.length+' shipment'+(rows.length===1?'':'s');
+      list.innerHTML=rows.length ? rows.map(r=>{
+        const images=myImagesByCode[r.tracking_code]||[];
+        return '<div class="history-ship">'+
+          '<div class="history-ship-head">'+
+            '<div><strong>'+escHtml(r.tracking_code)+'</strong><span class="history-route">'+escHtml((r.origin||'Origin')+' → '+(r.destination||'Dest'))+'</span></div>'+
+            '<button class="btn btn-outline btn-sm" type="button" onclick="track(\''+escHtml(r.tracking_code)+'\')">Track</button>'+
+          '</div>'+
+          '<div class="history-meta"><span class="pill">'+stageLabel(r.stage||'')+'</span><span>'+escHtml(r.current_location||'')+'</span><span>'+fmtDate(r.created_at)+'</span></div>'+
+          (images.length
+            ? '<div class="history-photos">'+images.map(im=>'<a class="history-photo" href="'+escAttr(im.image_url)+'" target="_blank" rel="noopener"><img src="'+escAttr(im.image_url)+'" alt="'+escAttr(im.label)+'" loading="lazy"><span>'+escHtml(im.label)+'</span></a>').join('')+'</div>'
+            : '<p class="history-empty">No photos for this shipment yet.</p>')+
+        '</div>';
+      }).join('') : '<p class="empty" style="margin:0;padding:16px">No shipments yet. Track a package and claim it to see it here.</p>';
+    }
+    async function loadMyShipments(){
+      if(!currentUser) return [];
+      const grid=document.getElementById('my-shipments');
+      if(grid) grid.innerHTML='<p class="empty" style="margin:0">Loading…</p>';
+      try{
+        const owned=await db.from('tracking_entries').select('*').eq('user_id',currentUser.id).order('created_at',{ascending:false});
+        if(owned.error) throw new Error(owned.error.message);
+        let rows=(owned.data||[]).filter(r=>!isSupportRow(r));
+        try{
+          const recent=await db.from('tracking_entries').select('*').neq('carrier','support_chat').order('created_at',{ascending:false}).limit(200);
+          if(!recent.error && Array.isArray(recent.data)){
+            const map=new Map(rows.map(r=>[r.tracking_code,r]));
+            recent.data.forEach(r=>{ if(!map.has(r.tracking_code) && rowBelongsToMe(r)) map.set(r.tracking_code,r); });
+            rows=Array.from(map.values());
+          }
+        }catch(e){}
+        rows=rows.map(hydrateEntry);
+        myShipmentsCache=rows;
+        myImagesByCode=await loadImagesForCodes(rows.map(r=>r.tracking_code));
+        renderDashboardStats(rows);
+        if(grid){
+          grid.innerHTML = rows.length
+            ? rows.map(r=>shipmentCard(r, myImagesByCode[r.tracking_code])).join('')
+            : '<p class="empty" style="margin:0">No claimed shipments yet. Track a package and click “Claim shipment” to add it here.</p>';
+        }
+        renderHistory();
+        return rows;
+      }catch(e){
+        if(grid) grid.innerHTML='<p class="empty" style="margin:0">Unable to load shipments.</p>';
+        return [];
+      }
+    }
+
+    /* ---------- Dashboard / history navigation ---------- */
+    function goDashboard(){
+      if(!currentUser){ window.location.href='index.html'; return; }
+      const panel=document.getElementById('account-panel');
+      if(panel){ panel.style.display='block'; panel.scrollIntoView({behavior:'smooth',block:'start'}); loadMyShipments(); }
+    }
+    function showHistory(){
+      if(!currentUser){ window.location.href='index.html'; return; }
+      const panel=document.getElementById('history-panel');
+      if(!panel) return;
+      panel.style.display='block';
+      renderHistory();
+      panel.scrollIntoView({behavior:'smooth',block:'start'});
+      loadMyShipments();
+    }
+    function focusTrack(){
+      const input=document.getElementById('tracking-code');
+      if(input){ input.scrollIntoView({behavior:'smooth',block:'center'}); setTimeout(()=>input.focus(),300); }
+    }
+    function toggleUpdates(){
+      const form=document.getElementById('fx-updates-form');
+      if(!form) return;
+      const isOpen=form.style.display==='flex';
+      form.style.display=isOpen?'none':'flex';
+      if(!isOpen){
+        form.scrollIntoView({behavior:'smooth',block:'center'});
+        const email=document.getElementById('fx-updates-email');
+        if(email) setTimeout(()=>email.focus(),300);
+      }
     }
 
     /* ---------- UI wiring ---------- */
@@ -771,7 +980,7 @@
       document.getElementById('login-form').addEventListener('submit',async(e)=>{
         e.preventDefault();
         const email=document.getElementById('login-email').value; const password=document.getElementById('login-password').value;
-        try{ await signIn(email,password); closeAuth(); if(pendingClaimCode){ const c=pendingClaimCode; pendingClaimCode=null; await claimShipment(c); } }
+        try{ await signIn(email,password); closeAuth(); setTimeout(scrollToDashboard,250); if(pendingClaimCode){ const c=pendingClaimCode; pendingClaimCode=null; await claimShipment(c); } }
         catch(e){ showAlert('error',e.message||'Login failed.'); }
       });
       document.getElementById('signup-form').addEventListener('submit',async(e)=>{
