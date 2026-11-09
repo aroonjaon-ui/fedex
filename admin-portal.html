@@ -38,7 +38,7 @@
         <form id="admin-login-form">
           <div class="field">
             <label for="admin-email">Admin email</label>
-            <input class="input" type="email" id="admin-email" placeholder="admin@fedex-tracking.local" required>
+            <input class="input" type="email" id="admin-email" placeholder="admin@aeroexpress-tracking.local" required>
           </div>
           <div class="field">
             <label for="admin-password">Password</label>
@@ -46,7 +46,7 @@
           </div>
           <button type="submit" class="btn btn-purple btn-block" id="admin-login-btn">Sign in</button>
         </form>
-        <p class="auth-alt" style="font-size:12px">Demo credentials: <strong>admin@fedex-tracking.local</strong> / <strong>FedExAdmin!2026#7Q</strong></p>
+        <p class="auth-alt" style="font-size:12px">Demo credentials: <strong>admin@aeroexpress-tracking.local</strong> / <strong>AeroExpressAdmin!2026#7Q</strong></p>
       </div>
     </div>
   </main>
@@ -79,6 +79,30 @@
       <div class="stat"><div class="num" id="stat-delivered">0</div><div class="lbl">Delivered</div></div>
       <div class="stat"><div class="num" id="stat-exception">0</div><div class="lbl">Exceptions</div></div>
       <div class="stat"><div class="num" id="stat-claimed">0</div><div class="lbl">Claimed by users</div></div>
+    </div>
+
+    <!-- Admin Customer Service Chat Inbox -->
+    <div class="support-card">
+      <div class="card-head-row">
+        <h2>Customer Service Chat</h2>
+        <span class="support-count-pill" id="cs-unread-count">0 unread</span>
+      </div>
+      <div class="support-layout">
+        <div class="support-list-wrap">
+          <div class="support-list" id="support-list">
+            <div class="support-placeholder">
+              <strong>No conversations</strong>
+              <p>Customer messages will appear here.</p>
+            </div>
+          </div>
+        </div>
+        <div class="support-thread-wrap">
+          <div class="support-placeholder">
+            <strong>Select a conversation</strong>
+            <p>Click a thread on the left to view and reply.</p>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="admin-grid">
@@ -298,30 +322,6 @@
         </div>
       </div>
     </div>
-
-    <!-- Admin Customer Service Chat Inbox -->
-    <div class="support-card">
-      <div class="card-head-row">
-        <h2>Customer Service Chat</h2>
-        <span class="support-count-pill" id="cs-unread-count">0 unread</span>
-      </div>
-      <div class="support-layout">
-        <div class="support-list-wrap">
-          <div class="support-list" id="support-list">
-            <div class="support-placeholder">
-              <strong>No conversations</strong>
-              <p>Customer messages will appear here.</p>
-            </div>
-          </div>
-        </div>
-        <div class="support-thread-wrap">
-          <div class="support-placeholder">
-            <strong>Select a conversation</strong>
-            <p>Click a thread on the left to view and reply.</p>
-          </div>
-        </div>
-      </div>
-    </div>
   </main>
 
   <!-- Footer -->
@@ -392,26 +392,33 @@
       if (s.startsWith('{')) { try { return JSON.parse(s); } catch(e){} }
       return { status: s };
     }
+    function brandText(s){ return String(s==null?'':s).replace(/FedEx/gi,'AeroExpress'); }
     function modelFromRow(row){
       const meta = parseMeta(row.status);
       const stage = meta.stage || (STAGE_BY_KEY[row.carrier] ? row.carrier : '') || stageFromStatus(meta.status || row.status);
+      const events = Array.isArray(meta.events) ? meta.events.map(ev=>Object.assign({}, ev, {
+        description: brandText(ev.description||ev.desc||''),
+        desc: brandText(ev.desc||ev.description||''),
+        location: brandText(ev.location||ev.loc||''),
+        loc: brandText(ev.loc||ev.location||'')
+      })) : [];
       return {
         id: row.id,
         tracking_code: row.tracking_code,
         stage: stage,
         status: meta.status || stageToStatus(stage),
-        current_location: meta.current_location || meta.location || '',
-        service: meta.service || '',
-        origin: meta.origin || '',
-        destination: meta.destination || '',
+        current_location: brandText(meta.current_location || meta.location || ''),
+        service: brandText(meta.service || ''),
+        origin: brandText(meta.origin || ''),
+        destination: brandText(meta.destination || ''),
         weight: meta.weight || '',
         dimensions: meta.dimensions || '',
         pieces: meta.pieces || 1,
-        packaging: meta.packaging || '',
-        signed_by: meta.signed_by || '',
-        notes: meta.notes || '',
+        packaging: brandText(meta.packaging || ''),
+        signed_by: brandText(meta.signed_by || ''),
+        notes: brandText(meta.notes || ''),
         delivery_date: row.delivery_date || meta.delivery_date || '',
-        events: Array.isArray(meta.events) ? meta.events.slice() : [],
+        events: events,
         claimed_by: row.user_id || meta.claimed_by || null,
         claimed_at: meta.claimed_at || null,
         created_at: row.created_at
@@ -540,7 +547,7 @@
 
     /* ================= Load ================= */
     async function loadAll(){
-      await Promise.all([loadEntries(), loadImages()]);
+      await Promise.all([loadEntries(), loadImages(), loadSupportThreads()]);
     }
 
     async function loadEntries(){
@@ -1035,6 +1042,12 @@
     const supportListWrap=document.querySelector('.support-list-wrap');
     const supportThreadWrap=document.querySelector('.support-thread-wrap');
     const unreadCountPill=document.getElementById('cs-unread-count');
+    if(supportList){
+      supportList.addEventListener('click', e=>{
+        const item=e.target.closest('.support-thread-item');
+        if(item && item.dataset.code) openSupportThread(item.dataset.code);
+      });
+    }
 
     async function loadSupportThreads(){
       try{
@@ -1057,7 +1070,7 @@
           const lastMsg = messages.length ? messages[messages.length-1] : {body:'',at:''};
           const unread = messages.filter(m=>m.role==='user'&&!m.read_by_admin).length;
           totalUnread += unread;
-          return '<div class="support-thread-item'+(r.tracking_code===openThreadCode?' active':'')+'" onclick="openSupportThread(\''+r.tracking_code.replace(/'/g,"\\'")+'\')">'+
+          return '<div class="support-thread-item'+(r.tracking_code===openThreadCode?' active':'')+'" data-code="'+escHtml(r.tracking_code)+'">'+
             '<div class="support-thread-top">'+
               '<strong>'+escHtml((st.user_name||'Customer'))+'</strong>'+
               (unread?'<span class="support-unread-pill">'+unread+'</span>':'')+

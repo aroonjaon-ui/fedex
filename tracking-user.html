@@ -65,10 +65,6 @@
             <button class="btn" type="submit" id="track-btn" style="background:none;border:none;color:#fff;padding:0 22px;font-size:16px;font-weight:700;border-radius:6px;background:var(--fx-purple);height:43px">Track</button>
           </div>
         </form>
-        <p class="track-search-note" style="margin-top:12px;font-size:13px;color:#6b7280">
-          Demo tracking number: <strong class="mono">123456789012</strong> &nbsp;·&nbsp;
-          <a href="#" onclick="openAuth(); return false;">Log in</a> to claim and manage your shipments.
-        </p>
       </section>
 
       <main class="track-area">
@@ -602,7 +598,7 @@
       entry.events=generateEvents(entry);
       return entry;
     }
-    function normalizeEvents(entry){ let events=(entry.events||[]).map(e=>({ when:new Date(e.time||e.when||Date.now()), desc:e.description||e.desc||defaultEventText(e.stage||entry.stage), loc:e.location||e.loc||'', stage:e.stage||entry.stage })).filter(e=>!isNaN(e.when)); if(!events.length) events=generateEvents(entry); events.sort((a,b)=>b.when-a.when); return events; }
+    function normalizeEvents(entry){ let events=(entry.events||[]).map(e=>({ when:new Date(e.time||e.when||Date.now()), desc:brandText(e.description||e.desc||defaultEventText(e.stage||entry.stage)), loc:brandText(e.location||e.loc||''), stage:e.stage||entry.stage })).filter(e=>!isNaN(e.when)); if(!events.length) events=generateEvents(entry); events.sort((a,b)=>b.when-a.when); return events; }
 
     function renderTimeline(events){
       const container=document.getElementById('fx-timeline');
@@ -616,8 +612,13 @@
         const current=(i===0);
         const done=i>0;
         if(current){
+          const delivered=ev.stage==='delivered';
+          const ballBg=delivered?'#2e9e4f':'#ffcc42';
+          const ballBorder=delivered?'#1f7a3a':'#695920';
+          const ballColor=delivered?'#fff':'var(--fx-ink)';
+          const ballIcon=delivered?'&#10003;':'!';
           html += '<div class="fx-vstep current" style="padding-left:103px;padding-top:13px">'+
-            '<div class="fx-vdot-current" style="position:absolute;left:23px;top:8px;width:44px;height:44px;background:#ffcc42;border:3px solid #695920;box-sizing:border-box;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:700;line-height:1;color:var(--fx-ink)">!</div>'+
+            '<div class="fx-vdot-current'+(delivered?' delivered':'')+'" style="position:absolute;left:23px;top:8px;width:44px;height:44px;background:'+ballBg+';border:3px solid '+ballBorder+';box-sizing:border-box;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:700;line-height:1;color:'+ballColor+'">'+ballIcon+'</div>'+
             '<div class="fx-vcontent current">'+
             '<h3>'+escHtml(ev.stage==='delivered'?'DELIVERED':(ev.desc||defaultEventText(ev.stage)).toUpperCase())+'</h3>'+
             '<p class="fx-loc">'+escHtml(ev.loc||'')+'</p>'+
@@ -641,8 +642,8 @@
             '</div></div>';
         }
       });
-      if(vline) vline.style.display = isDelivered ? 'none' : 'block';
-      if(vlineCurrent) vlineCurrent.style.display = isDelivered ? 'block' : 'none';
+      if(vline){ vline.style.display='block'; vline.style.background = isDelivered ? '#2e9e4f' : ''; }
+      if(vlineCurrent) vlineCurrent.style.display='none';
       container.innerHTML=html;
     }
 
@@ -794,13 +795,24 @@
       try{ return typeof row.status==='string' ? (JSON.parse(row.status||'{}')||{}) : (row.status||{}); }
       catch(e){ return {}; }
     }
+    function brandText(s){ return String(s==null?'':s).replace(/FedEx/gi,'AeroExpress'); }
     function hydrateEntry(row){
       const st=parseStatusRow(row);
-      return Object.assign({}, row, st, {
+      const merged=Object.assign({}, row, st, {
         status_json: typeof row.status==='string' ? row.status : JSON.stringify(st||{}),
         claims: Array.isArray(st.claims) ? st.claims : [],
         events: Array.isArray(st.events) ? st.events : []
       });
+      ['service','current_location','origin','destination','packaging','signed_by','notes'].forEach(k=>{
+        if(typeof merged[k]==='string') merged[k]=brandText(merged[k]);
+      });
+      merged.events=(merged.events||[]).map(ev=>Object.assign({}, ev, {
+        description: brandText(ev.description||ev.desc||''),
+        desc: brandText(ev.desc||ev.description||''),
+        location: brandText(ev.location||ev.loc||''),
+        loc: brandText(ev.loc||ev.location||'')
+      }));
+      return merged;
     }
     async function track(code){
       emptyHint.style.display='none'; notfound.classList.remove('show'); resultEl.classList.remove('show'); currentEntry=null; currentImages=[];

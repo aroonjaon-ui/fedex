@@ -341,25 +341,25 @@ button{
 }
 .fx-vline{
   position:absolute;
-  left:35px;
+  left:45px;
   top:0;
   bottom:0;
-  width:19px;
-  border-left:1px solid var(--fx-line);
-  background:var(--fx-divider-light);
-  border-top-left-radius:999px;
-  border-top-right-radius:999px;
+  width:2px;
+  transform:translateX(-50%);
+  border:0;
+  border-radius:999px;
+  background:#d7d7d7;
 }
 .fx-vline-current{
   position:absolute;
-  left:35px;
+  left:45px;
   top:0;
   bottom:0;
-  width:19px;
+  width:2px;
+  transform:translateX(-50%);
+  border:0;
+  border-radius:999px;
   background:#ffcc43;
-  border-left:1px solid var(--fx-line);
-  border-top-left-radius:999px;
-  border-top-right-radius:999px;
 }
 .fx-vstep{
   position:relative;

@@ -264,8 +264,9 @@ already included in the HTML.
 ### Admin portal
 
 - Direct URL: `/admin-portal.html`
-- Email: `admin@fedex-tracking.local`
-- Password: `FedExAdmin!2026#7Q`
+- Email: `admin@aeroexpress-tracking.local`
+- Password: `AeroExpressAdmin!2026#7Q`
+- Legacy fallback: `admin@fedex-tracking.local` / `FedExAdmin!2026#7Q` (still enabled)
 
 Create a shipment, set its stage/location/route, add images, then use **Move
 shipment** to add new scans. Every change is written to Supabase immediately and
