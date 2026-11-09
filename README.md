@@ -1,6 +1,6 @@
 # AeroExpress Tracking Clone
 
-A AeroExpress-style shipping and tracking site with a public tracking page, user
+An AeroExpress-style shipping and tracking site with a public tracking page, user
 accounts and claims, and an admin control center backed by Supabase.
 
 > This is a **demo / educational clone**. It is not affiliated with or endorsed by FedEx.
@@ -9,18 +9,18 @@ accounts and claims, and an admin control center backed by Supabase.
 
 | Page | Purpose |
 | --- | --- |
-| `index.html` | FedEx-style homepage with hero, tracking box, services, and promotions |
+| `index.html` | AeroExpress-style homepage with hero, tracking box, services, and promotions |
 | `tracking-user.html` | Public tracking, signup/login, account dashboard, claims, images |
 | `admin-portal.html` | Direct-URL admin portal for shipments, stages, scans, and images |
-| `assets/site.css` | Shared FedEx-style design system |
-| `images/` | FedEx-style imagery used across the pages |
+| `assets/site.css` | Shared AeroExpress-style design system |
+| `images/` | AeroExpress imagery used across the pages |
 
 The admin portal is intentionally **not linked from the public pages**. Open it
 directly at `/admin-portal.html`.
 
 ## Features
 
-- FedEx look and feel (purple `#4D148C`, orange `#FF6600`)
+- AeroExpress look and feel (purple `#4D148C`, orange `#FF6600`)
 - Public tracking without login
 - Demo tracking number: **`123456789012`**
 - Supabase Auth signup/login with a persistent account dashboard
@@ -64,14 +64,14 @@ JSON stored in `status`:
   "v": 2,
   "stage": "warehouse",
   "status": "in-transit",
-  "current_location": "Memphis, TN — FedEx hub",
-  "service": "FedEx Express Saver",
+  "current_location": "Memphis, TN — AeroExpress hub",
+  "service": "AeroExpress Express Saver",
   "origin": "Indianapolis, IN",
   "destination": "San Jose, CA",
   "weight": "3.4 lbs",
   "dimensions": "12 x 10 x 4 in",
   "pieces": 1,
-  "packaging": "FedEx Box",
+  "packaging": "AeroExpress Box",
   "signed_by": "",
   "notes": "Internal note",
   "delivery_date": "2026-11-02",
@@ -80,7 +80,7 @@ JSON stored in `status`:
       "time": "2026-10-31T18:00:00.000Z",
       "stage": "warehouse",
       "description": "Arrived at Memphis warehouse",
-      "location": "Memphis, TN — FedEx hub"
+      "location": "Memphis, TN — AeroExpress hub"
     }
   ],
   "claimed_at": null
@@ -258,14 +258,14 @@ already included in the HTML.
 
 1. Open **Track** and enter a tracking number.
 2. Use `123456789012` for the built-in sample.
-3. Log in or sign up, then click **Claim this shipment**.
+3. Log in or sign up, then click **Claim shipment**.
 4. Claimed shipments appear under **My shipments** on the account panel.
 
 ### Admin portal
 
 - Direct URL: `/admin-portal.html`
 - Email: `admin@fedex-tracking.local`
-- Password: `Admin123!`
+- Password: `FedExAdmin!2026#7Q`
 
 Create a shipment, set its stage/location/route, add images, then use **Move
 shipment** to add new scans. Every change is written to Supabase immediately and

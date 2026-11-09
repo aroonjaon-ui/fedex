@@ -153,6 +153,7 @@
           <div class="fx-result-actions">
             <button class="btn btn-purple btn-sm" id="btn-claim" type="button" style="display:none">Claim shipment</button>
             <span class="pill claim-pill" id="r-claim-pill" style="display:none">Unclaimed</span>
+            <button class="btn btn-outline btn-sm" id="btn-proof" type="button" style="display:none">View photos</button>
             <button class="btn btn-outline btn-sm" id="btn-share" type="button">Share tracking</button>
           </div>
 
@@ -501,7 +502,8 @@
         await initUser(data.session.user);
         closeAuth();
         toast('Welcome'+(name?', '+name:'')+'! Your dashboard is ready.');
-        setTimeout(scrollToDashboard,250);
+        if(pendingClaimCode){ const c=pendingClaimCode; pendingClaimCode=null; await claimShipment(c); }
+        else setTimeout(scrollToDashboard,250);
         return;
       }
       toast('Account created. Please log in.');
@@ -735,6 +737,11 @@
         }).join('');
         proofPanel.style.display=imgs.length?'block':'none';
         if(proofCount) proofCount.textContent=imgs.length+' photo'+(imgs.length===1?'':'s');
+        const proofBtn=document.getElementById('btn-proof');
+        if(proofBtn){
+          proofBtn.style.display=imgs.length?'inline-block':'none';
+          proofBtn.textContent='View photos ('+imgs.length+')';
+        }
       }
 
       // delivery controls content
@@ -757,7 +764,7 @@
       if(!entry){ if(btn)btn.style.display='none'; if(pill)pill.style.display='none'; return; }
       const claims=Array.isArray(entry.claims)?entry.claims:((entry.status&&typeof entry.status==='string')? (()=>{try{const s=JSON.parse(entry.status); return s.claims||[];}catch(e){return [];}} )() : ((entry.status&&entry.status.claims)||[]));
       const already=claims.some(c=>c && currentUser && c.user_id===currentUser.id);
-      if(btn){ btn.style.display=(currentUser&&!already)?'inline-block':'none'; }
+      if(btn){ btn.style.display=already?'none':'inline-block'; }
       if(pill){ pill.textContent=already?'Claimed':'Unclaimed'; pill.className='pill claim-pill'+(already?' claimed':''); pill.style.display='inline-block'; }
     }
     async function claimShipment(code){
@@ -965,6 +972,7 @@
       const form=document.getElementById('fx-updates-form');
       if(!form) return;
       const isOpen=form.style.display==='flex';
+      updatesOpen=!isOpen;
       form.style.display=isOpen?'none':'flex';
       if(!isOpen){
         form.scrollIntoView({behavior:'smooth',block:'center'});
@@ -980,7 +988,7 @@
       document.getElementById('login-form').addEventListener('submit',async(e)=>{
         e.preventDefault();
         const email=document.getElementById('login-email').value; const password=document.getElementById('login-password').value;
-        try{ await signIn(email,password); closeAuth(); setTimeout(scrollToDashboard,250); if(pendingClaimCode){ const c=pendingClaimCode; pendingClaimCode=null; await claimShipment(c); } }
+        try{ await signIn(email,password); closeAuth(); if(pendingClaimCode){ const c=pendingClaimCode; pendingClaimCode=null; await claimShipment(c); } else { setTimeout(scrollToDashboard,250); } }
         catch(e){ showAlert('error',e.message||'Login failed.'); }
       });
       document.getElementById('signup-form').addEventListener('submit',async(e)=>{
@@ -1003,7 +1011,9 @@
       const btnProof=document.getElementById('btn-proof');
       if(btnProof){ btnProof.addEventListener('click',()=>{
         const panel=document.getElementById('proof-panel');
-        if(panel) panel.style.display = panel.style.display==='block'?'none':'block';
+        if(!panel) return;
+        panel.style.display='block';
+        panel.scrollIntoView({behavior:'smooth',block:'start'});
       }); }
 
       // chat
