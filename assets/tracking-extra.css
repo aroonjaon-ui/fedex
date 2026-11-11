@@ -365,18 +365,7 @@ button{
   position:relative;
   padding-left:103px;
   padding-top:13px;
-}
-.fx-vstep:not(:first-child){
-  padding-top:0;
-}
-.fx-vdot{
-  position:absolute;
-  left:41px;
-  top:20px;
-  width:8px;
-  height:8px;
-  border-radius:50%;
-  background:var(--fx-dot);
+  padding-bottom:12px;
 }
 .fx-vstep.current .fx-vdot{
   position:absolute;
@@ -389,6 +378,42 @@ button{
   border:3px solid var(--fx-current-border);
   box-sizing:border-box;
   border-radius:50%;
+}
+.fx-vstep:not(:first-child){
+  padding-top:0;
+}
+.fx-vdot{
+  position:absolute;
+  left:41px;
+  top:20px;
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:#645220;
+}
+.fx-vdot-current{
+  position:absolute;
+  left:45px;
+  top:-8px;
+  width:44px;
+  height:44px;
+  transform:translateX(-50%);
+  background:#ffcc42;
+  border:3px solid #695920;
+  box-sizing:border-box;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:32px;
+  font-weight:700;
+  line-height:1;
+  color:var(--fx-ink);
+}
+.fx-vdot-current.delivered{
+  background:#2e9e4f;
+  border-color:#1f7a3a;
+  color:#fff;
 }
 .fx-vcontent{
   position:relative;
@@ -430,6 +455,8 @@ button{
 }
 .fx-vstep.upcoming .fx-vdot{
   background:#f5f7ee;
+  border:1px solid #c7c7c7;
+  box-sizing:border-box;
 }
 .fx-vstep.upcoming .fx-vcontent h3{
   color:var(--fx-help-text);
@@ -635,6 +662,17 @@ button{
   .fx-section{padding-left:20px;padding-right:20px}
   .fx-delivery{margin-left:20px;margin-right:20px}
   .fx-history{margin-left:20px}
+  .fx-vstep{padding-left:70px;padding-top:12px;padding-bottom:10px}
+  .fx-vstep:not(:first-child){padding-top:0}
+  .fx-vline,.fx-vline-current{left:32px}
+  .fx-vdot{left:28px;top:18px}
+  .fx-vdot-current{left:32px;top:-4px;width:36px;height:36px;font-size:26px}
+  .fx-vcontent.current{padding:12px 14px 16px;border-radius:22px}
+  .fx-vcontent.current h3{margin-top:12px}
+  .fx-vcontent h3{font-size:14px;letter-spacing:.5px}
+  .fx-vcontent .fx-loc,.fx-vcontent .fx-time{font-size:14px;line-height:20px}
+  .fx-vcontent .fx-time{color:#6b7280;margin-top:2px}
+  .fx-vcontent .fx-loc,.fx-vcontent .fx-time{overflow-wrap:anywhere}
 }
 
 /* ===== Delivery photos / proof of delivery ===== */

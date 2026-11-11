@@ -10,7 +10,7 @@
   <link rel="icon" type="image/png" sizes="64x64" href="images/aeroexpress-logo.png?v=3">
   <link rel="apple-touch-icon" href="images/aeroexpress-logo.png?v=3">
   <link rel="stylesheet" href="assets/site.css?v=11">
-  <link rel="stylesheet" href="assets/tracking-extra.css?v=9">
+  <link rel="stylesheet" href="assets/tracking-extra.css?v=10">
   <link rel="stylesheet" href="assets/chat-widget.css?v=1">
   <style id="ae-timeline-fix">
     /* Hard override so a cached old stylesheet cannot break the timeline rail */
@@ -24,6 +24,9 @@
     }
     .fx-vline{background:#c7c7c7!important}
     .fx-vline-current{background:#2e9e4f!important}
+    @media(max-width:720px){
+      .fx-vline,.fx-vline-current{left:32px!important}
+    }
   </style>
   <script src="assets/site.js?v=7" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -165,7 +168,6 @@
             <button class="btn btn-purple btn-sm" id="btn-claim" type="button" style="display:none">Claim shipment</button>
             <span class="pill claim-pill" id="r-claim-pill" style="display:none">Unclaimed</span>
             <button class="btn btn-outline btn-sm" id="btn-proof" type="button" style="display:none">View photos</button>
-            <button class="btn btn-outline btn-sm" id="btn-share" type="button">Share tracking</button>
           </div>
 
           <!-- Vertical timeline -->
@@ -402,7 +404,7 @@
     }
 
     function stageLabel(st){
-      const map={label_created:'Label created',carrier_1:'Picked up',carrier_2:'In transit',carrier_3:'In transit',warehouse:'At warehouse',out_for_delivery:'Out for delivery',delivered:'Delivered',exception:'Delivery exception'};
+      const map={label_created:'Label created',carrier_1:'Picked up',carrier_2:'In transit',carrier_3:'At hub',warehouse:'At warehouse',out_for_delivery:'Out for delivery',delivered:'Delivered',exception:'Delivery exception'};
       return map[st]||'In transit';
     }
     function stageToStatus(st){
@@ -601,14 +603,14 @@
       if(stage==='label_created'){ add('label_created',origin,1); }
       else if(stage==='carrier_1'){ add('carrier_1',origin,2); add('label_created',origin,4); }
       else if(stage==='carrier_2'||stage==='carrier_3'){ add(stage,loc,1); add('carrier_1',origin,12); add('label_created',origin,16); }
-      else if(stage==='warehouse'){ add('warehouse',loc,1); add('carrier_2',loc,8); add('carrier_1',origin,20); add('label_created',origin,24); }
-      else if(stage==='out_for_delivery'){ add('out_for_delivery',loc||dest,1); add('warehouse',loc||dest,6); add('carrier_2',loc||dest,18); add('carrier_1',origin,30); add('label_created',origin,34); }
-      else if(stage==='delivered'){ add('delivered',dest,1); add('out_for_delivery',dest,4); add('warehouse',dest,10); add('carrier_3',dest,20); add('carrier_1',origin,40); add('label_created',origin,44); }
-      else if(stage==='exception'){ add('exception',loc||dest,1); add('out_for_delivery',loc||dest,4); add('warehouse',loc||dest,10); add('carrier_2',loc||dest,20); add('carrier_1',origin,30); }
+      else if(stage==='warehouse'){ add('warehouse',loc,1); add('carrier_3',loc,6); add('carrier_2',loc,10); add('carrier_1',origin,20); add('label_created',origin,24); }
+      else if(stage==='out_for_delivery'){ add('out_for_delivery',loc||dest,1); add('warehouse',loc||dest,6); add('carrier_3',loc||dest,12); add('carrier_2',loc||dest,18); add('carrier_1',origin,30); add('label_created',origin,34); }
+      else if(stage==='delivered'){ add('delivered',dest,1); add('out_for_delivery',dest,4); add('warehouse',dest,10); add('carrier_3',dest,16); add('carrier_2',dest,22); add('carrier_1',origin,40); add('label_created',origin,44); }
+      else if(stage==='exception'){ add('exception',loc||dest,1); add('out_for_delivery',loc||dest,4); add('warehouse',loc||dest,10); add('carrier_3',loc||dest,14); add('carrier_2',loc||dest,20); add('carrier_1',origin,30); add('label_created',origin,34); }
       else { add(stage,loc,1); add('label_created',origin,4); }
       return out;
     }
-    function defaultEventText(st){ const m={label_created:'Label created',carrier_1:'Picked up',carrier_2:'In transit',carrier_3:'In transit',warehouse:'At warehouse',out_for_delivery:'Out for delivery',delivered:'Delivered',exception:'Delivery exception'}; return m[st]||'In transit'; }
+    function defaultEventText(st){ const m={label_created:'Label created',carrier_1:'Picked up',carrier_2:'In transit',carrier_3:'At AeroExpress hub',warehouse:'At warehouse',out_for_delivery:'Out for delivery',delivered:'Delivered',exception:'Delivery exception'}; return m[st]||'In transit'; }
     function addDaysISO(n){ const d=new Date(); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); }
     function demoModel(){
       const entry={
@@ -653,53 +655,82 @@
       return events;
     }
 
-    function renderTimeline(events){
+    function renderTimeline(events, entry){
       const container=document.getElementById('fx-timeline');
       const vline=document.getElementById('fx-vline');
       const vlineCurrent=document.getElementById('fx-vline-current');
       if(!container) return;
-      const latest=events[0];
-      const isDelivered=latest.stage==='delivered';
-      // Add the remaining milestones as grey "Pending" steps so the rail always reads as a full progress line.
-      let upcoming=[];
-      const latestIdx=stageOrder(latest.stage);
-      if(latestIdx>=0 && !isDelivered && latest.stage!=='exception'){
-        const present=new Set(events.map(e=>e.stage));
-        upcoming=STAGE_ORDER.slice(latestIdx+1).filter(s=>!present.has(s)).map(s=>({upcoming:true,stage:s,desc:defaultEventText(s),loc:'Pending',when:null}));
+      entry=entry||{};
+      const stage=entry.stage||(events[0]&&events[0].stage)||'carrier_2';
+      const currentIdx=stageOrder(stage);
+      const realByStage=new Map();
+      events.forEach(e=>{ if(e.stage && !realByStage.has(e.stage)) realByStage.set(e.stage,e); });
+      const generated=generateEvents(entry);
+      const genByStage=new Map();
+      generated.forEach(e=>{ if(e.stage && !genByStage.has(e.stage)) genByStage.set(e.stage,e); });
+      const isDelivered=stage==='delivered';
+      const fallbackLoc=key=>{
+        if(key==='label_created'||key==='carrier_1') return entry.origin||'Origin facility';
+        if(key==='delivered') return entry.destination||entry.current_location||'Destination facility';
+        return entry.current_location||entry.destination||'AeroExpress facility';
+      };
+      const milestone=key=>{
+        const real=realByStage.get(key);
+        const gen=genByStage.get(key);
+        return {
+          stage:key,
+          desc:(real&&real.desc)||(gen&&gen.desc)||defaultEventText(key),
+          loc:(real&&real.loc)||(gen&&gen.loc)||fallbackLoc(key),
+          when:(real&&real.when)||null
+        };
+      };
+      const all=[];
+      if(stage==='exception'){
+        const ex=realByStage.get('exception')||{desc:defaultEventText('exception'),loc:entry.current_location||'',when:null};
+        all.push({stage:'exception',desc:ex.desc,loc:ex.loc,when:ex.when||null,current:true});
+        const pastIdx=Math.max(0,...events.map(e=>stageOrder(e.stage)).filter(i=>i>=0));
+        for(let i=pastIdx;i>=0;i--){
+          const key=STAGE_ORDER[i];
+          if(realByStage.has(key)||genByStage.has(key)) all.push(milestone(key));
+        }
+      } else if(currentIdx>=0){
+        for(let i=currentIdx;i>=0;i--){
+          const key=STAGE_ORDER[i];
+          all.push(Object.assign(milestone(key),{current:i===currentIdx}));
+        }
+        for(let i=currentIdx+1;i<STAGE_ORDER.length;i++){
+          const key=STAGE_ORDER[i];
+          all.push({stage:key,desc:defaultEventText(key),loc:'Pending',when:null,upcoming:true});
+        }
+      } else {
+        events.forEach((e,i)=>all.push(Object.assign({},e,{current:i===0})));
       }
-      const all=events.concat(upcoming);
       let html='';
-      all.forEach((ev,i)=>{
-        const current=(i===0);
-        const done=(!ev.upcoming && i>0);
-        if(current){
-          const delivered=ev.stage==='delivered';
-          const ballBg=delivered?'#2e9e4f':'#ffcc42';
-          const ballBorder=delivered?'#1f7a3a':'#695920';
-          const ballColor=delivered?'#fff':'var(--fx-ink)';
-          const ballIcon=delivered?'&#10003;':'!';
-          html += '<div class="fx-vstep current" style="padding-left:103px;padding-top:13px">'+
-            '<div class="fx-vdot-current'+(delivered?' delivered':'')+'" style="position:absolute;left:23px;top:8px;width:44px;height:44px;background:'+ballBg+';border:3px solid '+ballBorder+';box-sizing:border-box;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:700;line-height:1;color:'+ballColor+'">'+ballIcon+'</div>'+
+      all.forEach(ev=>{
+        const delivered=ev.stage==='delivered';
+        if(ev.current){
+          html += '<div class="fx-vstep current'+(delivered?' delivered':'')+'">'+
+            '<div class="fx-vdot-current'+(delivered?' delivered':'')+'">'+(delivered?'&#10003;':'!')+'</div>'+
             '<div class="fx-vcontent current">'+
-            '<h3>'+escHtml(ev.stage==='delivered'?'DELIVERED':(ev.desc||defaultEventText(ev.stage)).toUpperCase())+'</h3>'+
+            '<h3>'+escHtml(delivered?'DELIVERED':(ev.desc||defaultEventText(ev.stage)).toUpperCase())+'</h3>'+
             '<p class="fx-loc">'+escHtml(ev.loc||'')+'</p>'+
-            '<p class="fx-time">'+fmtTime(ev.when)+' · '+fmtDate(ev.when)+'</p>'+
+            '<p class="fx-time">'+(ev.when?fmtTime(ev.when)+' · '+fmtDate(ev.when):(delivered?'Delivered':'In progress'))+'</p>'+
             '</div></div>';
-        } else if(done){
-          html += '<div class="fx-vstep done" style="padding-left:103px">'+
-            '<div class="fx-vdot" style="position:absolute;left:41px;top:20px;width:8px;height:8px;border-radius:50%;background:#645220"></div>'+
+        } else if(ev.upcoming){
+          html += '<div class="fx-vstep upcoming">'+
+            '<div class="fx-vdot"></div>'+
+            '<div class="fx-vcontent">'+
+            '<h3>'+escHtml(ev.desc||defaultEventText(ev.stage)).toUpperCase()+'</h3>'+
+            '<p class="fx-loc">Pending</p>'+
+            '<p class="fx-time">Expected</p>'+
+            '</div></div>';
+        } else {
+          html += '<div class="fx-vstep done">'+
+            '<div class="fx-vdot"></div>'+
             '<div class="fx-vcontent">'+
             '<h3>'+escHtml(ev.desc||defaultEventText(ev.stage)).toUpperCase()+'</h3>'+
             '<p class="fx-loc">'+escHtml(ev.loc||'')+'</p>'+
-            '<p class="fx-time">'+fmtTime(ev.when)+' · '+fmtDate(ev.when)+'</p>'+
-            '</div></div>';
-        } else {
-          html += '<div class="fx-vstep upcoming" style="padding-left:103px">'+
-            '<div class="fx-vdot" style="position:absolute;left:41px;top:20px;width:8px;height:8px;border-radius:50%;background:#f5f7ee;border:1px solid #c7c7c7;box-sizing:border-box"></div>'+
-            '<div class="fx-vcontent upcoming">'+
-            '<h3 style="color:var(--fx-help-text)">'+escHtml(ev.desc||defaultEventText(ev.stage)).toUpperCase()+'</h3>'+
-            '<p class="fx-loc">'+escHtml(ev.loc||'Pending')+'</p>'+
-            '<p class="fx-time">Pending</p>'+
+            '<p class="fx-time">'+(ev.when?fmtTime(ev.when)+' · '+fmtDate(ev.when):'Completed')+'</p>'+
             '</div></div>';
         }
       });
@@ -758,7 +789,7 @@
 
       // timeline
       const events=normalizeEvents(entry);
-      renderTimeline(events);
+      renderTimeline(events, entry);
 
       // scans count
       const scansEl=document.getElementById('r-scans-count');
@@ -1073,14 +1104,9 @@
       document.getElementById('acct-signout').addEventListener('click',async()=>{ await signOut(); });
       if(utilityAccount){ utilityAccount.addEventListener('click',(e)=>{ e.preventDefault(); if(currentUser) document.getElementById('account-panel').scrollIntoView({behavior:'smooth',block:'start'}); else openAuth(); }); }
 
-      // claim / share / proof
+      // claim / proof
       const btnClaim=document.getElementById('btn-claim');
       if(btnClaim){ btnClaim.addEventListener('click',()=>{ claimShipment(currentEntry.tracking_code); }); }
-      const btnShare=document.getElementById('btn-share');
-      if(btnShare){ btnShare.addEventListener('click',async()=>{
-        const url=window.location.href;
-        try{ await navigator.clipboard.writeText(url); toast('Tracking link copied to clipboard.'); }catch(e){ prompt('Copy this tracking link:', url); }
-      }); }
       const btnProof=document.getElementById('btn-proof');
       if(btnProof){ btnProof.addEventListener('click',()=>{
         const panel=document.getElementById('proof-panel');
