@@ -10,8 +10,21 @@
   <link rel="icon" type="image/png" sizes="64x64" href="images/aeroexpress-logo.png?v=3">
   <link rel="apple-touch-icon" href="images/aeroexpress-logo.png?v=3">
   <link rel="stylesheet" href="assets/site.css?v=9">
-  <link rel="stylesheet" href="assets/tracking-extra.css?v=7">
+  <link rel="stylesheet" href="assets/tracking-extra.css?v=8">
   <link rel="stylesheet" href="assets/chat-widget.css?v=1">
+  <style id="ae-timeline-fix">
+    /* Hard override so a cached old stylesheet cannot break the timeline rail */
+    .fx-vline-wrap{position:relative}
+    .fx-vline,.fx-vline-current{
+      left:45px!important;
+      width:2px!important;
+      transform:translateX(-50%)!important;
+      border:0!important;
+      border-radius:999px!important;
+    }
+    .fx-vline{background:#d7d7d7!important}
+    .fx-vline-current{background:#2e9e4f!important}
+  </style>
   <script src="assets/site.js?v=7" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -20,7 +33,7 @@
   <!-- Purple header (reference style) -->
   <header class="fx-header" id="fx-header">
     <div class="fx-header-inner">
-      <a class="fx-logo" href="index.html" aria-label="AeroExpress home"><img class="logo-mark" src="images/aeroexpress-mark.svg" alt=""><span class="fed">Aero</span><span class="ex">Express</span><sup>®</sup></a>
+      <a class="fx-logo" href="index.html" aria-label="AeroExpress home"><img class="logo-mark" src="images/aeroexpress-mark.svg?v=3" alt=""><span class="fed">Aero</span><span class="ex">Express</span><sup>®</sup></a>
       <div class="fx-header-right">
         <button class="fx-menu-btn" id="fx-menu-btn" type="button" aria-label="Open menu">☰</button>
       </div>
@@ -217,7 +230,7 @@
   <div class="modal-overlay" id="auth-modal">
     <div class="modal">
       <button class="close" type="button" onclick="closeAuth()" aria-label="Close">&times;</button>
-      <div class="brandline"><span class="logo" style="font-size:32px"><img class="logo-mark" src="images/aeroexpress-mark.svg" alt=""><span class="fed">Aero</span><span class="ex">Express</span></span></div>
+      <div class="brandline"><span class="logo" style="font-size:32px"><img class="logo-mark" src="images/aeroexpress-mark.svg?v=3" alt=""><span class="fed">Aero</span><span class="ex">Express</span></span></div>
       <h2 id="auth-title">Welcome to AeroExpress</h2>
       <p class="mlead">Log in or create an account to claim shipments and manage deliveries.</p>
 
@@ -262,7 +275,7 @@
   <footer class="site-footer">
     <div class="footer-inner">
       <div class="footer-brand">
-        <a class="logo" href="index.html"><img class="logo-mark" src="images/aeroexpress-mark.svg" alt=""><span class="fed">Aero</span><span class="ex">Express</span></a>
+        <a class="logo" href="index.html"><img class="logo-mark" src="images/aeroexpress-mark.svg?v=3" alt=""><span class="fed">Aero</span><span class="ex">Express</span></a>
         <p>Shipping, tracking, and delivery services for individuals and businesses around the world.</p>
       </div>
       <div class="footer-col">
