@@ -655,6 +655,24 @@
       return events;
     }
 
+    function updateTimelineFill(){
+      const vlineCurrent=document.getElementById('fx-vline-current');
+      const wrap=document.getElementById('fx-timeline-wrap');
+      const dot=document.querySelector('#fx-timeline .fx-vstep.current .fx-vdot-current');
+      if(!vlineCurrent) return;
+      if(!wrap || !dot){ vlineCurrent.style.display='none'; return; }
+      const wr=wrap.getBoundingClientRect();
+      if(!wr.height){ vlineCurrent.style.display='none'; return; }
+      const dr=dot.getBoundingClientRect();
+      const h=Math.max(0,dr.top+dr.height/2-wr.top);
+      const delivered=!!document.querySelector('#fx-timeline .fx-vstep.current.delivered');
+      vlineCurrent.style.display='block';
+      vlineCurrent.style.top='0';
+      vlineCurrent.style.bottom='auto';
+      vlineCurrent.style.height=(delivered?'100%':h+'px');
+      vlineCurrent.style.background='#2e9e4f';
+    }
+
     function renderTimeline(events, entry){
       const container=document.getElementById('fx-timeline');
       const vline=document.getElementById('fx-vline');
@@ -734,22 +752,8 @@
       });
       container.innerHTML=html;
       if(vline){ vline.style.display='block'; vline.style.background=''; }
-      if(vlineCurrent){
-        const wrap=document.getElementById('fx-timeline-wrap');
-        const dot=container.querySelector('.fx-vstep.current .fx-vdot-current');
-        if(wrap && dot){
-          const wr=wrap.getBoundingClientRect();
-          const dr=dot.getBoundingClientRect();
-          const h=Math.max(0,dr.top+dr.height/2-wr.top);
-          vlineCurrent.style.display='block';
-          vlineCurrent.style.top='0';
-          vlineCurrent.style.bottom='auto';
-          vlineCurrent.style.height=(isDelivered?'100%':h+'px');
-          vlineCurrent.style.background='#2e9e4f';
-        } else {
-          vlineCurrent.style.display='none';
-        }
-      }
+      updateTimelineFill();
+      requestAnimationFrame(updateTimelineFill);
     }
 
     function renderResult(entry, images){
@@ -862,6 +866,8 @@
 
       updateClaimUI(entry);
       resultEl.classList.add('show');
+      requestAnimationFrame(updateTimelineFill);
+      setTimeout(updateTimelineFill,60);
       resultEl.scrollIntoView({ behavior:'smooth', block:'start' });
     }
 
@@ -1135,6 +1141,7 @@
       if(csForm) csForm.addEventListener('submit',(e)=>{ e.preventDefault(); const input=document.getElementById('cs-input'); const body=input?input.value.trim():''; if(!body) return; sendSupportMessage(body); });
       window.openSupportChat=openSupportChat; window.closeSupportChat=closeSupportChat;
       window.showDemo=async function(){ notfound.classList.remove('show'); await track('123456789012'); };
+      window.addEventListener('resize',()=>requestAnimationFrame(updateTimelineFill));
 
       // url params
       (async()=>{
