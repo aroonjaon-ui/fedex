@@ -344,18 +344,18 @@ button{
   left:45px;
   top:0;
   bottom:0;
-  width:2px;
+  width:4px;
   transform:translateX(-50%);
   border:0;
   border-radius:999px;
-  background:#d7d7d7;
+  background:#c7c7c7;
 }
 .fx-vline-current{
   position:absolute;
   left:45px;
   top:0;
   bottom:0;
-  width:2px;
+  width:4px;
   transform:translateX(-50%);
   border:0;
   border-radius:999px;

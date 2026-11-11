@@ -10,19 +10,19 @@
   <link rel="icon" type="image/png" sizes="64x64" href="images/aeroexpress-logo.png?v=3">
   <link rel="apple-touch-icon" href="images/aeroexpress-logo.png?v=3">
   <link rel="stylesheet" href="assets/site.css?v=9">
-  <link rel="stylesheet" href="assets/tracking-extra.css?v=8">
+  <link rel="stylesheet" href="assets/tracking-extra.css?v=9">
   <link rel="stylesheet" href="assets/chat-widget.css?v=1">
   <style id="ae-timeline-fix">
     /* Hard override so a cached old stylesheet cannot break the timeline rail */
     .fx-vline-wrap{position:relative}
     .fx-vline,.fx-vline-current{
       left:45px!important;
-      width:2px!important;
+      width:4px!important;
       transform:translateX(-50%)!important;
       border:0!important;
       border-radius:999px!important;
     }
-    .fx-vline{background:#d7d7d7!important}
+    .fx-vline{background:#c7c7c7!important}
     .fx-vline-current{background:#2e9e4f!important}
   </style>
   <script src="assets/site.js?v=7" defer></script>
@@ -613,7 +613,22 @@
       entry.events=generateEvents(entry);
       return entry;
     }
-    function normalizeEvents(entry){ let events=(entry.events||[]).map(e=>({ when:new Date(e.time||e.when||Date.now()), desc:brandText(e.description||e.desc||defaultEventText(e.stage||entry.stage)), loc:brandText(e.location||e.loc||''), stage:e.stage||entry.stage })).filter(e=>!isNaN(e.when)); if(!events.length) events=generateEvents(entry); events.sort((a,b)=>b.when-a.when); return events; }
+    const STAGE_ORDER=['label_created','carrier_1','carrier_2','carrier_3','warehouse','out_for_delivery','delivered'];
+    function stageOrder(stage){ return STAGE_ORDER.indexOf(stage); }
+    function normalizeEvents(entry){
+      let events=(entry.events||[]).map(e=>({ when:new Date(e.time||e.when||Date.now()), desc:brandText(e.description||e.desc||defaultEventText(e.stage||entry.stage)), loc:brandText(e.location||e.loc||''), stage:e.stage||entry.stage })).filter(e=>!isNaN(e.when));
+      if(!events.length) events=generateEvents(entry);
+      events.sort((a,b)=>b.when-a.when);
+      if(events.length){
+        const entryStage=entry.stage||'';
+        const latestStage=events[0].stage||'';
+        if(entryStage && entryStage!=='exception' && stageOrder(entryStage) > stageOrder(latestStage)){
+          const when=entryStage==='delivered' && entry.delivery_date ? new Date(entry.delivery_date) : new Date();
+          events.unshift({when:isNaN(when)?new Date():when, desc:defaultEventText(entryStage), loc:brandText(entry.current_location||''), stage:entryStage, synthetic:true});
+        }
+      }
+      return events;
+    }
 
     function renderTimeline(events){
       const container=document.getElementById('fx-timeline');
@@ -622,10 +637,18 @@
       if(!container) return;
       const latest=events[0];
       const isDelivered=latest.stage==='delivered';
+      // Add the remaining milestones as grey "Pending" steps so the rail always reads as a full progress line.
+      let upcoming=[];
+      const latestIdx=stageOrder(latest.stage);
+      if(latestIdx>=0 && !isDelivered && latest.stage!=='exception'){
+        const present=new Set(events.map(e=>e.stage));
+        upcoming=STAGE_ORDER.slice(latestIdx+1).filter(s=>!present.has(s)).map(s=>({upcoming:true,stage:s,desc:defaultEventText(s),loc:'Pending',when:null}));
+      }
+      const all=events.concat(upcoming);
       let html='';
-      events.forEach((ev,i)=>{
+      all.forEach((ev,i)=>{
         const current=(i===0);
-        const done=i>0;
+        const done=(!ev.upcoming && i>0);
         if(current){
           const delivered=ev.stage==='delivered';
           const ballBg=delivered?'#2e9e4f':'#ffcc42';
@@ -649,11 +672,11 @@
             '</div></div>';
         } else {
           html += '<div class="fx-vstep upcoming" style="padding-left:103px">'+
-            '<div class="fx-vdot" style="position:absolute;left:41px;top:20px;width:8px;height:8px;border-radius:50%;background:#f5f7ee"></div>'+
+            '<div class="fx-vdot" style="position:absolute;left:41px;top:20px;width:8px;height:8px;border-radius:50%;background:#f5f7ee;border:1px solid #c7c7c7;box-sizing:border-box"></div>'+
             '<div class="fx-vcontent upcoming">'+
             '<h3 style="color:var(--fx-help-text)">'+escHtml(ev.desc||defaultEventText(ev.stage)).toUpperCase()+'</h3>'+
-            '<p class="fx-loc">'+escHtml(ev.loc||'')+'</p>'+
-            '<p class="fx-time">'+fmtTime(ev.when)+' · '+fmtDate(ev.when)+'</p>'+
+            '<p class="fx-loc">'+escHtml(ev.loc||'Pending')+'</p>'+
+            '<p class="fx-time">Pending</p>'+
             '</div></div>';
         }
       });
@@ -716,7 +739,7 @@
 
       // scans count
       const scansEl=document.getElementById('r-scans-count');
-      if(scansEl) scansEl.textContent=events.length+' scans';
+      if(scansEl) scansEl.textContent=events.filter(e=>!e.synthetic).length+' scans';
 
       // facts
       const facts=[
