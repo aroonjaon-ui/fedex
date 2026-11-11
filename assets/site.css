@@ -455,6 +455,10 @@ table.data tr:hover td{background:#faf7fe}
   .account-head .btn{margin-left:0}
   .progress-rail .step{font-size:9px;line-height:1.25}
   .admin-header-title{display:none}
+  .header-account{display:none}
+  .site-header .logo{font-size:24px}
+  .site-header .header-inner{gap:12px}
+  .admin-site-header .header-cta{display:inline-block;padding:8px 12px;font-size:13px}
   .input-compact{max-width:100%}
   .card-head-row{flex-direction:column}
 }
