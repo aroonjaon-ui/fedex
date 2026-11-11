@@ -388,10 +388,22 @@
     const SUPPORT_PREFIX='CS-';
     let currentUser=null;
 
-    function supportCode(user){ return SUPPORT_PREFIX + user.id; }
-    function supportDisplayName(){ return currentUser ? (currentUser.user_metadata && currentUser.user_metadata.full_name) || currentUser.email : 'Customer'; }
+    function supportCode(user){
+      let id='';
+      try{ id=localStorage.getItem('ae_support_id')||''; }catch(e){}
+      if(!id){
+        id = (user && user.id) ? user.id : 'guest-' + (window.crypto && crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36)+Math.random().toString(36).slice(2));
+        try{ localStorage.setItem('ae_support_id', id); }catch(e){}
+      }
+      return SUPPORT_PREFIX + id;
+    }
+    function supportDisplayName(){
+      if(currentUser) return (currentUser.user_metadata && currentUser.user_metadata.full_name) || currentUser.email;
+      let id=''; try{ id=localStorage.getItem('ae_support_id')||''; }catch(e){}
+      return id ? 'Guest '+id.slice(-4).toUpperCase() : 'Guest';
+    }
     function supportMeta(t){ return { kind:'support_chat', user_name:t.user_name||supportDisplayName(), user_email:t.user_email||(currentUser?currentUser.email:''), messages:t.messages||[], updated_at:t.updated_at||new Date().toISOString() }; }
-    function supportThreadFromRow(row){ const st = typeof row.status === 'string' ? JSON.parse(row.status || '{}') : (row.status||{}); return { code: row.tracking_code, messages: st.messages||[], user_name: st.user_name||'Customer', user_email: st.user_email||'Signed-in customer', created_at: row.created_at, updated_at: st.updated_at||row.created_at }; }
+    function supportThreadFromRow(row){ const st = typeof row.status === 'string' ? JSON.parse(row.status || '{}') : (row.status||{}); return { code: row.tracking_code, messages: st.messages||[], user_name: st.user_name||'Guest', user_email: st.user_email||'', created_at: row.created_at, updated_at: st.updated_at||row.created_at }; }
     function supportUnreadForUser(t){ if(!t) return 0; return (t.messages||[]).filter(m=>m.role==='admin'&&!m.read_by_user).length; }
     function chatId(){ return 'msg_' + Date.now() + '_' + Math.random().toString(36).slice(2,9); }
     function fmtChatTime(iso){ if(!iso) return ''; try{ return new Date(iso).toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}); }catch(e){ return iso; } }
@@ -400,8 +412,10 @@
     function updateSupportBadge(n){ if(CS_BADGE){ CS_BADGE.textContent=n>0?String(n):'0'; CS_BADGE.style.display=n>0?'flex':'none'; } }
     function renderSupportChat(){
       if(!CS_MESSAGES) return;
-      if(!currentUser){ CS_MESSAGES.innerHTML='<p class="cs-empty">Log in to message customer service.</p>'; if(CS_LOGIN) CS_LOGIN.style.display='block'; if(CS_FORM) CS_FORM.style.display='none'; updateSupportBadge(0); return; }
-      if(CS_LOGIN) CS_LOGIN.style.display='none';
+      if(CS_LOGIN){
+        CS_LOGIN.style.display = currentUser ? 'none' : 'block';
+        if(!currentUser) CS_LOGIN.innerHTML='Chatting as a guest — no account needed. <a href="#" onclick="openAuth(); return false;">Log in</a> to link this chat to your account.';
+      }
       if(CS_FORM) CS_FORM.style.display='flex';
       if(CS_SEND) CS_SEND.style.display='inline-block';
       const messages=(csThread&&csThread.messages)||[];
@@ -410,22 +424,31 @@
       CS_MESSAGES.scrollTop=CS_MESSAGES.scrollHeight;
     }
     async function loadSupportThread(silent){
-      if(!currentUser){ csThread=null; renderSupportChat(); return; }
       if(csLoading) return;
       csLoading=true;
       try{
         const code=supportCode(currentUser);
         const res=await db.from('tracking_entries').select('*').eq('tracking_code',code).maybeSingle();
         if(res.error){ if(!silent) console.log(res.error.message); return; }
-        if(res.data && res.data.carrier==='support_chat'){ csThread=supportThreadFromRow(res.data); }
-        else if(!res.data){ csThread={ code:code, messages:[], user_name:supportDisplayName(), user_email:currentUser.email||'', created_at:null, updated_at:null }; }
-        else { csThread={ code:code, messages:[], user_name:supportDisplayName(), user_email:currentUser.email||'', created_at:null, updated_at:null }; }
+        if(res.data && res.data.carrier==='support_chat'){
+          csThread=supportThreadFromRow(res.data);
+          if(currentUser && currentUser.id){
+            const meta=supportMeta({user_name:supportDisplayName(),user_email:currentUser.email||'',messages:csThread.messages||[]});
+            if(!res.data.user_id || csThread.user_name==='Guest' || /^Guest /.test(csThread.user_name) || !csThread.user_email){
+              try{ await db.from('tracking_entries').update({user_id:currentUser.id,status:JSON.stringify(meta)}).eq('tracking_code',code); }catch(e){}
+              csThread.user_name=supportDisplayName();
+              csThread.user_email=currentUser.email||'';
+            }
+          }
+        }
+        else if(!res.data){ csThread={ code:code, messages:[], user_name:supportDisplayName(), user_email:currentUser?currentUser.email:'', created_at:null, updated_at:null }; }
+        else { csThread={ code:code, messages:[], user_name:supportDisplayName(), user_email:currentUser?currentUser.email:'', created_at:null, updated_at:null }; }
         renderSupportChat();
         if(csOpen) await markSupportReadForUser();
       }catch(e){ if(!silent) console.log('support load error',e.message); } finally { csLoading=false; }
     }
     async function markSupportReadForUser(){
-      if(!currentUser||!csThread) return;
+      if(!csThread) return;
       const hasUnread=(csThread.messages||[]).some(m=>m.role==='admin'&&!m.read_by_user);
       if(!hasUnread) return;
       csThread.messages=csThread.messages.map(m=>m.role==='admin'?Object.assign({},m,{read_by_user:true}):m);
@@ -433,7 +456,6 @@
       try{ await db.from('tracking_entries').update({status:JSON.stringify(supportMeta(csThread))}).eq('tracking_code',csThread.code); }catch(e){}
     }
     async function sendSupportMessage(body){
-      if(!currentUser){ openAuth(); return; }
       body=String(body||'').trim(); if(!body) return;
       CS_SEND.disabled=true; CS_SEND.textContent='Sending…';
       try{
@@ -442,25 +464,27 @@
         if(res.error) throw new Error(res.error.message);
         let thread;
         if(res.data){ if(res.data.carrier!=='support_chat') throw new Error('This support channel is unavailable.'); thread=supportThreadFromRow(res.data); }
-        else { thread={ code:code, messages:[], user_name:supportDisplayName(), user_email:currentUser.email||'', created_at:null, updated_at:null }; }
+        else { thread={ code:code, messages:[], user_name:supportDisplayName(), user_email:currentUser?currentUser.email:'', created_at:null, updated_at:null }; }
         const msg={ id:chatId(), role:'user', body:body, at:new Date().toISOString(), read_by_admin:false, read_by_user:true };
-        thread.messages.push(msg); thread.updated_at=msg.at; thread.user_name=thread.user_name||supportDisplayName(); thread.user_email=thread.user_email||currentUser.email||'';
+        thread.messages.push(msg); thread.updated_at=msg.at; thread.user_name=thread.user_name||supportDisplayName(); thread.user_email=thread.user_email||(currentUser?currentUser.email:'');
         const meta=supportMeta(thread);
+        const patch={status:JSON.stringify(meta)};
+        if(currentUser && currentUser.id) patch.user_id=currentUser.id;
         let write;
-        if(res.data){ write=await db.from('tracking_entries').update({status:JSON.stringify(meta)}).eq('tracking_code',code).select(); }
-        else { write=await db.from('tracking_entries').insert([{ tracking_code:code, user_id:currentUser.id, carrier:'support_chat', status:JSON.stringify(meta)}]).select(); }
+        if(res.data){ write=await db.from('tracking_entries').update(patch).eq('tracking_code',code).select(); }
+        else { write=await db.from('tracking_entries').insert([{ tracking_code:code, user_id:currentUser?currentUser.id:null, carrier:'support_chat', status:JSON.stringify(meta)}]).select(); }
         if(write.error) throw new Error(write.error.message);
         csThread=thread; CS_INPUT.value=''; renderSupportChat(); if(csOpen) await markSupportReadForUser();
       }catch(e){ alert('Could not send message: '+e.message); } finally { CS_SEND.disabled=false; CS_SEND.textContent='Send'; }
     }
-    function openSupportChat(){ if(!CS_PANEL) return; csOpen=true; CS_PANEL.classList.add('open'); if(CS_BTN) CS_BTN.setAttribute('aria-expanded','true'); renderSupportChat(); if(currentUser){ loadSupportThread(true); if(CS_INPUT) CS_INPUT.focus(); } }
+    function openSupportChat(){ if(!CS_PANEL) return; csOpen=true; CS_PANEL.classList.add('open'); if(CS_BTN) CS_BTN.setAttribute('aria-expanded','true'); renderSupportChat(); loadSupportThread(true); if(CS_INPUT) setTimeout(()=>CS_INPUT.focus(),80); }
     function closeSupportChat(){ csOpen=false; if(CS_PANEL) CS_PANEL.classList.remove('open'); if(CS_BTN) CS_BTN.setAttribute('aria-expanded','false'); }
     if(CS_BTN) CS_BTN.addEventListener('click',()=>{ if(csOpen) closeSupportChat(); else openSupportChat(); });
     if(CS_CLOSE) CS_CLOSE.addEventListener('click',closeSupportChat);
     if(CS_FORM) CS_FORM.addEventListener('submit',(e)=>{ e.preventDefault(); sendSupportMessage(CS_INPUT?CS_INPUT.value:''); });
     (async()=>{ try{ const {data}=await db.auth.getSession(); currentUser=(data&&data.session&&data.session.user)||null; }catch(e){ currentUser=null; } renderSupportChat(); })();
-    db.auth.onAuthStateChange((_event,session)=>{ currentUser=(session&&session.user)||null; renderSupportChat(); if(currentUser&&csOpen) loadSupportThread(true); });
-    csPollTimer=setInterval(()=>{ if(csOpen&&currentUser){ loadSupportThread(true); } },4000);
+    db.auth.onAuthStateChange((_event,session)=>{ currentUser=(session&&session.user)||null; renderSupportChat(); if(csOpen) loadSupportThread(true); });
+    csPollTimer=setInterval(()=>{ if(csOpen){ loadSupportThread(true); } },4000);
     });
   </script>
 
@@ -485,7 +509,7 @@
         <input class="input" id="cs-input" type="text" placeholder="Type your message…" autocomplete="off" maxlength="2000" required aria-label="Message customer service">
         <button class="btn btn-purple" id="cs-send" type="submit">Send</button>
       </form>
-      <p class="cs-login" id="cs-login">Log in to message customer service. <a href="#" onclick="openAuth(); return false;">Log in</a></p>
+      <p class="cs-login" id="cs-login">Chatting as a guest — no account needed. <a href="#" onclick="openAuth(); return false;">Log in</a> to link this chat to your account.</p>
     </section>
   </div>
 
