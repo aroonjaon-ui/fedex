@@ -10,7 +10,7 @@
   <link rel="icon" type="image/png" sizes="64x64" href="images/aeroexpress-logo.png?v=3">
   <link rel="apple-touch-icon" href="images/aeroexpress-logo.png?v=3">
   <link rel="stylesheet" href="assets/site.css?v=11">
-  <link rel="stylesheet" href="assets/tracking-extra.css?v=10">
+  <link rel="stylesheet" href="assets/tracking-extra.css?v=11">
   <link rel="stylesheet" href="assets/chat-widget.css?v=1">
   <style id="ae-timeline-fix">
     /* Hard override so a cached old stylesheet cannot break the timeline rail */
@@ -689,18 +689,16 @@
         const ex=realByStage.get('exception')||{desc:defaultEventText('exception'),loc:entry.current_location||'',when:null};
         all.push({stage:'exception',desc:ex.desc,loc:ex.loc,when:ex.when||null,current:true});
         const pastIdx=Math.max(0,...events.map(e=>stageOrder(e.stage)).filter(i=>i>=0));
-        for(let i=pastIdx;i>=0;i--){
+        for(let i=0;i<=pastIdx;i++){
           const key=STAGE_ORDER[i];
-          if(realByStage.has(key)||genByStage.has(key)) all.push(milestone(key));
+          all.push(Object.assign(milestone(key),{done:true}));
         }
       } else if(currentIdx>=0){
-        for(let i=currentIdx;i>=0;i--){
+        for(let i=0;i<STAGE_ORDER.length;i++){
           const key=STAGE_ORDER[i];
-          all.push(Object.assign(milestone(key),{current:i===currentIdx}));
-        }
-        for(let i=currentIdx+1;i<STAGE_ORDER.length;i++){
-          const key=STAGE_ORDER[i];
-          all.push({stage:key,desc:defaultEventText(key),loc:'Pending',when:null,upcoming:true});
+          if(i<currentIdx) all.push(Object.assign(milestone(key),{done:true}));
+          else if(i===currentIdx) all.push(Object.assign(milestone(key),{current:true}));
+          else all.push({stage:key,desc:defaultEventText(key),loc:'Pending',when:null,upcoming:true});
         }
       } else {
         events.forEach((e,i)=>all.push(Object.assign({},e,{current:i===0})));
@@ -710,7 +708,7 @@
         const delivered=ev.stage==='delivered';
         if(ev.current){
           html += '<div class="fx-vstep current'+(delivered?' delivered':'')+'">'+
-            '<div class="fx-vdot-current'+(delivered?' delivered':'')+'">'+(delivered?'&#10003;':'!')+'</div>'+
+            '<div class="fx-vdot-current'+(delivered?' delivered':'')+'">'+(delivered?'&#10003;':'<span class="fx-dot-core"></span>')+'</div>'+
             '<div class="fx-vcontent current">'+
             '<h3>'+escHtml(delivered?'DELIVERED':(ev.desc||defaultEventText(ev.stage)).toUpperCase())+'</h3>'+
             '<p class="fx-loc">'+escHtml(ev.loc||'')+'</p>'+
@@ -734,9 +732,24 @@
             '</div></div>';
         }
       });
-      if(vline){ vline.style.display='block'; vline.style.background = isDelivered ? '#2e9e4f' : ''; }
-      if(vlineCurrent) vlineCurrent.style.display='none';
       container.innerHTML=html;
+      if(vline){ vline.style.display='block'; vline.style.background=''; }
+      if(vlineCurrent){
+        const wrap=document.getElementById('fx-timeline-wrap');
+        const dot=container.querySelector('.fx-vstep.current .fx-vdot-current');
+        if(wrap && dot){
+          const wr=wrap.getBoundingClientRect();
+          const dr=dot.getBoundingClientRect();
+          const h=Math.max(0,dr.top+dr.height/2-wr.top);
+          vlineCurrent.style.display='block';
+          vlineCurrent.style.top='0';
+          vlineCurrent.style.bottom='auto';
+          vlineCurrent.style.height=(isDelivered?'100%':h+'px');
+          vlineCurrent.style.background='#2e9e4f';
+        } else {
+          vlineCurrent.style.display='none';
+        }
+      }
     }
 
     function renderResult(entry, images){
