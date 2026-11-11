@@ -236,9 +236,10 @@ textarea.input{min-height:96px;resize:vertical}
 .stat .num{font-size:30px;font-weight:800;color:var(--aeroexpress-purple);line-height:1}
 .stat .lbl{font-size:13px;color:var(--gray-500);margin-top:6px}
 .admin-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:24px;align-items:start}
+.admin-grid>div{min-width:0}
 .card{background:#fff;border:1px solid var(--gray-200);border-radius:14px;padding:22px;box-shadow:var(--shadow);margin-bottom:24px;scroll-margin-top:90px}
 .card h2{margin:0 0 16px;font-size:17px;color:var(--aeroexpress-purple)}
-.table-wrap{overflow-x:auto}
+.table-wrap{overflow-x:auto;max-width:100%}
 table.data{width:100%;border-collapse:collapse;font-size:14px}
 table.data th,table.data td{padding:12px 10px;text-align:left;border-bottom:1px solid var(--gray-200);vertical-align:middle}
 table.data th{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--gray-500);font-weight:700;background:var(--gray-100)}
