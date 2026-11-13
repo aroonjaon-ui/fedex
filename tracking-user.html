@@ -819,11 +819,11 @@
       // notes
       const notesEl=document.getElementById('fx-notes-display');
       if(notesEl){
-        // notes live inside the status JSON; fall back to entry.notes if present
+        // notes live inside the status JSON (supplied by admin portal); fall back to entry.notes if present
         let notes='';
-        if(entry.status && typeof entry.status==='string'){
+        if(entry.status_json && typeof entry.status_json==='string'){
           try{
-            const st=JSON.parse(entry.status);
+            const st=JSON.parse(entry.status_json);
             notes=st.notes||'';
           }catch(e){}
         }
