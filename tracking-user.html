@@ -819,14 +819,15 @@
       // notes
       const notesEl=document.getElementById('fx-notes-display');
       if(notesEl){
-        // try entry.notes first, then fall back to status JSON notes
-        let notes=entry.notes||'';
-        if(!notes && entry.status_json && typeof entry.status_json==='string'){
+        // notes live inside the status JSON; fall back to entry.notes if present
+        let notes='';
+        if(entry.status && typeof entry.status==='string'){
           try{
-            const st=JSON.parse(entry.status_json);
+            const st=JSON.parse(entry.status);
             notes=st.notes||'';
           }catch(e){}
         }
+        if(!notes && entry.notes) notes=String(entry.notes);
         if(notes){
           notesEl.style.display='block';
           notesEl.textContent=notes;
@@ -864,6 +865,7 @@
         ['Total pieces',entry.pieces||1],
         ['Packaging',entry.packaging||'—'],
         ['Date shipped',shippedDate],
+        ['Shipment creation date', entry.shipment_date || '—'],
         ['Estimated delivery',eta],
         ['Shipped from',origin],
         ['Destination',dest]
