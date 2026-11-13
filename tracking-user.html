@@ -819,7 +819,14 @@
       // notes
       const notesEl=document.getElementById('fx-notes-display');
       if(notesEl){
-        const notes=entry.notes||'';
+        // try entry.notes first, then fall back to status JSON notes
+        let notes=entry.notes||'';
+        if(!notes && entry.status_json && typeof entry.status_json==='string'){
+          try{
+            const st=JSON.parse(entry.status_json);
+            notes=st.notes||'';
+          }catch(e){}
+        }
         if(notes){
           notesEl.style.display='block';
           notesEl.textContent=notes;
