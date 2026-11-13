@@ -182,6 +182,11 @@
                 <label for="f-date">Estimated / delivery date</label>
                 <input class="input" id="f-date" type="date">
               </div>
+
+              <div class="field">
+                <label for="f-shipped-date">Shipment creation date</label>
+                <input class="input" id="f-shipped-date" type="date">
+              </div>
             </div>
 
             <div class="field">
@@ -464,6 +469,7 @@
         signed_by: model.signed_by || '',
         notes: model.notes || '',
         delivery_date: model.delivery_date || null,
+        shipment_date: model.shipment_date || null,
         events: model.events || [],
         claimed_at: model.claimed_at || null
       };
@@ -693,6 +699,7 @@
           status: stageToStatus(stage),
           current_location: location,
           delivery_date: document.getElementById('f-date').value || null,
+          shipment_date: document.getElementById('f-shipped-date').value || null,
           service: document.getElementById('f-service').value.trim(),
           origin: document.getElementById('f-origin').value.trim(),
           destination: document.getElementById('f-destination').value.trim(),
