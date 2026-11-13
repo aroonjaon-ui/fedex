@@ -849,13 +849,14 @@
         ['Total pieces',entry.pieces||1],
         ['Packaging',entry.packaging||'—'],
         ['Date shipped',shippedDate],
-        ['Shipment creation date', entry.shipment_date || '—'],
+        ['Shipment creation date', entry.shipment_date || entry.ship_date || '—'],
         ['Estimated delivery',eta],
         ['Shipped from',origin],
         ['Destination',dest]
       ];
       if(status==='delivered'&&deliveredDate) facts.push(['Delivered on',deliveredDate]);
       if(status==='delivered'&&entry.signed_by) facts.push(['Signed for by',entry.signed_by]);
+        if(status==='delivered'&&!entry.signed_by && entry.ship_signed) facts.push(['Signed for by',entry.ship_signed]);
       document.getElementById('r-facts').innerHTML=facts.map(f=>'<div class="fact"><span class="k">'+escHtml(f[0])+'</span><span class="v">'+escHtml(f[1])+'</span></div>').join('');
       document.getElementById('r-service-pill').textContent=service;
 

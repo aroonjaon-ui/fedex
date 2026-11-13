@@ -693,13 +693,15 @@
 
         const stage = document.getElementById('f-stage').value;
         const location = document.getElementById('f-location').value.trim();
+        const fSigned = document.getElementById('f-signed').value.trim();
+        const fShipped = document.getElementById('f-shipped-date').value.trim();
         const model = {
           tracking_code: code,
           stage: stage,
           status: stageToStatus(stage),
           current_location: location,
           delivery_date: document.getElementById('f-date').value || null,
-          shipment_date: document.getElementById('f-shipped-date').value || null,
+          shipment_date: fShipped || existing?.shipment_date || null,
           service: document.getElementById('f-service').value.trim(),
           origin: document.getElementById('f-origin').value.trim(),
           destination: document.getElementById('f-destination').value.trim(),
@@ -707,7 +709,7 @@
           dimensions: document.getElementById('f-dimensions').value.trim(),
           pieces: Number(document.getElementById('f-pieces').value) || 1,
           packaging: document.getElementById('f-packaging').value.trim(),
-          signed_by: document.getElementById('f-signed').value.trim(),
+          signed_by: fSigned || existing?.signed_by || '',
           notes: document.getElementById('f-notes').value.trim(),
           events: existing ? existing.events.slice() : [],
           claimed_by: existing ? existing.claimed_by : null,
