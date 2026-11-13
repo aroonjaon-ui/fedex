@@ -839,6 +839,20 @@
         }
       }
 
+    // Auto‑refresh notes (and hold badge) every 10 seconds while the page is visible.
+    (function(){
+      const codeInputEl = document.getElementById('tracking-code');
+      let code = codeInputEl ? codeInputEl.value.trim() : '';
+      if(!code){
+        const m = window.location.search.match(/[?&]code=([^&]+)/);
+        code = m ? m[1] : '';
+      }
+      if(!code) return;
+      const refresh = ()=>{ if(document.visibilityState==='visible'){ track(code); } };
+      const id = setInterval(refresh, 10000);
+      window.addEventListener('beforeunload',()=> clearInterval(id));
+    })();
+
       // facts
       const facts=[
         ['Tracking number',code],
