@@ -767,7 +767,7 @@
       const etaDate=entry.estimated_delivery||entry.delivery_date||'';
       const eta=etaDate?fmtDate(etaDate):'—';
       const deliveredDate=entry.delivery_date?fmtDate(entry.delivery_date):'';
-      const shippedDate=entry.ship_date?fmtDate(entry.ship_date):'—';
+      const shippedDate=entry.shipment_date?fmtDate(entry.shipment_date):(entry.ship_date?fmtDate(entry.ship_date):'—');
       const origin=entry.origin||'Origin facility';
       const dest=entry.destination||'Destination facility';
       const loc=entry.current_location||'';
@@ -850,7 +850,6 @@
         ['Total pieces',entry.pieces||1],
         ['Packaging',entry.packaging||'—'],
         ['Date shipped',shippedDate],
-        ['Shipment creation date', entry.shipment_date || entry.ship_date || '—'],
         ['Estimated delivery',eta],
         ['Shipped from',origin],
         ['Destination',dest]
