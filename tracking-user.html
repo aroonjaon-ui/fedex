@@ -177,6 +177,10 @@
             <div id="fx-timeline"></div>
           </div>
 
+          <!-- Notes (admin internal) -->
+          <div class="fx-notes" id="fx-notes-display" style="display:none;margin-top:12px;padding:8px 10px;border-radius:6px;background:#f8f9fa;border:1px solid #e3e6e9;font-size:14px;color:#343a40;"></div>
+          <span class="pill" id="fx-hold-badge" style="display:none; margin-left:8px;">Hold</span>
+
           <div class="panel">
             <div class="panel-head">
               <h2>Shipment facts</h2>
@@ -811,6 +815,22 @@
       // scans count
       const scansEl=document.getElementById('r-scans-count');
       if(scansEl) scansEl.textContent=events.filter(e=>!e.synthetic).length+' scans';
+
+      // notes
+      const notesEl=document.getElementById('fx-notes-display');
+      if(notesEl){
+        const notes=entry.notes||'';
+        if(notes){
+          notesEl.style.display='block';
+          notesEl.textContent=notes;
+          const holdEl=document.getElementById('fx-hold-badge');
+          if(holdEl){
+            holdEl.style.display=/hold/i.test(notes)?'inline-flex':'none';
+          }
+        } else {
+          notesEl.style.display='none';
+        }
+      }
 
       // facts
       const facts=[
